@@ -1,0 +1,304 @@
+body {
+    font: 12px normal, "Segoe UI", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+    background-color: #FFF;
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    min-height: 100%;
+    overflow: hidden;
+}
+
+* {
+    -moz-box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+}
+
+input {
+    font: 12px normal, "Segoe UI", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+}
+
+/* Container */
+
+.scroll-container {
+    padding: 8px;
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    overflow: auto;
+}
+
+.tree-container {
+    padding: 8px;
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    overflow: auto;
+}
+
+.split-container {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    overflow: hidden;
+}
+
+.split-container>div {
+    border: 1px solid #CCC;
+    position: absolute;
+}
+
+.split-container .divider {
+    background-color: #DDD;
+    border: none;
+    left: calc(50% - 2px);
+    right: unset;
+}
+
+.split-container>div:first-child {
+    right: unset;
+}
+
+.split-container>div:last-child {
+    left: unset;
+}
+
+
+
+/* Tree */
+
+.tree-node {
+    -webkit-transition: max-height 0.5s;
+    -moz-transition: max-height 0.5s;
+    -ms-transition: max-height 0.5s;
+    -o-transition: max-height 0.5s;
+    transition: max-height 0.5s;
+    max-height: 26px;
+    overflow: hidden;
+}
+
+.tree-header {
+    align-items: center;
+    display: flex;
+    cursor: pointer;
+    height: 26px;
+}
+
+.tree-header .icon {
+    font-size: 16px;
+    padding: 0 0 0 8px;
+}
+
+.tree-header .text {
+    align-items: center;
+    display: inline-flex;
+    height: 26px;
+}
+
+.tree-node.selected>.tree-header {
+    background-color: #EFEFFF;
+}
+
+.tree-node.expanded {
+    -webkit-transition: max-height 1s;
+    -moz-transition: max-height 1s;
+    -ms-transition: max-height 1s;
+    -o-transition: max-height 1s;
+    transition: max-height 1s;
+    max-height: 1000px;
+}
+
+.tree-node.tree-node-level-2>.tree-header {
+    padding-left: 16px;
+}
+
+.tree-node.tree-node-level-3>.tree-header {
+    padding-left: 32px;
+}
+
+.tree-node.tree-node-level-4>.tree-header {
+    padding-left: 48px;
+}
+
+.tree-node.tree-node-level-5>.tree-header {
+    padding-left: 64px;
+}
+
+
+/* Menu */
+
+.menu {
+    display: inline-flex;
+    position: relative;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.menu > div {
+    vertical-align: top;
+}
+
+.menu .text {
+    padding: 4px 8px;
+}
+
+.menu-group {
+    background-color: #FAFAFA;
+    border: 1px solid #CCC;
+    display: none;
+    position: absolute;
+    top: 24px;
+}
+
+.menu-group .menu {
+    display: flex;
+}
+
+.menu-group .menu-group {
+    left: 100%;
+    top: 0;
+}
+
+
+.menu:hover > .menu-group {
+    display: initial;
+}
+
+
+
+/* Expander */
+
+.expander {
+    border: 0.5px solid #CCC;
+    padding: 8px;
+    margin-bottom: 8px;
+    overflow: hidden;
+
+    -webkit-transition: max-height 0.5s;
+    -moz-transition: max-height 0.5s;
+    -ms-transition: max-height 0.5s;
+    -o-transition: max-height 0.5s;
+    transition: max-height 0.5s;
+    max-height: 25px;
+}
+
+.expander.expanded {
+    -webkit-transition: max-height 1s;
+    -moz-transition: max-height 1s;
+    -ms-transition: max-height 1s;
+    -o-transition: max-height 1s;
+    transition: max-height 1s;
+    max-height: 1000px;
+}
+
+.expander>.expander {
+    border: none;
+    padding: 0;
+}
+
+.expander>.expander>.header {
+    background-color: transparent;
+    border: none;
+    margin: 8px -8px 8px -8px;
+}
+
+.expander>.expander:last-child {
+    margin-bottom: 0;
+}
+
+.expander>.header {
+    background-color: #EEE;
+    border-bottom: 0.5px solid #CCC;
+    font-weight: bold;
+    display: flex;
+    padding: 4px 8px 4px 16px;
+    margin: -8px -8px 8px -8px;
+}
+
+.expander>.header>.icon {
+    margin-left: auto;
+}
+
+
+/* Input */
+
+.input {
+    display: flex;
+    margin-bottom: 4px;
+}
+
+.input>div {
+    padding: 2px 8px;
+    width: 50%;
+}
+
+.input>input {
+    border: 1px solid #CCC;
+    height: 22px;
+    padding: 0 4px;
+    width: 50%;
+}
+
+
+
+/* Icons */
+
+.mdi-book-information-variant {
+    color: darkorange;
+    margin-right: 4px;
+}
+
+
+
+/* Theme */
+
+@media (prefers-color-scheme: dark) {
+    body {
+        background-color: #333;
+        color: white;
+    }
+
+    .expander>.header {
+        background-color: #2A2A2A;
+        border-bottom: 0.5px solid #444;
+    }
+
+    input {
+        background-color: #333;
+        color: #FFF;
+    }
+
+    .input>input {
+        border: 1px solid #555;
+    }
+
+    .expander {
+        border: 0.5px solid #555;
+    }
+
+    .split-container>div {
+        border: 1px solid #555;
+    }
+
+    .tree-node.selected>.tree-header {
+        background-color: #444;
+    }
+
+    .split-container .divider {
+        background-color: #222;
+    }
+
+    .menu-group {
+        background-color: #444444;
+        border: 1px solid #888888;
+        display: none;
+        position: absolute;
+        top: 24px;
+    }
+}
