@@ -4,6 +4,7 @@ class Demo {
         //this.Menu();
 
         this.Input();
+        this.MaterialDesign2();
     }
 
     Tree(): void {
@@ -46,6 +47,11 @@ class Demo {
         let container = new FrameWork.Container();
         container.AddDataSource(data);
         container.Show();
+    }
+
+    MaterialDesign2(): void {
+        let button = new FrameWork.MD2Button({ text: "OK", icon: "favorite" });
+        button.Show();
     }
 }
 

@@ -1,6 +1,7 @@
 interface Window {
     JSZip: any;
     JSZipUtils: any;
+    mdc: any;
 }
 
 interface InputString {
@@ -415,7 +416,7 @@ namespace FrameWork {
 
             //Show children
             this.RenderChildren();
-            
+
             //Initialize events
             this.Events();
         }
@@ -863,8 +864,40 @@ namespace FrameWork {
         }
     }
 
+    //Material Design 2.0
+    export class MD2Button extends FrameWork {
+        constructor(param?: Parameter) {
+            super(param, "tab");
+        }
+
+        Refresh(): void {
+            this.Clear();
+
+            if (this.icon) {
+                let html = `
+                <button class="mdc-button mdc-button--outlined">
+                    <div class="mdc-button__ripple"></div>
+                    <i class="material-icons mdc-button__icon" aria-hidden="true">${this.icon}</i>
+                    <span class="mdc-button__label">${this.text}</span>
+                </button>`;
+    
+                this.object.innerHTML = html;
+            } else {
+                let html = `
+                <button class="mdc-button">
+                    <div class="mdc-button__ripple"></div>
+                    <span class="mdc-button__label">${this.text}</span>
+                </button>`;
+    
+                this.object.innerHTML = html;
+            }
+
+            window.mdc.ripple.MDCRipple.attachTo(document.querySelector('.mdc-button'));
+        }
+    }
 
     //Inputs
+
     export class Input extends FrameWork {
         protected input: HTMLInputElement;
         type: INPUTTYPE;

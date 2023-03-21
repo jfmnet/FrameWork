@@ -5,6 +5,7 @@ var Demo = /** @class */ (function () {
         //this.Tree();
         //this.Menu();
         this.Input();
+        this.MaterialDesign2();
     };
     Demo.prototype.Tree = function () {
         var tree = new FrameWork.TreeContainer();
@@ -37,6 +38,10 @@ var Demo = /** @class */ (function () {
         var container = new FrameWork.Container();
         container.AddDataSource(data);
         container.Show();
+    };
+    Demo.prototype.MaterialDesign2 = function () {
+        var button = new FrameWork.MD2Button({ text: "OK", icon: "favorite" });
+        button.Show();
     };
     return Demo;
 }());

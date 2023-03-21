@@ -783,6 +783,27 @@ var FrameWork = /** @class */ (function () {
         return TreeNode;
     }(FrameWork));
     FrameWork.TreeNode = TreeNode;
+    //Material Design 2.0
+    var MD2Button = /** @class */ (function (_super) {
+        __extends(MD2Button, _super);
+        function MD2Button(param) {
+            return _super.call(this, param, "tab") || this;
+        }
+        MD2Button.prototype.Refresh = function () {
+            this.Clear();
+            if (this.icon) {
+                var html = "\n                <button class=\"mdc-button mdc-button--outlined\">\n                    <div class=\"mdc-button__ripple\"></div>\n                    <i class=\"material-icons mdc-button__icon\" aria-hidden=\"true\">".concat(this.icon, "</i>\n                    <span class=\"mdc-button__label\">").concat(this.text, "</span>\n                </button>");
+                this.object.innerHTML = html;
+            }
+            else {
+                var html = "\n                <button class=\"mdc-button\">\n                    <div class=\"mdc-button__ripple\"></div>\n                    <span class=\"mdc-button__label\">".concat(this.text, "</span>\n                </button>");
+                this.object.innerHTML = html;
+            }
+            window.mdc.ripple.MDCRipple.attachTo(document.querySelector('.mdc-button'));
+        };
+        return MD2Button;
+    }(FrameWork));
+    FrameWork.MD2Button = MD2Button;
     //Inputs
     var Input = /** @class */ (function (_super) {
         __extends(Input, _super);
