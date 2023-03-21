@@ -16,6 +16,7 @@ body {
 
 input {
     font: 12px normal, "Segoe UI", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+    outline: none;
 }
 
 /* Container */

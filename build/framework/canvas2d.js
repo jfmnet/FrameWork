@@ -58,7 +58,7 @@ var Canvas2D = /** @class */ (function (_super) {
         this.Resize();
         this.Events();
         //this.ShowToolbar();
-        this.RefreshChildren();
+        this.RenderChildren();
         //Subscribe to the resize event
         window.addEventListener("resize", function () {
             self.Resize();

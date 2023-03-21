@@ -1,7 +1,9 @@
 class Demo {
     Show(): void {
-        this.Tree();
-        this.Menu();
+        //this.Tree();
+        //this.Menu();
+
+        this.Input();
     }
 
     Tree(): void {
@@ -37,4 +39,17 @@ class Demo {
 
         tree.Show();
     }
+
+    Input(): void {
+        let data = new InputData();
+
+        let container = new FrameWork.Container();
+        container.AddDataSource(data);
+        container.Show();
+    }
+}
+
+class InputData {
+    name = new FrameWork.InputString("Name", "Hello World");
+    age = new FrameWork.InputNumber("Age", 6);
 }

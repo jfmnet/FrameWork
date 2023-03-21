@@ -65,6 +65,7 @@ var FrameWork = /** @class */ (function () {
         //List of child controls
         this.children = [];
         this.fileformat = FrameWork.FILEFORMAT.RAW;
+        this.data = [];
         this.enabled = true;
         this.readonly = false;
         //Copy properties from parameter
@@ -119,19 +120,32 @@ var FrameWork = /** @class */ (function () {
             this.object.append(text);
         }
         //Show children
-        this.RefreshChildren();
+        this.RenderChildren();
         //Initialize events
         this.Events();
         //Initialize drag and drop
         this.DragandDrop();
     };
-    FrameWork.prototype.RefreshChildren = function () {
+    FrameWork.prototype.RenderChildren = function () {
         //Show children
         for (var i = 0; i < this.children.length; i++) {
             this.children[i].Show(this.object);
         }
+        this.RenderDataSource();
     };
     ;
+    FrameWork.prototype.RenderDataSource = function () {
+        var item;
+        var input;
+        for (var _i = 0, _a = this.data; _i < _a.length; _i++) {
+            var data = _a[_i];
+            for (var name_2 in data) {
+                item = data[name_2];
+                input = new FrameWork.Input({ text: item.text, value: item.value }, item.type);
+                input.Show(this.object);
+            }
+        }
+    };
     FrameWork.prototype.Clear = function () {
         this.object.innerHTML = "";
     };
@@ -143,6 +157,9 @@ var FrameWork = /** @class */ (function () {
             object.Show(this.object);
         //Return the object
         return object;
+    };
+    FrameWork.prototype.AddDataSource = function (data) {
+        this.data.push(data);
     };
     FrameWork.prototype.Events = function () {
         if (this.onclick) {
@@ -352,7 +369,7 @@ var FrameWork = /** @class */ (function () {
             return _this;
         }
         Expander.prototype.Refresh = function () {
-            this.object.innerHTML = "";
+            this.Clear();
             if (this.isExpanded)
                 this.object.classList.add("expanded");
             this.header = document.createElement("div");
@@ -365,7 +382,7 @@ var FrameWork = /** @class */ (function () {
             this.headericon = this.DisplayIcon(this.icon);
             this.header.appendChild(this.headericon);
             //Show children
-            this.RefreshChildren();
+            this.RenderChildren();
             //Initialize events
             this.Events();
         };
@@ -433,7 +450,7 @@ var FrameWork = /** @class */ (function () {
             //Return the object
             return object;
         };
-        SplitContainer.prototype.RefreshChildren = function () {
+        SplitContainer.prototype.RenderChildren = function () {
             //Show children
             for (var i = 0; i < this.children.length; i++) {
                 if (i != 0) {
@@ -599,7 +616,7 @@ var FrameWork = /** @class */ (function () {
         function TreeContainer(param) {
             return _super.call(this, param, "tree-container") || this;
         }
-        TreeContainer.prototype.RefreshChildren = function () {
+        TreeContainer.prototype.RenderChildren = function () {
             //Show children
             for (var i = 0; i < this.children.length; i++) {
                 this.children[i].Show(this.object);
@@ -655,13 +672,13 @@ var FrameWork = /** @class */ (function () {
             this.body.classList.add("menu-group");
             this.object.appendChild(this.body);
             //Show children
-            this.RefreshChildren();
+            this.RenderChildren();
             //Initialize events
             this.Events();
             //Initialize drag and drop
             this.DragandDrop();
         };
-        Menu.prototype.RefreshChildren = function () {
+        Menu.prototype.RenderChildren = function () {
             //Show children
             for (var i = 0; i < this.children.length; i++) {
                 this.children[i].Show(this.body);
@@ -718,9 +735,9 @@ var FrameWork = /** @class */ (function () {
             //Initialize events
             this.Events();
             //Show children
-            this.RefreshChildren();
+            this.RenderChildren();
         };
-        TreeNode.prototype.RefreshChildren = function () {
+        TreeNode.prototype.RenderChildren = function () {
             //Show children
             for (var i = 0; i < this.children.length; i++) {
                 var node = this.children[i];
@@ -849,5 +866,35 @@ var FrameWork = /** @class */ (function () {
         return Input;
     }(FrameWork));
     FrameWork.Input = Input;
+    var InputBase = /** @class */ (function () {
+        function InputBase() {
+        }
+        return InputBase;
+    }());
+    FrameWork.InputBase = InputBase;
+    var InputString = /** @class */ (function (_super) {
+        __extends(InputString, _super);
+        function InputString(text, value) {
+            var _this = _super.call(this) || this;
+            _this.type = FrameWork.INPUTTYPE.TEXT;
+            _this.text = text;
+            _this.value = value;
+            return _this;
+        }
+        return InputString;
+    }(InputBase));
+    FrameWork.InputString = InputString;
+    var InputNumber = /** @class */ (function (_super) {
+        __extends(InputNumber, _super);
+        function InputNumber(text, value) {
+            var _this = _super.call(this) || this;
+            _this.type = FrameWork.INPUTTYPE.NUMBER;
+            _this.text = text;
+            _this.value = value;
+            return _this;
+        }
+        return InputNumber;
+    }(InputBase));
+    FrameWork.InputNumber = InputNumber;
 })(FrameWork || (FrameWork = {}));
 //# sourceMappingURL=framework.js.map

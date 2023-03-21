@@ -2,8 +2,9 @@ var Demo = /** @class */ (function () {
     function Demo() {
     }
     Demo.prototype.Show = function () {
-        this.Tree();
-        this.Menu();
+        //this.Tree();
+        //this.Menu();
+        this.Input();
     };
     Demo.prototype.Tree = function () {
         var tree = new FrameWork.TreeContainer();
@@ -31,6 +32,19 @@ var Demo = /** @class */ (function () {
         var child11 = child1.Add(new FrameWork.Menu({ text: "Child 11" }));
         tree.Show();
     };
+    Demo.prototype.Input = function () {
+        var data = new InputData();
+        var container = new FrameWork.Container();
+        container.AddDataSource(data);
+        container.Show();
+    };
     return Demo;
+}());
+var InputData = /** @class */ (function () {
+    function InputData() {
+        this.name = new FrameWork.InputString("Name", "Hello World");
+        this.age = new FrameWork.InputNumber("Age", 6);
+    }
+    return InputData;
 }());
 //# sourceMappingURL=demo.js.map

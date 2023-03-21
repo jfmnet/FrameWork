@@ -3,6 +3,10 @@ interface Window {
     JSZipUtils: any;
 }
 
+interface InputString {
+
+}
+
 enum Theme {
     LIGHT = 1,
     DARK = 2,
@@ -38,6 +42,8 @@ class FrameWork {
     text: string;
     tag: any;
     fileformat: FrameWork.FILEFORMAT = FrameWork.FILEFORMAT.RAW;
+
+    data: any[] = [];
 
     enabled: boolean = true;
     readonly: boolean = false;
@@ -108,7 +114,7 @@ class FrameWork {
         }
 
         //Show children
-        this.RefreshChildren();
+        this.RenderChildren();
 
         //Initialize events
         this.Events();
@@ -117,12 +123,28 @@ class FrameWork {
         this.DragandDrop();
     }
 
-    RefreshChildren(): void {
+    RenderChildren(): void {
         //Show children
         for (let i = 0; i < this.children.length; i++) {
             this.children[i].Show(this.object);
         }
+
+        this.RenderDataSource();
     };
+
+    RenderDataSource(): void {
+        let item: any;
+        let input: FrameWork.Input;
+
+        for (let data of this.data) {
+            for (let name in data) {
+                item = data[name];
+
+                input = new FrameWork.Input({ text: item.text, value: item.value }, item.type);
+                input.Show(this.object);
+            }
+        }
+    }
 
     Clear(): void {
         this.object.innerHTML = "";
@@ -138,6 +160,10 @@ class FrameWork {
 
         //Return the object
         return object;
+    }
+
+    AddDataSource(data: any): void {
+        this.data.push(data);
     }
 
     Events(): void {
@@ -370,7 +396,7 @@ namespace FrameWork {
         }
 
         Refresh(): void {
-            this.object.innerHTML = "";
+            this.Clear();
 
             if (this.isExpanded)
                 this.object.classList.add("expanded");
@@ -388,8 +414,8 @@ namespace FrameWork {
             this.header.appendChild(this.headericon);
 
             //Show children
-            this.RefreshChildren();
-
+            this.RenderChildren();
+            
             //Initialize events
             this.Events();
         }
@@ -467,7 +493,7 @@ namespace FrameWork {
             return object;
         }
 
-        RefreshChildren(): void {
+        RenderChildren(): void {
             //Show children
             for (let i = 0; i < this.children.length; i++) {
                 if (i != 0) {
@@ -657,7 +683,7 @@ namespace FrameWork {
             super(param, "tree-container");
         }
 
-        RefreshChildren(): void {
+        RenderChildren(): void {
             //Show children
             for (let i = 0; i < this.children.length; i++) {
                 this.children[i].Show(this.object);
@@ -695,34 +721,34 @@ namespace FrameWork {
 
         Refresh(): void {
             this.object.innerHTML = "";
-    
+
             if (this.icon) {
                 let icon = this.DisplayIcon(this.icon);
                 this.object.appendChild(icon);
             }
-    
+
             if (this.text) {
                 let text = document.createElement("div");
                 text.classList.add("text");
                 text.innerHTML = this.text;
                 this.object.append(text);
             }
-    
+
             this.body = document.createElement("div");
             this.body.classList.add("menu-group");
             this.object.appendChild(this.body);
 
             //Show children
-            this.RefreshChildren();
-    
+            this.RenderChildren();
+
             //Initialize events
             this.Events();
-    
+
             //Initialize drag and drop
             this.DragandDrop();
         }
-    
-        RefreshChildren(): void {
+
+        RenderChildren(): void {
             //Show children
             for (let i = 0; i < this.children.length; i++) {
                 this.children[i].Show(this.body);
@@ -783,10 +809,10 @@ namespace FrameWork {
             this.Events();
 
             //Show children
-            this.RefreshChildren();
+            this.RenderChildren();
         }
 
-        RefreshChildren(): void {
+        RenderChildren(): void {
             //Show children
             for (let i = 0; i < this.children.length; i++) {
                 let node = this.children[i] as TreeNode;
@@ -940,5 +966,32 @@ namespace FrameWork {
                 }
             }
         };
+    }
+
+    export abstract class InputBase {
+        abstract type: FrameWork.INPUTTYPE;
+        text: string;
+    }
+
+    export class InputString extends InputBase {
+        type = FrameWork.INPUTTYPE.TEXT;
+        value: string;
+
+        constructor(text: string, value: string) {
+            super();
+            this.text = text;
+            this.value = value;
+        }
+    }
+
+    export class InputNumber extends InputBase {
+        type = FrameWork.INPUTTYPE.NUMBER;
+        value: number;
+
+        constructor(text: string, value: number) {
+            super();
+            this.text = text;
+            this.value = value;
+        }
     }
 }

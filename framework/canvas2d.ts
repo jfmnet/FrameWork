@@ -56,7 +56,7 @@ class Canvas2D extends FrameWork {
         this.Events();
 
         //this.ShowToolbar();
-        this.RefreshChildren();
+        this.RenderChildren();
 
         //Subscribe to the resize event
         window.addEventListener("resize", function () {
