@@ -58,4 +58,24 @@ class Demo {
 class InputData {
     name = new FrameWork.InputString("Name", "Hello World");
     age = new FrameWork.InputNumber("Age", 6);
+    button = new FrameWork.InputButton("Submit", 'Click me');    
+    checkBox = new FrameWork.InputCheckBox("Gender", "Male");
+    color = new FrameWork.InputColor("myColor", "red");
+    date = new FrameWork.InputDate("Choose Date", "my-local-date");
+    dateTime = new FrameWork.InputDateTime("choose Datetime", 'dt');
+    email = new FrameWork.InputEmail("Email", 'dt@ait.asia');
+    file = new FrameWork.InputFile("Choose File", null);
+    hidden = new FrameWork.InputHidden("my secret","lianu");
+    image = new FrameWork.InputImage("my image","photo");
+    month = new FrameWork.InputMonth("choose month","January");
+    password = new FrameWork.InputPassword("Password","lianu");
+    radio = new FrameWork.InputRadio("Exam",null);
+    range = new FrameWork.InputRange("5-3", "baby");
+    reset = new FrameWork.InputReset("Reset", "testing button");
+    search = new FrameWork.InputSearch("Search", "search my norch");
+    submit  = new FrameWork.InputSubmit("submit", "submit button",() => {alert('ok');});
+    telephone = new FrameWork.InputTelehone("Phone", "0934188674");
+    time  = new FrameWork.InputTime("choose Time", "my time zone");
+    url = new FrameWork.InputUrl("URl", "Event Url");
+    week  = new FrameWork.InputWeek("week", "my week");
 }
