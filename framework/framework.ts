@@ -1027,4 +1027,226 @@ namespace FrameWork {
             this.value = value;
         }
     }
+
+    export class InputCheckBox extends InputBase {
+        type = FrameWork.INPUTTYPE.CHECKBOX;
+        value: string;
+
+        constructor(text: string, value: string) {
+            super();
+            this.text = text;
+            this.value = value;
+        }
+    }
+
+    export class InputColor extends InputBase {
+        type = FrameWork.INPUTTYPE.COLOR;
+        value: string;
+
+        constructor(text: string, value: string) {
+            super();
+            this.text = text;
+            this.value = value;
+        }
+    }
+
+    export class InputDate extends InputBase {
+        type = FrameWork.INPUTTYPE.DATE;
+        value: string;
+
+        constructor(text: string, value: string) {
+            super();
+            this.text = text;
+            this.value = value;
+        }
+    }
+
+    export class InputDateTime extends InputBase {
+        type = FrameWork.INPUTTYPE.DATETIME;
+        value: string;
+
+        constructor(text: string, value: string) {
+            super();
+            this.text = text;
+            this.value = value;
+        }
+    }
+
+    export class InputEmail extends InputBase {
+        type = FrameWork.INPUTTYPE.EMAIL;
+        value: string;
+
+        constructor(text: string, value: string) {
+            super();
+            this.text = text;
+            this.value = value;
+        }
+    }
+
+    export class InputHidden extends InputBase {
+        type = FrameWork.INPUTTYPE.HIDDEN;
+        value: string;
+
+        constructor(text: string, value: string) {
+            super();
+            this.text = text;
+            this.value = value;
+        }
+    }
+
+    export class InputImage extends InputBase {
+        type = FrameWork.INPUTTYPE.IMAGE;
+        value: string;
+
+        constructor(text: string, value: string) {
+            super();
+            this.text = text;
+            this.value = value;
+        }
+    }
+    
+    export class InputMonth extends InputBase {
+        type = FrameWork.INPUTTYPE.MONTH;
+        value: string;
+
+        constructor(text: string, value: string) {
+            super();
+            this.text = text;
+            this.value = value;
+        }
+    }
+
+    export class InputPassword extends InputBase {
+        type = FrameWork.INPUTTYPE.PASSWORD;
+        value: string;
+
+        constructor(text: string, value: string) {
+            super();
+            this.text = text;
+            this.value = value;
+        }
+    }
+
+    export class InputRadio extends InputBase {
+        type = FrameWork.INPUTTYPE.RADIO;
+        value: string;
+
+        constructor(text: string, value: string) {
+            super();
+            this.text = text;
+            this.value = value;
+        }
+    }
+
+    export class InputRange extends InputBase {
+        type = FrameWork.INPUTTYPE.RANGE;
+        value: string;
+
+        constructor(text: string, value: string) {
+            super();
+            this.text = text;
+            this.value = value;
+        }
+    }
+
+    export class InputReset extends InputBase {
+        type = FrameWork.INPUTTYPE.RESET;
+        value: string;
+
+        constructor(text: string, value: string) {
+            super();
+            this.text = text;
+            this.value = value;
+        }
+    }
+    
+    export class InputSearch extends InputBase {
+        type = FrameWork.INPUTTYPE.SEARCH;
+        value: string;
+
+        constructor(text: string, value: string) {
+            super();
+            this.text = text;
+            this.value = value;
+        }
+    }
+    
+    export class InputSubmit extends InputBase {
+        type = FrameWork.INPUTTYPE.SUBMIT;
+        value: string;
+        onclick: Function;
+
+        constructor(text: string, value: string, onclick?: Function) {
+            super();
+            this.text = text;
+            this.value = value;
+            this.onclick = onclick;
+        }
+    }
+    
+    export class InputTelehone extends InputBase {
+        type = FrameWork.INPUTTYPE.TELEPHONE;
+        value: string;
+
+        constructor(text: string, value: string) {
+            super();
+            this.text = text;
+            this.value = value;
+        }
+    }
+
+    export class InputTime extends InputBase {
+        type = FrameWork.INPUTTYPE.TIME;
+        value: string;
+
+        constructor(text: string, value: string) {
+            super();
+            this.text = text;
+            this.value = value;
+        }
+    }
+    
+    export class InputUrl extends InputBase {
+        type = FrameWork.INPUTTYPE.URL;
+        value: string;
+
+        constructor(text: string, value: string) {
+            super();
+            this.text = text;
+            this.value = value;
+        }
+    }
+
+    export class InputWeek extends InputBase {
+        type = FrameWork.INPUTTYPE.WEEK;
+        value: string;
+
+        constructor(text: string, value: string) {
+            super();
+            this.text = text;
+            this.value = value;
+        }
+    }    
+
+    export class InputFile extends InputBase {
+        type = FrameWork.INPUTTYPE.FILE;
+        value: string;
+
+        constructor(text: string, value: string) {
+            super();
+            this.text = text;
+            this.value = value;
+        }
+    }
+
+    export class InputButton extends InputBase {
+        type = FrameWork.INPUTTYPE.BUTTON;
+        value: string;
+
+        constructor(text: string, value: string) {
+            super();
+            this.text = text;
+            this.value = value;
+        }
+    }
 }
