@@ -55,6 +55,42 @@ var Theme;
     Theme[Theme["DARK"] = 2] = "DARK";
     Theme[Theme["SYSTEM"] = 3] = "SYSTEM";
 })(Theme || (Theme = {}));
+var FILEFORMAT;
+(function (FILEFORMAT) {
+    FILEFORMAT[FILEFORMAT["RAW"] = 1] = "RAW";
+    FILEFORMAT[FILEFORMAT["TEXT"] = 2] = "TEXT";
+    FILEFORMAT[FILEFORMAT["ZIP"] = 3] = "ZIP";
+})(FILEFORMAT || (FILEFORMAT = {}));
+var INPUTTYPE;
+(function (INPUTTYPE) {
+    INPUTTYPE["BUTTON"] = "button";
+    INPUTTYPE["CHECKBOX"] = "checkbox";
+    INPUTTYPE["COLOR"] = "color";
+    INPUTTYPE["DATE"] = "date";
+    INPUTTYPE["DATETIME"] = "datetime-local";
+    INPUTTYPE["EMAIL"] = "email";
+    INPUTTYPE["FILE"] = "file";
+    INPUTTYPE["HIDDEN"] = "hidden";
+    INPUTTYPE["IMAGE"] = "image";
+    INPUTTYPE["MONTH"] = "month";
+    INPUTTYPE["NUMBER"] = "number";
+    INPUTTYPE["PASSWORD"] = "password";
+    INPUTTYPE["RADIO"] = "radio";
+    INPUTTYPE["RANGE"] = "range";
+    INPUTTYPE["RESET"] = "reset";
+    INPUTTYPE["SEARCH"] = "search";
+    INPUTTYPE["SUBMIT"] = "submit";
+    INPUTTYPE["TELEPHONE"] = "tel";
+    INPUTTYPE["TEXT"] = "text";
+    INPUTTYPE["TIME"] = "time";
+    INPUTTYPE["URL"] = "url";
+    INPUTTYPE["WEEK"] = "week";
+})(INPUTTYPE || (INPUTTYPE = {}));
+var ORIENTATION;
+(function (ORIENTATION) {
+    ORIENTATION[ORIENTATION["HORIZONTAL"] = 0] = "HORIZONTAL";
+    ORIENTATION[ORIENTATION["VERTICAL"] = 1] = "VERTICAL";
+})(ORIENTATION || (ORIENTATION = {}));
 var FrameWork = /** @class */ (function () {
     /**
      * Base constructor
@@ -64,7 +100,7 @@ var FrameWork = /** @class */ (function () {
         this.element = "div";
         //List of child controls
         this.children = [];
-        this.fileformat = FrameWork.FILEFORMAT.RAW;
+        this.fileformat = FILEFORMAT.RAW;
         this.data = [];
         this.enabled = true;
         this.readonly = false;
@@ -198,21 +234,21 @@ var FrameWork = /** @class */ (function () {
                 if (dataTransfer && dataTransfer.files.length) {
                     e.preventDefault();
                     e.stopPropagation();
-                    if (self_2.fileformat === FrameWork.FILEFORMAT.RAW) {
+                    if (self_2.fileformat === FILEFORMAT.RAW) {
                         self_2.ondrop(dataTransfer.files);
                     }
                     else {
                         // Use DataTransfer interface to access the file(s)
                         for (var i = 0; i < dataTransfer.files.length; i++) {
                             switch (self_2.fileformat) {
-                                case FrameWork.FILEFORMAT.TEXT:
+                                case FILEFORMAT.TEXT:
                                     var reader = new FileReader();
                                     reader.readAsText(dataTransfer.files[i]);
                                     reader.onload = function (readEvent) {
                                         self_2.ondrop(readEvent.target.result);
                                     };
                                     break;
-                                case FrameWork.FILEFORMAT.ZIP:
+                                case FILEFORMAT.ZIP:
                                     var zip = new window.JSZip();
                                     zip.loadAsync(dataTransfer.files[i])
                                         .then(function (zip) {
@@ -315,42 +351,6 @@ var FrameWork = /** @class */ (function () {
     return FrameWork;
 }());
 (function (FrameWork) {
-    var FILEFORMAT;
-    (function (FILEFORMAT) {
-        FILEFORMAT[FILEFORMAT["RAW"] = 1] = "RAW";
-        FILEFORMAT[FILEFORMAT["TEXT"] = 2] = "TEXT";
-        FILEFORMAT[FILEFORMAT["ZIP"] = 3] = "ZIP";
-    })(FILEFORMAT = FrameWork.FILEFORMAT || (FrameWork.FILEFORMAT = {}));
-    var INPUTTYPE;
-    (function (INPUTTYPE) {
-        INPUTTYPE["BUTTON"] = "button";
-        INPUTTYPE["CHECKBOX"] = "checkbox";
-        INPUTTYPE["COLOR"] = "color";
-        INPUTTYPE["DATE"] = "date";
-        INPUTTYPE["DATETIME"] = "datetime-local";
-        INPUTTYPE["EMAIL"] = "email";
-        INPUTTYPE["FILE"] = "file";
-        INPUTTYPE["HIDDEN"] = "hidden";
-        INPUTTYPE["IMAGE"] = "image";
-        INPUTTYPE["MONTH"] = "month";
-        INPUTTYPE["NUMBER"] = "number";
-        INPUTTYPE["PASSWORD"] = "password";
-        INPUTTYPE["RADIO"] = "radio";
-        INPUTTYPE["RANGE"] = "range";
-        INPUTTYPE["RESET"] = "reset";
-        INPUTTYPE["SEARCH"] = "search";
-        INPUTTYPE["SUBMIT"] = "submit";
-        INPUTTYPE["TELEPHONE"] = "tel";
-        INPUTTYPE["TEXT"] = "text";
-        INPUTTYPE["TIME"] = "time";
-        INPUTTYPE["URL"] = "url";
-        INPUTTYPE["WEEK"] = "week";
-    })(INPUTTYPE = FrameWork.INPUTTYPE || (FrameWork.INPUTTYPE = {}));
-    var ORIENTATION;
-    (function (ORIENTATION) {
-        ORIENTATION[ORIENTATION["HORIZONTAL"] = 0] = "HORIZONTAL";
-        ORIENTATION[ORIENTATION["VERTICAL"] = 1] = "VERTICAL";
-    })(ORIENTATION = FrameWork.ORIENTATION || (FrameWork.ORIENTATION = {}));
     //Containers
     var Container = /** @class */ (function (_super) {
         __extends(Container, _super);
@@ -783,27 +783,6 @@ var FrameWork = /** @class */ (function () {
         return TreeNode;
     }(FrameWork));
     FrameWork.TreeNode = TreeNode;
-    //Material Design 2.0
-    var MD2Button = /** @class */ (function (_super) {
-        __extends(MD2Button, _super);
-        function MD2Button(param) {
-            return _super.call(this, param, "tab") || this;
-        }
-        MD2Button.prototype.Refresh = function () {
-            this.Clear();
-            if (this.icon) {
-                var html = "\n                <button class=\"mdc-button mdc-button--outlined\">\n                    <div class=\"mdc-button__ripple\"></div>\n                    <i class=\"material-icons mdc-button__icon\" aria-hidden=\"true\">".concat(this.icon, "</i>\n                    <span class=\"mdc-button__label\">").concat(this.text, "</span>\n                </button>");
-                this.object.innerHTML = html;
-            }
-            else {
-                var html = "\n                <button class=\"mdc-button\">\n                    <div class=\"mdc-button__ripple\"></div>\n                    <span class=\"mdc-button__label\">".concat(this.text, "</span>\n                </button>");
-                this.object.innerHTML = html;
-            }
-            window.mdc.ripple.MDCRipple.attachTo(document.querySelector('.mdc-button'));
-        };
-        return MD2Button;
-    }(FrameWork));
-    FrameWork.MD2Button = MD2Button;
     //Inputs
     var Input = /** @class */ (function (_super) {
         __extends(Input, _super);
@@ -897,7 +876,7 @@ var FrameWork = /** @class */ (function () {
         __extends(InputString, _super);
         function InputString(text, value) {
             var _this = _super.call(this) || this;
-            _this.type = FrameWork.INPUTTYPE.TEXT;
+            _this.type = INPUTTYPE.TEXT;
             _this.text = text;
             _this.value = value;
             return _this;
@@ -909,7 +888,7 @@ var FrameWork = /** @class */ (function () {
         __extends(InputNumber, _super);
         function InputNumber(text, value) {
             var _this = _super.call(this) || this;
-            _this.type = FrameWork.INPUTTYPE.NUMBER;
+            _this.type = INPUTTYPE.NUMBER;
             _this.text = text;
             _this.value = value;
             return _this;
@@ -917,5 +896,300 @@ var FrameWork = /** @class */ (function () {
         return InputNumber;
     }(InputBase));
     FrameWork.InputNumber = InputNumber;
+    var InputCheckBox = /** @class */ (function (_super) {
+        __extends(InputCheckBox, _super);
+        function InputCheckBox(text, value) {
+            var _this = _super.call(this) || this;
+            _this.type = INPUTTYPE.CHECKBOX;
+            _this.text = text;
+            _this.value = value;
+            return _this;
+        }
+        return InputCheckBox;
+    }(InputBase));
+    FrameWork.InputCheckBox = InputCheckBox;
+    var InputColor = /** @class */ (function (_super) {
+        __extends(InputColor, _super);
+        function InputColor(text, value) {
+            var _this = _super.call(this) || this;
+            _this.type = INPUTTYPE.COLOR;
+            _this.text = text;
+            _this.value = value;
+            return _this;
+        }
+        return InputColor;
+    }(InputBase));
+    FrameWork.InputColor = InputColor;
+    var InputDate = /** @class */ (function (_super) {
+        __extends(InputDate, _super);
+        function InputDate(text, value) {
+            var _this = _super.call(this) || this;
+            _this.type = INPUTTYPE.DATE;
+            _this.text = text;
+            _this.value = value;
+            return _this;
+        }
+        return InputDate;
+    }(InputBase));
+    FrameWork.InputDate = InputDate;
+    var InputDateTime = /** @class */ (function (_super) {
+        __extends(InputDateTime, _super);
+        function InputDateTime(text, value) {
+            var _this = _super.call(this) || this;
+            _this.type = INPUTTYPE.DATETIME;
+            _this.text = text;
+            _this.value = value;
+            return _this;
+        }
+        return InputDateTime;
+    }(InputBase));
+    FrameWork.InputDateTime = InputDateTime;
+    var InputEmail = /** @class */ (function (_super) {
+        __extends(InputEmail, _super);
+        function InputEmail(text, value) {
+            var _this = _super.call(this) || this;
+            _this.type = INPUTTYPE.EMAIL;
+            _this.text = text;
+            _this.value = value;
+            return _this;
+        }
+        return InputEmail;
+    }(InputBase));
+    FrameWork.InputEmail = InputEmail;
+    var InputHidden = /** @class */ (function (_super) {
+        __extends(InputHidden, _super);
+        function InputHidden(text, value) {
+            var _this = _super.call(this) || this;
+            _this.type = INPUTTYPE.HIDDEN;
+            _this.text = text;
+            _this.value = value;
+            return _this;
+        }
+        return InputHidden;
+    }(InputBase));
+    FrameWork.InputHidden = InputHidden;
+    var InputImage = /** @class */ (function (_super) {
+        __extends(InputImage, _super);
+        function InputImage(text, value) {
+            var _this = _super.call(this) || this;
+            _this.type = INPUTTYPE.IMAGE;
+            _this.text = text;
+            _this.value = value;
+            return _this;
+        }
+        return InputImage;
+    }(InputBase));
+    FrameWork.InputImage = InputImage;
+    var InputMonth = /** @class */ (function (_super) {
+        __extends(InputMonth, _super);
+        function InputMonth(text, value) {
+            var _this = _super.call(this) || this;
+            _this.type = INPUTTYPE.MONTH;
+            _this.text = text;
+            _this.value = value;
+            return _this;
+        }
+        return InputMonth;
+    }(InputBase));
+    FrameWork.InputMonth = InputMonth;
+    var InputPassword = /** @class */ (function (_super) {
+        __extends(InputPassword, _super);
+        function InputPassword(text, value) {
+            var _this = _super.call(this) || this;
+            _this.type = INPUTTYPE.PASSWORD;
+            _this.text = text;
+            _this.value = value;
+            return _this;
+        }
+        return InputPassword;
+    }(InputBase));
+    FrameWork.InputPassword = InputPassword;
+    var InputRadio = /** @class */ (function (_super) {
+        __extends(InputRadio, _super);
+        function InputRadio(text, value) {
+            var _this = _super.call(this) || this;
+            _this.type = INPUTTYPE.RADIO;
+            _this.text = text;
+            _this.value = value;
+            return _this;
+        }
+        return InputRadio;
+    }(InputBase));
+    FrameWork.InputRadio = InputRadio;
+    var InputRange = /** @class */ (function (_super) {
+        __extends(InputRange, _super);
+        function InputRange(text, value) {
+            var _this = _super.call(this) || this;
+            _this.type = INPUTTYPE.RANGE;
+            _this.text = text;
+            _this.value = value;
+            return _this;
+        }
+        return InputRange;
+    }(InputBase));
+    FrameWork.InputRange = InputRange;
+    var InputReset = /** @class */ (function (_super) {
+        __extends(InputReset, _super);
+        function InputReset(text, value) {
+            var _this = _super.call(this) || this;
+            _this.type = INPUTTYPE.RESET;
+            _this.text = text;
+            _this.value = value;
+            return _this;
+        }
+        return InputReset;
+    }(InputBase));
+    FrameWork.InputReset = InputReset;
+    var InputSearch = /** @class */ (function (_super) {
+        __extends(InputSearch, _super);
+        function InputSearch(text, value) {
+            var _this = _super.call(this) || this;
+            _this.type = INPUTTYPE.SEARCH;
+            _this.text = text;
+            _this.value = value;
+            return _this;
+        }
+        return InputSearch;
+    }(InputBase));
+    FrameWork.InputSearch = InputSearch;
+    var InputSubmit = /** @class */ (function (_super) {
+        __extends(InputSubmit, _super);
+        function InputSubmit(text, value, onclick) {
+            var _this = _super.call(this) || this;
+            _this.type = INPUTTYPE.SUBMIT;
+            _this.text = text;
+            _this.value = value;
+            _this.onclick = onclick;
+            return _this;
+        }
+        return InputSubmit;
+    }(InputBase));
+    FrameWork.InputSubmit = InputSubmit;
+    var InputTelehone = /** @class */ (function (_super) {
+        __extends(InputTelehone, _super);
+        function InputTelehone(text, value) {
+            var _this = _super.call(this) || this;
+            _this.type = INPUTTYPE.TELEPHONE;
+            _this.text = text;
+            _this.value = value;
+            return _this;
+        }
+        return InputTelehone;
+    }(InputBase));
+    FrameWork.InputTelehone = InputTelehone;
+    var InputTime = /** @class */ (function (_super) {
+        __extends(InputTime, _super);
+        function InputTime(text, value) {
+            var _this = _super.call(this) || this;
+            _this.type = INPUTTYPE.TIME;
+            _this.text = text;
+            _this.value = value;
+            return _this;
+        }
+        return InputTime;
+    }(InputBase));
+    FrameWork.InputTime = InputTime;
+    var InputUrl = /** @class */ (function (_super) {
+        __extends(InputUrl, _super);
+        function InputUrl(text, value) {
+            var _this = _super.call(this) || this;
+            _this.type = INPUTTYPE.URL;
+            _this.text = text;
+            _this.value = value;
+            return _this;
+        }
+        return InputUrl;
+    }(InputBase));
+    FrameWork.InputUrl = InputUrl;
+    var InputWeek = /** @class */ (function (_super) {
+        __extends(InputWeek, _super);
+        function InputWeek(text, value) {
+            var _this = _super.call(this) || this;
+            _this.type = INPUTTYPE.WEEK;
+            _this.text = text;
+            _this.value = value;
+            return _this;
+        }
+        return InputWeek;
+    }(InputBase));
+    FrameWork.InputWeek = InputWeek;
+    var InputFile = /** @class */ (function (_super) {
+        __extends(InputFile, _super);
+        function InputFile(text, value) {
+            var _this = _super.call(this) || this;
+            _this.type = INPUTTYPE.FILE;
+            _this.text = text;
+            _this.value = value;
+            return _this;
+        }
+        return InputFile;
+    }(InputBase));
+    FrameWork.InputFile = InputFile;
+    var InputButton = /** @class */ (function (_super) {
+        __extends(InputButton, _super);
+        function InputButton(text, value) {
+            var _this = _super.call(this) || this;
+            _this.type = INPUTTYPE.BUTTON;
+            _this.text = text;
+            _this.value = value;
+            return _this;
+        }
+        return InputButton;
+    }(InputBase));
+    FrameWork.InputButton = InputButton;
 })(FrameWork || (FrameWork = {}));
+var MaterialDesign2;
+(function (MaterialDesign2) {
+    var ButtonType;
+    (function (ButtonType) {
+        ButtonType["NONE"] = "";
+        ButtonType["OUTLINED"] = "mdc-button--outlined";
+        ButtonType["RAISED"] = "mdc-button--raised";
+    })(ButtonType = MaterialDesign2.ButtonType || (MaterialDesign2.ButtonType = {}));
+    var Button = /** @class */ (function (_super) {
+        __extends(Button, _super);
+        function Button(param) {
+            var _this = _super.call(this, param, "button") || this;
+            _this.type = ButtonType.NONE;
+            return _this;
+        }
+        Button.prototype.Refresh = function () {
+            this.Clear();
+            if (this.icon) {
+                var html = "\n                <button class=\"mdc-button ".concat(this.type, "\">\n                    <div class=\"mdc-button__ripple\"></div>\n                    <i class=\"material-icons mdc-button__icon\" aria-hidden=\"true\">").concat(this.icon, "</i>\n                    <span class=\"mdc-button__label\">").concat(this.text, "</span>\n                </button>");
+                this.object.innerHTML = html;
+            }
+            else {
+                var html = "\n                <button class=\"mdc-button\">\n                    <div class=\"mdc-button__ripple\"></div>\n                    <span class=\"mdc-button__label\">".concat(this.text, "</span>\n                </button>");
+                this.object.innerHTML = html;
+            }
+            window.mdc.ripple.MDCRipple.attachTo(document.querySelector('.mdc-button'));
+        };
+        return Button;
+    }(FrameWork));
+    MaterialDesign2.Button = Button;
+    var Cards = /** @class */ (function (_super) {
+        __extends(Cards, _super);
+        function Cards(param) {
+            return _super.call(this, param, "button") || this;
+        }
+        Cards.prototype.Refresh = function () {
+            this.Clear();
+            var html = "\n            <div class=\"mdc-card\">\n                <div class=\"mdc-card__primary-action\">\n                    <div class=\"mdc-card__media mdc-card__media--square\">\n                        <div class=\"mdc-card__media-content\">".concat(this.text, "</div>\n                    </div>\n                    <div class=\"mdc-card__ripple\"></div>\n                </div>\n                <div class=\"mdc-card__actions\">\n                    <div class=\"mdc-card__action-buttons\">\n                    <button class=\"mdc-button mdc-card__action mdc-card__action--button\">\n                        <div class=\"mdc-button__ripple\"></div>\n                        <span class=\"mdc-button__label\">Action 1</span>\n                    </button>\n                    <button class=\"mdc-button mdc-card__action mdc-card__action--button\">\n                        <div class=\"mdc-button__ripple\"></div>\n                        <span class=\"mdc-button__label\">Action 2</span>\n                    </button>\n                    </div>\n                    <div class=\"mdc-card__action-icons\">\n                    <button class=\"material-icons mdc-icon-button mdc-card__action mdc-card__action--icon\" title=\"Share\">share</button>\n                    <button class=\"material-icons mdc-icon-button mdc-card__action mdc-card__action--icon\" title=\"More options\">more_vert</button>\n                    </div>\n                </div>\n            </div>\n            ");
+            this.object.innerHTML = html;
+            this.contents = this.object.querySelector("");
+            this.RenderChildren();
+        };
+        Cards.prototype.RenderChildren = function () {
+            //Show children
+            for (var i = 0; i < this.children.length; i++) {
+                this.children[i].Show(this.object);
+            }
+            this.RenderDataSource();
+        };
+        ;
+        return Cards;
+    }(FrameWork));
+    MaterialDesign2.Cards = Cards;
+})(MaterialDesign2 || (MaterialDesign2 = {}));
 //# sourceMappingURL=framework.js.map

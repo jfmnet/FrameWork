@@ -4,7 +4,7 @@ var Demo = /** @class */ (function () {
     Demo.prototype.Show = function () {
         //this.Tree();
         //this.Menu();
-        this.Input();
+        //this.Input();
         this.MaterialDesign2();
     };
     Demo.prototype.Tree = function () {
@@ -40,8 +40,11 @@ var Demo = /** @class */ (function () {
         container.Show();
     };
     Demo.prototype.MaterialDesign2 = function () {
-        var button = new FrameWork.MD2Button({ text: "OK", icon: "favorite" });
+        var button = new MaterialDesign2.Button({ text: "OK", icon: "favorite" });
+        button.type = MaterialDesign2.ButtonType.RAISED;
         button.Show();
+        var cards = new MaterialDesign2.Cards({ text: "Cards" });
+        cards.Show();
     };
     return Demo;
 }());
@@ -49,6 +52,26 @@ var InputData = /** @class */ (function () {
     function InputData() {
         this.name = new FrameWork.InputString("Name", "Hello World");
         this.age = new FrameWork.InputNumber("Age", 6);
+        this.button = new FrameWork.InputButton("Submit", 'Click me');
+        this.checkBox = new FrameWork.InputCheckBox("Gender", "Male");
+        this.color = new FrameWork.InputColor("myColor", "red");
+        this.date = new FrameWork.InputDate("Choose Date", "my-local-date");
+        this.dateTime = new FrameWork.InputDateTime("choose Datetime", 'dt');
+        this.email = new FrameWork.InputEmail("Email", 'dt@ait.asia');
+        this.file = new FrameWork.InputFile("Choose File", null);
+        this.hidden = new FrameWork.InputHidden("my secret", "lianu");
+        this.image = new FrameWork.InputImage("my image", "photo");
+        this.month = new FrameWork.InputMonth("choose month", "January");
+        this.password = new FrameWork.InputPassword("Password", "lianu");
+        this.radio = new FrameWork.InputRadio("Exam", null);
+        this.range = new FrameWork.InputRange("5-3", "baby");
+        this.reset = new FrameWork.InputReset("Reset", "testing button");
+        this.search = new FrameWork.InputSearch("Search", "search my norch");
+        this.submit = new FrameWork.InputSubmit("submit", "submit button", function () { alert('ok'); });
+        this.telephone = new FrameWork.InputTelehone("Phone", "0934188674");
+        this.time = new FrameWork.InputTime("choose Time", "my time zone");
+        this.url = new FrameWork.InputUrl("URl", "Event Url");
+        this.week = new FrameWork.InputWeek("week", "my week");
     }
     return InputData;
 }());

@@ -4,14 +4,58 @@ interface Window {
     mdc: any;
 }
 
-interface InputString {
-
+interface Parameter {
+    text?: any;
+    value?: any;
+    icon?: string;
+    classes?: string[];
+    onclick?: Function;
+    ondrop?: Function;
+    tag?: any;
+    fileformat?: FILEFORMAT;
 }
 
 enum Theme {
     LIGHT = 1,
     DARK = 2,
     SYSTEM = 3
+}
+
+
+enum FILEFORMAT {
+    RAW = 1,
+    TEXT = 2,
+    ZIP = 3
+}
+
+enum INPUTTYPE {
+    BUTTON = "button",
+    CHECKBOX = "checkbox",
+    COLOR = "color",
+    DATE = "date",
+    DATETIME = "datetime-local",
+    EMAIL = "email",
+    FILE = "file",
+    HIDDEN = "hidden",
+    IMAGE = "image",
+    MONTH = "month",
+    NUMBER = "number",
+    PASSWORD = "password",
+    RADIO = "radio",
+    RANGE = "range",
+    RESET = "reset",
+    SEARCH = "search",
+    SUBMIT = "submit",
+    TELEPHONE = "tel",
+    TEXT = "text",
+    TIME = "time",
+    URL = "url",
+    WEEK = "week"
+}
+
+enum ORIENTATION {
+    HORIZONTAL = 0,
+    VERTICAL = 1
 }
 
 class FrameWork {
@@ -42,7 +86,7 @@ class FrameWork {
     icon: string;
     text: string;
     tag: any;
-    fileformat: FrameWork.FILEFORMAT = FrameWork.FILEFORMAT.RAW;
+    fileformat: FILEFORMAT = FILEFORMAT.RAW;
 
     data: any[] = [];
 
@@ -54,7 +98,7 @@ class FrameWork {
     /**
      * Base constructor
      */
-    constructor(param?: FrameWork.Parameter, classname?: string) {
+    constructor(param?: Parameter, classname?: string) {
         //Copy properties from parameter
         if (param) {
             for (let name in param) {
@@ -214,7 +258,7 @@ class FrameWork {
                     e.preventDefault();
                     e.stopPropagation();
 
-                    if (self.fileformat === FrameWork.FILEFORMAT.RAW) {
+                    if (self.fileformat === FILEFORMAT.RAW) {
                         self.ondrop(dataTransfer.files);
 
                     } else {
@@ -222,7 +266,7 @@ class FrameWork {
                         for (let i = 0; i < dataTransfer.files.length; i++) {
 
                             switch (self.fileformat) {
-                                case FrameWork.FILEFORMAT.TEXT:
+                                case FILEFORMAT.TEXT:
                                     var reader = new FileReader();
                                     reader.readAsText(dataTransfer.files[i]);
 
@@ -232,7 +276,7 @@ class FrameWork {
 
                                     break;
 
-                                case FrameWork.FILEFORMAT.ZIP:
+                                case FILEFORMAT.ZIP:
                                     var zip = new window.JSZip();
                                     zip.loadAsync(dataTransfer.files[i])
                                         .then(function (zip: any) {
@@ -329,54 +373,6 @@ class FrameWork {
 }
 
 namespace FrameWork {
-    //Default parameter
-    export interface Parameter {
-        text?: any;
-        value?: any;
-        icon?: string;
-        classes?: string[];
-        onclick?: Function;
-        ondrop?: Function;
-        tag?: any;
-        fileformat?: FILEFORMAT;
-    }
-
-    export enum FILEFORMAT {
-        RAW = 1,
-        TEXT = 2,
-        ZIP = 3
-    }
-
-    export enum INPUTTYPE {
-        BUTTON = "button",
-        CHECKBOX = "checkbox",
-        COLOR = "color",
-        DATE = "date",
-        DATETIME = "datetime-local",
-        EMAIL = "email",
-        FILE = "file",
-        HIDDEN = "hidden",
-        IMAGE = "image",
-        MONTH = "month",
-        NUMBER = "number",
-        PASSWORD = "password",
-        RADIO = "radio",
-        RANGE = "range",
-        RESET = "reset",
-        SEARCH = "search",
-        SUBMIT = "submit",
-        TELEPHONE = "tel",
-        TEXT = "text",
-        TIME = "time",
-        URL = "url",
-        WEEK = "week"
-    }
-
-    export enum ORIENTATION {
-        HORIZONTAL = 0,
-        VERTICAL = 1
-    }
-
     //Containers
 
     export class Container extends FrameWork {
@@ -864,38 +860,6 @@ namespace FrameWork {
         }
     }
 
-    //Material Design 2.0
-    export class MD2Button extends FrameWork {
-        constructor(param?: Parameter) {
-            super(param, "tab");
-        }
-
-        Refresh(): void {
-            this.Clear();
-
-            if (this.icon) {
-                let html = `
-                <button class="mdc-button mdc-button--outlined">
-                    <div class="mdc-button__ripple"></div>
-                    <i class="material-icons mdc-button__icon" aria-hidden="true">${this.icon}</i>
-                    <span class="mdc-button__label">${this.text}</span>
-                </button>`;
-    
-                this.object.innerHTML = html;
-            } else {
-                let html = `
-                <button class="mdc-button">
-                    <div class="mdc-button__ripple"></div>
-                    <span class="mdc-button__label">${this.text}</span>
-                </button>`;
-    
-                this.object.innerHTML = html;
-            }
-
-            window.mdc.ripple.MDCRipple.attachTo(document.querySelector('.mdc-button'));
-        }
-    }
-
     //Inputs
 
     export class Input extends FrameWork {
@@ -1002,12 +966,12 @@ namespace FrameWork {
     }
 
     export abstract class InputBase {
-        abstract type: FrameWork.INPUTTYPE;
+        abstract type: INPUTTYPE;
         text: string;
     }
 
     export class InputString extends InputBase {
-        type = FrameWork.INPUTTYPE.TEXT;
+        type = INPUTTYPE.TEXT;
         value: string;
 
         constructor(text: string, value: string) {
@@ -1018,7 +982,7 @@ namespace FrameWork {
     }
 
     export class InputNumber extends InputBase {
-        type = FrameWork.INPUTTYPE.NUMBER;
+        type = INPUTTYPE.NUMBER;
         value: number;
 
         constructor(text: string, value: number) {
@@ -1029,7 +993,7 @@ namespace FrameWork {
     }
 
     export class InputCheckBox extends InputBase {
-        type = FrameWork.INPUTTYPE.CHECKBOX;
+        type = INPUTTYPE.CHECKBOX;
         value: string;
 
         constructor(text: string, value: string) {
@@ -1040,7 +1004,7 @@ namespace FrameWork {
     }
 
     export class InputColor extends InputBase {
-        type = FrameWork.INPUTTYPE.COLOR;
+        type = INPUTTYPE.COLOR;
         value: string;
 
         constructor(text: string, value: string) {
@@ -1051,7 +1015,7 @@ namespace FrameWork {
     }
 
     export class InputDate extends InputBase {
-        type = FrameWork.INPUTTYPE.DATE;
+        type = INPUTTYPE.DATE;
         value: string;
 
         constructor(text: string, value: string) {
@@ -1062,7 +1026,7 @@ namespace FrameWork {
     }
 
     export class InputDateTime extends InputBase {
-        type = FrameWork.INPUTTYPE.DATETIME;
+        type = INPUTTYPE.DATETIME;
         value: string;
 
         constructor(text: string, value: string) {
@@ -1073,7 +1037,7 @@ namespace FrameWork {
     }
 
     export class InputEmail extends InputBase {
-        type = FrameWork.INPUTTYPE.EMAIL;
+        type = INPUTTYPE.EMAIL;
         value: string;
 
         constructor(text: string, value: string) {
@@ -1084,7 +1048,7 @@ namespace FrameWork {
     }
 
     export class InputHidden extends InputBase {
-        type = FrameWork.INPUTTYPE.HIDDEN;
+        type = INPUTTYPE.HIDDEN;
         value: string;
 
         constructor(text: string, value: string) {
@@ -1095,7 +1059,7 @@ namespace FrameWork {
     }
 
     export class InputImage extends InputBase {
-        type = FrameWork.INPUTTYPE.IMAGE;
+        type = INPUTTYPE.IMAGE;
         value: string;
 
         constructor(text: string, value: string) {
@@ -1106,7 +1070,7 @@ namespace FrameWork {
     }
     
     export class InputMonth extends InputBase {
-        type = FrameWork.INPUTTYPE.MONTH;
+        type = INPUTTYPE.MONTH;
         value: string;
 
         constructor(text: string, value: string) {
@@ -1117,7 +1081,7 @@ namespace FrameWork {
     }
 
     export class InputPassword extends InputBase {
-        type = FrameWork.INPUTTYPE.PASSWORD;
+        type = INPUTTYPE.PASSWORD;
         value: string;
 
         constructor(text: string, value: string) {
@@ -1128,7 +1092,7 @@ namespace FrameWork {
     }
 
     export class InputRadio extends InputBase {
-        type = FrameWork.INPUTTYPE.RADIO;
+        type = INPUTTYPE.RADIO;
         value: string;
 
         constructor(text: string, value: string) {
@@ -1139,7 +1103,7 @@ namespace FrameWork {
     }
 
     export class InputRange extends InputBase {
-        type = FrameWork.INPUTTYPE.RANGE;
+        type = INPUTTYPE.RANGE;
         value: string;
 
         constructor(text: string, value: string) {
@@ -1150,7 +1114,7 @@ namespace FrameWork {
     }
 
     export class InputReset extends InputBase {
-        type = FrameWork.INPUTTYPE.RESET;
+        type = INPUTTYPE.RESET;
         value: string;
 
         constructor(text: string, value: string) {
@@ -1161,7 +1125,7 @@ namespace FrameWork {
     }
     
     export class InputSearch extends InputBase {
-        type = FrameWork.INPUTTYPE.SEARCH;
+        type = INPUTTYPE.SEARCH;
         value: string;
 
         constructor(text: string, value: string) {
@@ -1172,7 +1136,7 @@ namespace FrameWork {
     }
     
     export class InputSubmit extends InputBase {
-        type = FrameWork.INPUTTYPE.SUBMIT;
+        type = INPUTTYPE.SUBMIT;
         value: string;
         onclick: Function;
 
@@ -1185,7 +1149,7 @@ namespace FrameWork {
     }
     
     export class InputTelehone extends InputBase {
-        type = FrameWork.INPUTTYPE.TELEPHONE;
+        type = INPUTTYPE.TELEPHONE;
         value: string;
 
         constructor(text: string, value: string) {
@@ -1196,7 +1160,7 @@ namespace FrameWork {
     }
 
     export class InputTime extends InputBase {
-        type = FrameWork.INPUTTYPE.TIME;
+        type = INPUTTYPE.TIME;
         value: string;
 
         constructor(text: string, value: string) {
@@ -1207,7 +1171,7 @@ namespace FrameWork {
     }
     
     export class InputUrl extends InputBase {
-        type = FrameWork.INPUTTYPE.URL;
+        type = INPUTTYPE.URL;
         value: string;
 
         constructor(text: string, value: string) {
@@ -1218,7 +1182,7 @@ namespace FrameWork {
     }
 
     export class InputWeek extends InputBase {
-        type = FrameWork.INPUTTYPE.WEEK;
+        type = INPUTTYPE.WEEK;
         value: string;
 
         constructor(text: string, value: string) {
@@ -1229,7 +1193,7 @@ namespace FrameWork {
     }    
 
     export class InputFile extends InputBase {
-        type = FrameWork.INPUTTYPE.FILE;
+        type = INPUTTYPE.FILE;
         value: string;
 
         constructor(text: string, value: string) {
@@ -1240,7 +1204,7 @@ namespace FrameWork {
     }
 
     export class InputButton extends InputBase {
-        type = FrameWork.INPUTTYPE.BUTTON;
+        type = INPUTTYPE.BUTTON;
         value: string;
 
         constructor(text: string, value: string) {
@@ -1248,5 +1212,99 @@ namespace FrameWork {
             this.text = text;
             this.value = value;
         }
+    }
+}
+
+namespace MaterialDesign2 {
+    export enum ButtonType {
+        NONE = "",
+        OUTLINED = "mdc-button--outlined",
+        RAISED = "mdc-button--raised"
+    }
+
+    export class Button extends FrameWork {
+        type: ButtonType = ButtonType.NONE;
+
+        constructor(param?: Parameter) {
+            super(param, "button");
+        }
+
+        Refresh(): void {
+            this.Clear();
+
+            if (this.icon) {
+                let html = `
+                <button class="mdc-button ${this.type}">
+                    <div class="mdc-button__ripple"></div>
+                    <i class="material-icons mdc-button__icon" aria-hidden="true">${this.icon}</i>
+                    <span class="mdc-button__label">${this.text}</span>
+                </button>`;
+    
+                this.object.innerHTML = html;
+            } else {
+                let html = `
+                <button class="mdc-button">
+                    <div class="mdc-button__ripple"></div>
+                    <span class="mdc-button__label">${this.text}</span>
+                </button>`;
+    
+                this.object.innerHTML = html;
+            }
+
+            window.mdc.ripple.MDCRipple.attachTo(document.querySelector('.mdc-button'));
+        }
+    }
+
+    export class Cards extends FrameWork {
+        contents: HTMLElement;
+
+        constructor(param?: Parameter) {
+            super(param, "button");
+        }
+
+        Refresh(): void {
+            this.Clear();
+
+            let html = `
+            <div class="mdc-card">
+                <div class="mdc-card__primary-action">
+                    <div class="mdc-card__media mdc-card__media--square">
+                        <div class="mdc-card__media-content">${this.text}</div>
+                    </div>
+                    <div class="mdc-card__ripple"></div>
+                </div>
+                <div class="mdc-card__actions">
+                    <div class="mdc-card__action-buttons">
+                    <button class="mdc-button mdc-card__action mdc-card__action--button">
+                        <div class="mdc-button__ripple"></div>
+                        <span class="mdc-button__label">Action 1</span>
+                    </button>
+                    <button class="mdc-button mdc-card__action mdc-card__action--button">
+                        <div class="mdc-button__ripple"></div>
+                        <span class="mdc-button__label">Action 2</span>
+                    </button>
+                    </div>
+                    <div class="mdc-card__action-icons">
+                    <button class="material-icons mdc-icon-button mdc-card__action mdc-card__action--icon" title="Share">share</button>
+                    <button class="material-icons mdc-icon-button mdc-card__action mdc-card__action--icon" title="More options">more_vert</button>
+                    </div>
+                </div>
+            </div>
+            `;
+
+            this.object.innerHTML = html;
+            this.contents = this.object.querySelector("");
+
+            this.RenderChildren();
+        }
+
+        RenderChildren(): void {
+            //Show children
+            for (let i = 0; i < this.children.length; i++) {
+                this.children[i].Show(this.object);
+            }
+    
+            this.RenderDataSource();
+        };
     }
 }

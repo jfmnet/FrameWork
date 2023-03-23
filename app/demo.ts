@@ -3,7 +3,7 @@ class Demo {
         //this.Tree();
         //this.Menu();
 
-        this.Input();
+        //this.Input();
         this.MaterialDesign2();
     }
 
@@ -50,8 +50,12 @@ class Demo {
     }
 
     MaterialDesign2(): void {
-        let button = new FrameWork.MD2Button({ text: "OK", icon: "favorite" });
+        let button = new MaterialDesign2.Button({ text: "OK", icon: "favorite" });
+        button.type = MaterialDesign2.ButtonType.RAISED;
         button.Show();
+
+        let cards = new MaterialDesign2.Cards({ text: "Cards" });
+        cards.Show();
     }
 }
 

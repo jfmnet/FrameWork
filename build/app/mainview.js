@@ -4,7 +4,7 @@ var MainView = /** @class */ (function () {
     MainView.prototype.Show = function () {
         var self = this;
         var container = new FrameWork.SplitContainer();
-        container.orientation = FrameWork.ORIENTATION.HORIZONTAL;
+        container.orientation = ORIENTATION.HORIZONTAL;
         FrameWork.GetJSON("resources/tree.json", function (nodes) {
             self.ShowTree(nodes, container);
         });

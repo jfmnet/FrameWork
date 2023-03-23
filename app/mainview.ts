@@ -2,7 +2,7 @@ class MainView {
     Show(): void {
         let self = this;
         let container = new FrameWork.SplitContainer();
-        container.orientation = FrameWork.ORIENTATION.HORIZONTAL;
+        container.orientation = ORIENTATION.HORIZONTAL;
 
         FrameWork.GetJSON("resources/tree.json", function (nodes: any) {
             self.ShowTree(nodes, container);
