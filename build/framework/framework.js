@@ -802,6 +802,7 @@ var FrameWork = /** @class */ (function () {
                 this.object.appendChild(text);
                 var input = document.createElement("input");
                 input.type = this.type;
+                this.input = input;
                 switch (this.type) {
                     case "checkbox":
                         if (this.value !== undefined)
@@ -821,6 +822,7 @@ var FrameWork = /** @class */ (function () {
             else {
                 var input = document.createElement("input");
                 input.type = this.type;
+                this.input = input;
                 if (this.value !== undefined)
                     input.value = this.value;
                 if (this.name !== undefined)
@@ -853,16 +855,28 @@ var FrameWork = /** @class */ (function () {
                         });
                         break;
                     default:
+                        input.addEventListener('change', function (e) {
+                            e.preventDefault();
+                            self_4.value = this.value;
+                        });
                         input.addEventListener('input', function () {
                             self_4.value = this.value;
-                            if (self_4.onchange)
-                                self_4.onchange(self_4);
+                        });
+                        input.addEventListener('keydown', function (e) {
+                            if (e.key === "Enter") {
+                                if (self_4.onchange)
+                                    self_4.onchange(self_4);
+                            }
                         });
                         break;
                 }
             }
         };
         ;
+        Input.prototype.Focus = function () {
+            this.input.value = "";
+            this.input.focus();
+        };
         return Input;
     }(FrameWork));
     FrameWork.Input = Input;

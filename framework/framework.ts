@@ -2,6 +2,7 @@ interface Window {
     JSZip: any;
     JSZipUtils: any;
     mdc: any;
+    chrome: any;
 }
 
 interface Parameter {
@@ -887,6 +888,7 @@ namespace FrameWork {
 
                 let input = document.createElement("input");
                 input.type = this.type;
+                this.input = input;
 
                 switch (this.type) {
                     case "checkbox":
@@ -911,6 +913,7 @@ namespace FrameWork {
             } else {
                 let input = document.createElement("input");
                 input.type = this.type;
+                this.input = input;
 
                 if (this.value !== undefined)
                     input.value = this.value;
@@ -953,16 +956,30 @@ namespace FrameWork {
                         break;
 
                     default:
+                        input.addEventListener('change', function (e) {
+                            e.preventDefault();
+                            self.value = this.value;
+                        });
+
                         input.addEventListener('input', function () {
                             self.value = this.value;
+                        });
 
-                            if (self.onchange)
-                                self.onchange(self);
+                        input.addEventListener('keydown', function (e) {
+                            if (e.key === "Enter") {
+                                if (self.onchange)
+                                    self.onchange(self);
+                            }
                         });
                         break;
                 }
             }
         };
+
+        Focus(): void {
+            this.input.value = "";
+            this.input.focus();
+        }
     }
 
     export abstract class InputBase {
@@ -1068,7 +1085,7 @@ namespace FrameWork {
             this.value = value;
         }
     }
-    
+
     export class InputMonth extends InputBase {
         type = INPUTTYPE.MONTH;
         value: string;
@@ -1123,7 +1140,7 @@ namespace FrameWork {
             this.value = value;
         }
     }
-    
+
     export class InputSearch extends InputBase {
         type = INPUTTYPE.SEARCH;
         value: string;
@@ -1134,7 +1151,7 @@ namespace FrameWork {
             this.value = value;
         }
     }
-    
+
     export class InputSubmit extends InputBase {
         type = INPUTTYPE.SUBMIT;
         value: string;
@@ -1147,7 +1164,7 @@ namespace FrameWork {
             this.onclick = onclick;
         }
     }
-    
+
     export class InputTelehone extends InputBase {
         type = INPUTTYPE.TELEPHONE;
         value: string;
@@ -1169,7 +1186,7 @@ namespace FrameWork {
             this.value = value;
         }
     }
-    
+
     export class InputUrl extends InputBase {
         type = INPUTTYPE.URL;
         value: string;
@@ -1190,7 +1207,7 @@ namespace FrameWork {
             this.text = text;
             this.value = value;
         }
-    }    
+    }
 
     export class InputFile extends InputBase {
         type = INPUTTYPE.FILE;
@@ -1239,7 +1256,7 @@ namespace MaterialDesign2 {
                     <i class="material-icons mdc-button__icon" aria-hidden="true">${this.icon}</i>
                     <span class="mdc-button__label">${this.text}</span>
                 </button>`;
-    
+
                 this.object.innerHTML = html;
             } else {
                 let html = `
@@ -1247,7 +1264,7 @@ namespace MaterialDesign2 {
                     <div class="mdc-button__ripple"></div>
                     <span class="mdc-button__label">${this.text}</span>
                 </button>`;
-    
+
                 this.object.innerHTML = html;
             }
 
@@ -1303,7 +1320,7 @@ namespace MaterialDesign2 {
             for (let i = 0; i < this.children.length; i++) {
                 this.children[i].Show(this.object);
             }
-    
+
             this.RenderDataSource();
         };
     }

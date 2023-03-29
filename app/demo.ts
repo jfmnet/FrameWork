@@ -1,10 +1,21 @@
 class Demo {
     Show(): void {
+        this.Show3D();
+
         //this.Tree();
         //this.Menu();
 
         //this.Input();
-        this.MaterialDesign2();
+        //this.MaterialDesign2();
+    }
+
+    Show3D(): void {
+        let canvas = new Canvas3D();
+        canvas.Show();
+
+        // let sphere = new Canvas3DGraphics.Sphere(1, 0, 0, 0);
+        // canvas.AddObject(sphere.Generate());
+        // canvas.ZoomAll();
     }
 
     Tree(): void {
