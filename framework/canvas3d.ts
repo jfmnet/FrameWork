@@ -106,6 +106,7 @@ class Canvas3D extends FrameWork {
 
         input.Show(this.object);
 
+        this.ShowGridXY(0, 0, 0);
         this.Resize();
         this.ShowDrawingAxis(0, 0, 0);
 
@@ -246,6 +247,7 @@ class Canvas3D extends FrameWork {
         this.ShowDrawingGuide();
 
         let self = this;
+
         this.CurrentPoint(this.mousemove.x, this.mousemove.y, function (current: THREE.Vector3) {
             self.ShowDrawingAxis(current.x, current.y, current.z);
         });
@@ -451,11 +453,33 @@ class Canvas3D extends FrameWork {
         }
     }
 
+    ShowGridXY(x: number, y: number, z: number): void {
+        let points: THREE.Vector3[] = [];
+        let size = 10;
+
+        for (let i = -size; i <= size; i++) {
+            //Along X
+            points.push(new THREE.Vector3(x + i, y - size, z));
+            points.push(new THREE.Vector3(x + i, y + size, z));
+
+            //Along Y
+            points.push(new THREE.Vector3(x - size, y + i, z));
+            points.push(new THREE.Vector3(x + size, y + i, z));
+        }
+
+        var lines = this.GenerateLines(points, "#444");
+        this.AddObject(lines);
+    }
+
     ShowDrawingAxis(x: number, y: number, z: number): void {
         let vector = this.camera.position.clone();
+
+        if (Number.isNaN(vector.x))
+            return;
+
         let distance = vector.sub(new THREE.Vector3(x, y, z)).length();
         let camera = this.camera as THREE.PerspectiveCamera;
-        let height = distance * Math.tan(camera.fov * Math.PI / 180) / 100;
+        let height = distance * Math.tan(camera.fov * Math.PI / 180) / 25;
 
         let points: THREE.Vector3[] = [];
         let colors: string[] = [];
@@ -561,9 +585,9 @@ class Canvas3D extends FrameWork {
             this.ShowDrawingAxis(this.drawingpoint.x, this.drawingpoint.y, this.drawingpoint.z);
             this.ShowActiveDrawing();
         }
-    };
+    }
 
-    GenerateLines(points: THREE.Vector3[], opacity: number = 1): THREE.Object3D {
+    GenerateLines(points: THREE.Vector3[], color: string, opacity: number = 1): THREE.Object3D {
         let object = new THREE.Object3D();
         let geometry = new THREE.BufferGeometry();
         let vertices = [];
@@ -573,12 +597,12 @@ class Canvas3D extends FrameWork {
 
         geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
 
-        let material = new THREE.LineBasicMaterial({ color: 0xFFFFFF, opacity: opacity, transparent: opacity === 1 ? false : true });
+        let material = new THREE.LineBasicMaterial({ color: color, opacity: opacity, transparent: opacity === 1 ? false : true });
         let lines = new THREE.LineSegments(geometry, material);
         object.add(lines);
 
         return object;
-    };
+    }
 
     GeneratePolyLines(points: THREE.Vector3[]): THREE.Object3D {
         let object = new THREE.Object3D();
@@ -595,8 +619,7 @@ class Canvas3D extends FrameWork {
         object.add(lines);
 
         return object;
-    };
-
+    }
 
     Select(x: number, y: number, res?: Function): void {
         let left = this.parent.offsetLeft;
@@ -695,6 +718,42 @@ class Canvas3D extends FrameWork {
     }
 
     CurrentPoint(x: number, y: number, res?: Function): void {
+        // let left = this.parent.offsetLeft;
+        // let top = this.parent.offsetTop;
+
+        // let mouse = {
+        //     x: ((x - left) / this.renderer.domElement.clientWidth) * 2 - 1,
+        //     y: -((y - top) / this.renderer.domElement.clientHeight) * 2 + 1
+        // };
+
+        // this.camera.updateMatrixWorld();
+        // this.raycaster.setFromCamera(mouse, this.camera);
+
+        // let intersects;
+
+        // for (let child of this.scene.children) {
+        //     if (child.type === "Object3D") {
+        //         intersects = this.raycaster.intersectObjects(child.children);
+
+        //         if (intersects && intersects.length > 0)
+        //             break;
+        //     }
+        // }
+
+        // if (intersects && intersects.length > 0) {
+        //     for (let object of intersects) {
+        //         if (res)
+        //             res(intersects[0].point);
+        //         break;
+        //     }
+
+        // } else {
+
+        let vec = new THREE.Vector3();
+        let pos = new THREE.Vector3();
+
+        // let x = this.mousemove.x;
+        // let y = this.mousemove.y;
         let left = this.parent.offsetLeft;
         let top = this.parent.offsetTop;
 
@@ -703,56 +762,23 @@ class Canvas3D extends FrameWork {
             y: -((y - top) / this.renderer.domElement.clientHeight) * 2 + 1
         };
 
-        this.camera.updateMatrixWorld();
-        this.raycaster.setFromCamera(mouse, this.camera);
+        vec.set(mouse.x, mouse.y, 0);
 
-        let intersects;
+        let camera = this.camera as THREE.PerspectiveCamera;
+        camera.updateProjectionMatrix();
 
-        for (let child of this.scene.children) {
-            if (child.type === "Object3D") {
-                intersects = this.raycaster.intersectObjects(child.children);
+        vec.unproject(this.camera);
+        vec.sub(this.camera.position).normalize();
 
-                if (intersects && intersects.length > 0)
-                    break;
-            }
-        }
-
-        if (intersects && intersects.length > 0) {
-            for (let object of intersects) {
-                if (res)
-                    res(intersects[0].point);
-                break;
-            }
-
-        } else {
-
-            let vec = new THREE.Vector3(); // create once and reuse
-            let pos = new THREE.Vector3(); // create once and reuse
-
-            let x = this.mousemove.x;
-            let y = this.mousemove.y;
-            let left = this.parent.offsetLeft;
-            let top = this.parent.offsetTop;
-
-            let mouse = {
-                x: ((x - left) / this.renderer.domElement.clientWidth) * 2 - 1,
-                y: -((y - top) / this.renderer.domElement.clientHeight) * 2 + 1
-            };
-
-            vec.set(mouse.x, mouse.y, this.points[this.points.length - 1].z);
-
-            let camera = this.camera as THREE.PerspectiveCamera;
-            camera.updateProjectionMatrix();
-
-            vec.unproject(this.camera);
-            vec.sub(this.camera.position).normalize();
-
+        if (!Number.isNaN(vec.z)) {
             let distance = - this.camera.position.z / vec.z;
             pos.copy(this.camera.position).add(vec.multiplyScalar(distance));
 
             if (res)
                 res(new THREE.Vector3(pos.x, pos.y, pos.z));
         }
+
+        //}
     }
 
     CaptureThumbnail(res?: Function): void {
@@ -761,7 +787,7 @@ class Canvas3D extends FrameWork {
             if (res)
                 res(image);
         });
-    };
+    }
 
     UpdateBounds(child: THREE.Object3D, bounds: THREE.Box3): void {
         let mesh: THREE.Mesh;
@@ -805,5 +831,5 @@ class Canvas3D extends FrameWork {
                 self.font = response;
             });
         }
-    };
+    }
 }

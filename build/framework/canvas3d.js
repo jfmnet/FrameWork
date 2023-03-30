@@ -90,6 +90,7 @@ var Canvas3D = /** @class */ (function (_super) {
             input.object.classList.add("hidden");
         };
         input.Show(this.object);
+        this.ShowGridXY(0, 0, 0);
         this.Resize();
         this.ShowDrawingAxis(0, 0, 0);
         (function anim() {
@@ -370,11 +371,27 @@ var Canvas3D = /** @class */ (function (_super) {
             this.Render();
         }
     };
+    Canvas3D.prototype.ShowGridXY = function (x, y, z) {
+        var points = [];
+        var size = 10;
+        for (var i = -size; i <= size; i++) {
+            //Along X
+            points.push(new THREE.Vector3(x + i, y - size, z));
+            points.push(new THREE.Vector3(x + i, y + size, z));
+            //Along Y
+            points.push(new THREE.Vector3(x - size, y + i, z));
+            points.push(new THREE.Vector3(x + size, y + i, z));
+        }
+        var lines = this.GenerateLines(points, "#444");
+        this.AddObject(lines);
+    };
     Canvas3D.prototype.ShowDrawingAxis = function (x, y, z) {
         var vector = this.camera.position.clone();
+        if (Number.isNaN(vector.x))
+            return;
         var distance = vector.sub(new THREE.Vector3(x, y, z)).length();
         var camera = this.camera;
-        var height = distance * Math.tan(camera.fov * Math.PI / 180) / 100;
+        var height = distance * Math.tan(camera.fov * Math.PI / 180) / 25;
         var points = [];
         var colors = [];
         colors.push("#FFFFFF");
@@ -455,8 +472,7 @@ var Canvas3D = /** @class */ (function (_super) {
             this.ShowActiveDrawing();
         }
     };
-    ;
-    Canvas3D.prototype.GenerateLines = function (points, opacity) {
+    Canvas3D.prototype.GenerateLines = function (points, color, opacity) {
         if (opacity === void 0) { opacity = 1; }
         var object = new THREE.Object3D();
         var geometry = new THREE.BufferGeometry();
@@ -464,12 +480,11 @@ var Canvas3D = /** @class */ (function (_super) {
         for (var i = 0; i < points.length; i += 2)
             vertices.push(points[i].x, points[i].y, points[i].z, points[i + 1].x, points[i + 1].y, points[i + 1].z);
         geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
-        var material = new THREE.LineBasicMaterial({ color: 0xFFFFFF, opacity: opacity, transparent: opacity === 1 ? false : true });
+        var material = new THREE.LineBasicMaterial({ color: color, opacity: opacity, transparent: opacity === 1 ? false : true });
         var lines = new THREE.LineSegments(geometry, material);
         object.add(lines);
         return object;
     };
-    ;
     Canvas3D.prototype.GeneratePolyLines = function (points) {
         var object = new THREE.Object3D();
         var geometry = new THREE.BufferGeometry();
@@ -482,7 +497,6 @@ var Canvas3D = /** @class */ (function (_super) {
         object.add(lines);
         return object;
     };
-    ;
     Canvas3D.prototype.Select = function (x, y, res) {
         var left = this.parent.offsetLeft;
         var top = this.parent.offsetTop;
@@ -565,52 +579,51 @@ var Canvas3D = /** @class */ (function (_super) {
         }
     };
     Canvas3D.prototype.CurrentPoint = function (x, y, res) {
+        // let left = this.parent.offsetLeft;
+        // let top = this.parent.offsetTop;
+        // let mouse = {
+        //     x: ((x - left) / this.renderer.domElement.clientWidth) * 2 - 1,
+        //     y: -((y - top) / this.renderer.domElement.clientHeight) * 2 + 1
+        // };
+        // this.camera.updateMatrixWorld();
+        // this.raycaster.setFromCamera(mouse, this.camera);
+        // let intersects;
+        // for (let child of this.scene.children) {
+        //     if (child.type === "Object3D") {
+        //         intersects = this.raycaster.intersectObjects(child.children);
+        //         if (intersects && intersects.length > 0)
+        //             break;
+        //     }
+        // }
+        // if (intersects && intersects.length > 0) {
+        //     for (let object of intersects) {
+        //         if (res)
+        //             res(intersects[0].point);
+        //         break;
+        //     }
+        // } else {
+        var vec = new THREE.Vector3();
+        var pos = new THREE.Vector3();
+        // let x = this.mousemove.x;
+        // let y = this.mousemove.y;
         var left = this.parent.offsetLeft;
         var top = this.parent.offsetTop;
         var mouse = {
             x: ((x - left) / this.renderer.domElement.clientWidth) * 2 - 1,
             y: -((y - top) / this.renderer.domElement.clientHeight) * 2 + 1
         };
-        this.camera.updateMatrixWorld();
-        this.raycaster.setFromCamera(mouse, this.camera);
-        var intersects;
-        for (var _i = 0, _a = this.scene.children; _i < _a.length; _i++) {
-            var child = _a[_i];
-            if (child.type === "Object3D") {
-                intersects = this.raycaster.intersectObjects(child.children);
-                if (intersects && intersects.length > 0)
-                    break;
-            }
-        }
-        if (intersects && intersects.length > 0) {
-            for (var _b = 0, intersects_2 = intersects; _b < intersects_2.length; _b++) {
-                var object = intersects_2[_b];
-                if (res)
-                    res(intersects[0].point);
-                break;
-            }
-        }
-        else {
-            var vec = new THREE.Vector3(); // create once and reuse
-            var pos = new THREE.Vector3(); // create once and reuse
-            var x_1 = this.mousemove.x;
-            var y_1 = this.mousemove.y;
-            var left_1 = this.parent.offsetLeft;
-            var top_1 = this.parent.offsetTop;
-            var mouse_1 = {
-                x: ((x_1 - left_1) / this.renderer.domElement.clientWidth) * 2 - 1,
-                y: -((y_1 - top_1) / this.renderer.domElement.clientHeight) * 2 + 1
-            };
-            vec.set(mouse_1.x, mouse_1.y, this.points[this.points.length - 1].z);
-            var camera = this.camera;
-            camera.updateProjectionMatrix();
-            vec.unproject(this.camera);
-            vec.sub(this.camera.position).normalize();
+        vec.set(mouse.x, mouse.y, 0);
+        var camera = this.camera;
+        camera.updateProjectionMatrix();
+        vec.unproject(this.camera);
+        vec.sub(this.camera.position).normalize();
+        if (!Number.isNaN(vec.z)) {
             var distance = -this.camera.position.z / vec.z;
             pos.copy(this.camera.position).add(vec.multiplyScalar(distance));
             if (res)
                 res(new THREE.Vector3(pos.x, pos.y, pos.z));
         }
+        //}
     };
     Canvas3D.prototype.CaptureThumbnail = function (res) {
         var _this = this;
@@ -620,7 +633,6 @@ var Canvas3D = /** @class */ (function (_super) {
                 res(image);
         });
     };
-    ;
     Canvas3D.prototype.UpdateBounds = function (child, bounds) {
         var mesh;
         bounds.min.y = Number.POSITIVE_INFINITY;
@@ -659,7 +671,6 @@ var Canvas3D = /** @class */ (function (_super) {
             });
         }
     };
-    ;
     return Canvas3D;
 }(FrameWork));
 //# sourceMappingURL=canvas3d.js.map
