@@ -34,6 +34,8 @@ var Canvas3D = /** @class */ (function (_super) {
         _this.mousedown = new THREE.Vector2();
         _this.mousemove = new THREE.Vector2();
         _this.mouseup = new THREE.Vector2();
+        _this.mousecurrent = new THREE.Vector3();
+        _this.currentz = 0;
         _this.selectedobjects = [];
         _this.selectedmaterials = [];
         _this.classes.push("canvas-3D");
@@ -47,6 +49,7 @@ var Canvas3D = /** @class */ (function (_super) {
         this.Clear();
         this.scene = new THREE.Scene();
         this.raycaster = new THREE.Raycaster();
+        this.raycaster.params.Line.threshold = 0.05;
         this.InitializePerspectiveCamera();
         this.InitializeRenderer();
         this.InitializeControls();
@@ -93,6 +96,7 @@ var Canvas3D = /** @class */ (function (_super) {
         this.ShowGridXY(0, 0, 0);
         this.Resize();
         this.ShowDrawingAxis(0, 0, 0);
+        this.ZoomAll();
         (function anim() {
             var delta = self.clock.getDelta();
             var elapsed = self.clock.getElapsedTime();
@@ -286,11 +290,11 @@ var Canvas3D = /** @class */ (function (_super) {
         this.Render();
     };
     Canvas3D.prototype.UpdateControl = function (event) {
-        this.controls.truck(0, 0);
-        var x = this.controls._target.x;
-        var y = this.controls._target.y;
-        var z = this.controls._target.z;
-        this.camera.updateMatrixWorld();
+        // this.controls.truck(0, 0);
+        // let x = this.controls._target.x;
+        // let y = this.controls._target.y;
+        // let z = this.controls._target.z;
+        // this.camera.updateMatrixWorld();
     };
     Canvas3D.prototype.OthographicView = function () {
         this.InitializeOthographicCamera();
@@ -322,7 +326,17 @@ var Canvas3D = /** @class */ (function (_super) {
     };
     Canvas3D.prototype.ParseInput = function (input) {
         var point;
-        if (input.indexOf(",") !== -1) {
+        if (input.toLowerCase().indexOf("z") !== -1 && input.toLowerCase().indexOf("=") !== -1) {
+            input = input.replace("  ", " ");
+            input = input.replace("  ", " ");
+            input = input.replace("  ", " ");
+            input = input.replace("z=", "");
+            var value = parseFloat(input);
+            //this.currentz = value;
+            this.ShowGridXY(0, 0, value);
+            return;
+        }
+        else if (input.indexOf(",") !== -1) {
             //Format: x, y, z
             var numbers = input.split(",");
             if (numbers.length === 2)
@@ -372,6 +386,10 @@ var Canvas3D = /** @class */ (function (_super) {
         }
     };
     Canvas3D.prototype.ShowGridXY = function (x, y, z) {
+        if (this.drawinggrid) {
+            this.Remove(this.drawinggrid);
+            this.drawinggrid = undefined;
+        }
         var points = [];
         var size = 10;
         for (var i = -size; i <= size; i++) {
@@ -384,6 +402,7 @@ var Canvas3D = /** @class */ (function (_super) {
         }
         var lines = this.GenerateLines(points, "#444");
         this.AddObject(lines);
+        this.drawinggrid = lines;
     };
     Canvas3D.prototype.ShowDrawingAxis = function (x, y, z) {
         var vector = this.camera.position.clone();
@@ -403,7 +422,7 @@ var Canvas3D = /** @class */ (function (_super) {
         colors.push("#00FF00");
         //Red
         colors.push("#FF0000");
-        var size = height;
+        var size = height || 1;
         //X
         points.push(new THREE.Vector3(x - size, y, z));
         points.push(new THREE.Vector3(x + size, y, z));
@@ -428,6 +447,7 @@ var Canvas3D = /** @class */ (function (_super) {
             this.drawingaxis = undefined;
         }
         this.drawingaxis = new THREE.Object3D();
+        this.drawingaxis.name = "axis";
         for (var i = 0; i < points.length; i += 2) {
             var geometry = new THREE.BufferGeometry();
             var vertices = [];
@@ -471,30 +491,38 @@ var Canvas3D = /** @class */ (function (_super) {
             this.ShowDrawingAxis(this.drawingpoint.x, this.drawingpoint.y, this.drawingpoint.z);
             this.ShowActiveDrawing();
         }
+        else {
+            var self_2 = this;
+            self_2.points.push(new THREE.Vector3(this.mousecurrent.x, this.mousecurrent.y, this.mousecurrent.z));
+            self_2.ShowDrawingAxis(this.mousecurrent.x, this.mousecurrent.y, this.mousecurrent.z);
+            self_2.ShowActiveDrawing();
+        }
     };
     Canvas3D.prototype.GenerateLines = function (points, color, opacity) {
         if (opacity === void 0) { opacity = 1; }
         var object = new THREE.Object3D();
-        var geometry = new THREE.BufferGeometry();
-        var vertices = [];
-        for (var i = 0; i < points.length; i += 2)
+        for (var i = 0; i < points.length; i += 2) {
+            var geometry = new THREE.BufferGeometry();
+            var vertices = [];
             vertices.push(points[i].x, points[i].y, points[i].z, points[i + 1].x, points[i + 1].y, points[i + 1].z);
-        geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
-        var material = new THREE.LineBasicMaterial({ color: color, opacity: opacity, transparent: opacity === 1 ? false : true });
-        var lines = new THREE.LineSegments(geometry, material);
-        object.add(lines);
+            geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+            var material = new THREE.LineBasicMaterial({ color: color, opacity: opacity, transparent: opacity === 1 ? false : true });
+            var lines = new THREE.LineSegments(geometry, material);
+            object.add(lines);
+        }
         return object;
     };
     Canvas3D.prototype.GeneratePolyLines = function (points) {
         var object = new THREE.Object3D();
-        var geometry = new THREE.BufferGeometry();
-        var vertices = [];
-        for (var i = 0; i < points.length - 1; i++)
+        for (var i = 0; i < points.length - 1; i++) {
+            var geometry = new THREE.BufferGeometry();
+            var vertices = [];
             vertices.push(points[i].x, points[i].y, points[i].z, points[i + 1].x, points[i + 1].y, points[i + 1].z);
-        geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
-        var material = new THREE.LineBasicMaterial({ color: 0xFFFFFF });
-        var lines = new THREE.LineSegments(geometry, material);
-        object.add(lines);
+            geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+            var material = new THREE.LineBasicMaterial({ color: 0xFFFFFF });
+            var lines = new THREE.Line(geometry, material);
+            object.add(lines);
+        }
         return object;
     };
     Canvas3D.prototype.Select = function (x, y, res) {
@@ -579,51 +607,35 @@ var Canvas3D = /** @class */ (function (_super) {
         }
     };
     Canvas3D.prototype.CurrentPoint = function (x, y, res) {
-        // let left = this.parent.offsetLeft;
-        // let top = this.parent.offsetTop;
-        // let mouse = {
-        //     x: ((x - left) / this.renderer.domElement.clientWidth) * 2 - 1,
-        //     y: -((y - top) / this.renderer.domElement.clientHeight) * 2 + 1
-        // };
-        // this.camera.updateMatrixWorld();
-        // this.raycaster.setFromCamera(mouse, this.camera);
-        // let intersects;
-        // for (let child of this.scene.children) {
-        //     if (child.type === "Object3D") {
-        //         intersects = this.raycaster.intersectObjects(child.children);
-        //         if (intersects && intersects.length > 0)
-        //             break;
-        //     }
-        // }
-        // if (intersects && intersects.length > 0) {
-        //     for (let object of intersects) {
-        //         if (res)
-        //             res(intersects[0].point);
-        //         break;
-        //     }
-        // } else {
-        var vec = new THREE.Vector3();
-        var pos = new THREE.Vector3();
-        // let x = this.mousemove.x;
-        // let y = this.mousemove.y;
         var left = this.parent.offsetLeft;
         var top = this.parent.offsetTop;
         var mouse = {
             x: ((x - left) / this.renderer.domElement.clientWidth) * 2 - 1,
             y: -((y - top) / this.renderer.domElement.clientHeight) * 2 + 1
         };
-        vec.set(mouse.x, mouse.y, 0);
-        var camera = this.camera;
-        camera.updateProjectionMatrix();
-        vec.unproject(this.camera);
-        vec.sub(this.camera.position).normalize();
-        if (!Number.isNaN(vec.z)) {
-            var distance = -this.camera.position.z / vec.z;
-            pos.copy(this.camera.position).add(vec.multiplyScalar(distance));
-            if (res)
-                res(new THREE.Vector3(pos.x, pos.y, pos.z));
+        this.camera.updateMatrixWorld();
+        this.raycaster.setFromCamera(mouse, this.camera);
+        var intersects;
+        for (var _i = 0, _a = this.scene.children; _i < _a.length; _i++) {
+            var child = _a[_i];
+            if (child.type === "Object3D" && child.name !== "axis") {
+                intersects = this.raycaster.intersectObjects(child.children, true);
+                if (intersects && intersects.length > 0) {
+                    //For grid
+                    {
+                        var point = intersects[0].point;
+                        point.x = Math.round(point.x);
+                        point.y = Math.round(point.y);
+                        point.z = Math.round(point.z);
+                        this.mousecurrent.x = point.x;
+                        this.mousecurrent.y = point.y;
+                        this.mousecurrent.z = point.z;
+                    }
+                    res(intersects[0].point);
+                    return;
+                }
+            }
         }
-        //}
     };
     Canvas3D.prototype.CaptureThumbnail = function (res) {
         var _this = this;
@@ -651,25 +663,23 @@ var Canvas3D = /** @class */ (function (_super) {
         }
     };
     Canvas3D.prototype.LoadFont = function () {
-        var self = this;
-        var loader = new THREE.FontLoader();
-        try {
-            if (window.chrome.webview) {
-                loader.load('https://canvas/fonts/arial.json', function (response) {
-                    self.font = response;
-                });
-            }
-            else {
-                loader.load('fonts/arial.json', function (response) {
-                    self.font = response;
-                });
-            }
-        }
-        catch (error) {
-            loader.load('fonts/arial.json', function (response) {
-                self.font = response;
-            });
-        }
+        // let self = this;
+        // let loader = new THREE.FontLoader();
+        // try {
+        //     if (window.chrome.webview) {
+        //         loader.load('https://canvas/fonts/arial.json', function (response) {
+        //             self.font = response;
+        //         });
+        //     } else {
+        //         loader.load('fonts/arial.json', function (response) {
+        //             self.font = response;
+        //         });
+        //     }
+        // } catch (error) {
+        //     loader.load('fonts/arial.json', function (response) {
+        //         self.font = response;
+        //     });
+        // }
     };
     return Canvas3D;
 }(FrameWork));

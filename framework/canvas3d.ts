@@ -15,6 +15,7 @@ class Canvas3D extends FrameWork {
     font: THREE.Font;
     clock: THREE.Clock = new THREE.Clock();
     drawingaxis: THREE.Object3D;
+    drawinggrid: THREE.Object3D;
     drawingguide: THREE.Object3D;
     drawingactive: THREE.Object3D;
     drawingpoint: THREE.Vector3;
@@ -27,6 +28,8 @@ class Canvas3D extends FrameWork {
     mousedown: THREE.Vector2 = new THREE.Vector2();
     mousemove: THREE.Vector2 = new THREE.Vector2();
     mouseup: THREE.Vector2 = new THREE.Vector2();
+    mousecurrent: THREE.Vector3 = new THREE.Vector3();
+    currentz: number = 0;
 
     selectedobject: THREE.Mesh;
     selectedobjects: THREE.Mesh[] = [];
@@ -51,6 +54,7 @@ class Canvas3D extends FrameWork {
 
         this.scene = new THREE.Scene();
         this.raycaster = new THREE.Raycaster();
+        this.raycaster.params.Line.threshold = 0.05;
 
         this.InitializePerspectiveCamera();
         this.InitializeRenderer();
@@ -109,6 +113,7 @@ class Canvas3D extends FrameWork {
         this.ShowGridXY(0, 0, 0);
         this.Resize();
         this.ShowDrawingAxis(0, 0, 0);
+        this.ZoomAll();
 
         (function anim() {
             const delta = self.clock.getDelta();
@@ -346,13 +351,13 @@ class Canvas3D extends FrameWork {
     }
 
     UpdateControl(event: MouseEvent): void {
-        this.controls.truck(0, 0);
+        // this.controls.truck(0, 0);
 
-        let x = this.controls._target.x;
-        let y = this.controls._target.y;
-        let z = this.controls._target.z;
+        // let x = this.controls._target.x;
+        // let y = this.controls._target.y;
+        // let z = this.controls._target.z;
 
-        this.camera.updateMatrixWorld();
+        // this.camera.updateMatrixWorld();
     }
 
     OthographicView(): void {
@@ -393,7 +398,19 @@ class Canvas3D extends FrameWork {
     ParseInput(input: string): void {
         let point: THREE.Vector3;
 
-        if (input.indexOf(",") !== -1) {
+        if (input.toLowerCase().indexOf("z") !== -1 && input.toLowerCase().indexOf("=") !== -1) {
+            input = input.replace("  ", " ");
+            input = input.replace("  ", " ");
+            input = input.replace("  ", " ");
+            input = input.replace("z=", "");
+
+            let value = parseFloat(input);
+            //this.currentz = value;
+
+            this.ShowGridXY(0, 0, value);
+            return;
+
+        } else if (input.indexOf(",") !== -1) {
             //Format: x, y, z
             let numbers = input.split(",");
 
@@ -454,6 +471,11 @@ class Canvas3D extends FrameWork {
     }
 
     ShowGridXY(x: number, y: number, z: number): void {
+        if (this.drawinggrid) {
+            this.Remove(this.drawinggrid);
+            this.drawinggrid = undefined;
+        }
+
         let points: THREE.Vector3[] = [];
         let size = 10;
 
@@ -469,6 +491,8 @@ class Canvas3D extends FrameWork {
 
         var lines = this.GenerateLines(points, "#444");
         this.AddObject(lines);
+
+        this.drawinggrid = lines;
     }
 
     ShowDrawingAxis(x: number, y: number, z: number): void {
@@ -497,7 +521,7 @@ class Canvas3D extends FrameWork {
         //Red
         colors.push("#FF0000");
 
-        let size = height;
+        let size = height || 1;
 
         //X
         points.push(new THREE.Vector3(x - size, y, z));
@@ -531,6 +555,7 @@ class Canvas3D extends FrameWork {
         }
 
         this.drawingaxis = new THREE.Object3D();
+        this.drawingaxis.name = "axis";
 
         for (let i = 0; i < points.length; i += 2) {
             let geometry = new THREE.BufferGeometry();
@@ -584,39 +609,50 @@ class Canvas3D extends FrameWork {
             this.points.push(this.drawingpoint);
             this.ShowDrawingAxis(this.drawingpoint.x, this.drawingpoint.y, this.drawingpoint.z);
             this.ShowActiveDrawing();
+
+        } else {
+            let self = this;
+            self.points.push(new THREE.Vector3(this.mousecurrent.x, this.mousecurrent.y, this.mousecurrent.z));
+            self.ShowDrawingAxis(this.mousecurrent.x, this.mousecurrent.y, this.mousecurrent.z);
+            self.ShowActiveDrawing();
         }
     }
 
     GenerateLines(points: THREE.Vector3[], color: string, opacity: number = 1): THREE.Object3D {
         let object = new THREE.Object3D();
-        let geometry = new THREE.BufferGeometry();
-        let vertices = [];
 
-        for (let i = 0; i < points.length; i += 2)
+        for (let i = 0; i < points.length; i += 2) {
+            let geometry = new THREE.BufferGeometry();
+            let vertices = [];
+
             vertices.push(points[i].x, points[i].y, points[i].z, points[i + 1].x, points[i + 1].y, points[i + 1].z);
 
-        geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+            geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
 
-        let material = new THREE.LineBasicMaterial({ color: color, opacity: opacity, transparent: opacity === 1 ? false : true });
-        let lines = new THREE.LineSegments(geometry, material);
-        object.add(lines);
+            let material = new THREE.LineBasicMaterial({ color: color, opacity: opacity, transparent: opacity === 1 ? false : true });
+            let lines = new THREE.LineSegments(geometry, material);
+            object.add(lines);
+        }
 
         return object;
     }
 
     GeneratePolyLines(points: THREE.Vector3[]): THREE.Object3D {
         let object = new THREE.Object3D();
-        let geometry = new THREE.BufferGeometry();
-        let vertices = [];
 
-        for (let i = 0; i < points.length - 1; i++)
+        for (let i = 0; i < points.length - 1; i++) {
+            let geometry = new THREE.BufferGeometry();
+            let vertices = [];
+
             vertices.push(points[i].x, points[i].y, points[i].z, points[i + 1].x, points[i + 1].y, points[i + 1].z);
 
-        geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+            geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
 
-        let material = new THREE.LineBasicMaterial({ color: 0xFFFFFF });
-        let lines = new THREE.LineSegments(geometry, material);
-        object.add(lines);
+            let material = new THREE.LineBasicMaterial({ color: 0xFFFFFF });
+            let lines = new THREE.Line(geometry, material);
+
+            object.add(lines);
+        }
 
         return object;
     }
@@ -718,42 +754,6 @@ class Canvas3D extends FrameWork {
     }
 
     CurrentPoint(x: number, y: number, res?: Function): void {
-        // let left = this.parent.offsetLeft;
-        // let top = this.parent.offsetTop;
-
-        // let mouse = {
-        //     x: ((x - left) / this.renderer.domElement.clientWidth) * 2 - 1,
-        //     y: -((y - top) / this.renderer.domElement.clientHeight) * 2 + 1
-        // };
-
-        // this.camera.updateMatrixWorld();
-        // this.raycaster.setFromCamera(mouse, this.camera);
-
-        // let intersects;
-
-        // for (let child of this.scene.children) {
-        //     if (child.type === "Object3D") {
-        //         intersects = this.raycaster.intersectObjects(child.children);
-
-        //         if (intersects && intersects.length > 0)
-        //             break;
-        //     }
-        // }
-
-        // if (intersects && intersects.length > 0) {
-        //     for (let object of intersects) {
-        //         if (res)
-        //             res(intersects[0].point);
-        //         break;
-        //     }
-
-        // } else {
-
-        let vec = new THREE.Vector3();
-        let pos = new THREE.Vector3();
-
-        // let x = this.mousemove.x;
-        // let y = this.mousemove.y;
         let left = this.parent.offsetLeft;
         let top = this.parent.offsetTop;
 
@@ -762,23 +762,34 @@ class Canvas3D extends FrameWork {
             y: -((y - top) / this.renderer.domElement.clientHeight) * 2 + 1
         };
 
-        vec.set(mouse.x, mouse.y, 0);
+        this.camera.updateMatrixWorld();
+        this.raycaster.setFromCamera(mouse, this.camera);
 
-        let camera = this.camera as THREE.PerspectiveCamera;
-        camera.updateProjectionMatrix();
+        let intersects;
 
-        vec.unproject(this.camera);
-        vec.sub(this.camera.position).normalize();
+        for (let child of this.scene.children) {
+            if (child.type === "Object3D" && child.name !== "axis") {
+                intersects = this.raycaster.intersectObjects(child.children, true);
 
-        if (!Number.isNaN(vec.z)) {
-            let distance = - this.camera.position.z / vec.z;
-            pos.copy(this.camera.position).add(vec.multiplyScalar(distance));
+                if (intersects && intersects.length > 0) {
+                    //For grid
+                    {
+                        let point = intersects[0].point;
 
-            if (res)
-                res(new THREE.Vector3(pos.x, pos.y, pos.z));
+                        point.x = Math.round(point.x);
+                        point.y = Math.round(point.y);
+                        point.z = Math.round(point.z);
+
+                        this.mousecurrent.x = point.x;
+                        this.mousecurrent.y = point.y;
+                        this.mousecurrent.z = point.z;
+                    }
+
+                    res(intersects[0].point);
+                    return;
+                }
+            }
         }
-
-        //}
     }
 
     CaptureThumbnail(res?: Function): void {
@@ -813,23 +824,23 @@ class Canvas3D extends FrameWork {
     }
 
     LoadFont(): void {
-        let self = this;
-        let loader = new THREE.FontLoader();
+        // let self = this;
+        // let loader = new THREE.FontLoader();
 
-        try {
-            if (window.chrome.webview) {
-                loader.load('https://canvas/fonts/arial.json', function (response) {
-                    self.font = response;
-                });
-            } else {
-                loader.load('fonts/arial.json', function (response) {
-                    self.font = response;
-                });
-            }
-        } catch (error) {
-            loader.load('fonts/arial.json', function (response) {
-                self.font = response;
-            });
-        }
+        // try {
+        //     if (window.chrome.webview) {
+        //         loader.load('https://canvas/fonts/arial.json', function (response) {
+        //             self.font = response;
+        //         });
+        //     } else {
+        //         loader.load('fonts/arial.json', function (response) {
+        //             self.font = response;
+        //         });
+        //     }
+        // } catch (error) {
+        //     loader.load('fonts/arial.json', function (response) {
+        //         self.font = response;
+        //     });
+        // }
     }
 }
