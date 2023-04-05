@@ -326,15 +326,33 @@ var Canvas3D = /** @class */ (function (_super) {
     };
     Canvas3D.prototype.ParseInput = function (input) {
         var point;
-        if (input.toLowerCase().indexOf("z") !== -1 && input.toLowerCase().indexOf("=") !== -1) {
+        if (input.toLowerCase().indexOf("zo") !== -1 && input.toLowerCase().indexOf("=") !== -1) {
+            //Move grid to z
+            input = input.replace("  ", " ");
+            input = input.replace("  ", " ");
+            input = input.replace("  ", " ");
+            input = input.replace("zo=", "");
+            var value = parseFloat(input);
+            this.ShowGridXY(0, 0, value);
+            return;
+        }
+        else if (input.toLowerCase().indexOf("z") !== -1 && input.toLowerCase().indexOf("=") !== -1) {
+            //Draw a line from snapline z1 to z
+            var position = this.snapline.geometry.attributes["position"].array;
+            var point1 = new THREE.Vector3(position[0], position[1], position[2]);
+            var point2 = new THREE.Vector3(position[3], position[4], position[5]);
+            var normal = point1.clone().sub(point2).normalize();
+            //Move grid to z
             input = input.replace("  ", " ");
             input = input.replace("  ", " ");
             input = input.replace("  ", " ");
             input = input.replace("z=", "");
             var value = parseFloat(input);
-            //this.currentz = value;
-            this.ShowGridXY(0, 0, value);
-            return;
+            var l = value / normal.z;
+            var x = point1.x + normal.x * l;
+            var y = point1.y + normal.y * l;
+            var z = point1.z + normal.z * l;
+            this.points.push(new THREE.Vector3(x, y, z));
         }
         else if (input.indexOf(",") !== -1) {
             //Format: x, y, z
@@ -361,8 +379,10 @@ var Canvas3D = /** @class */ (function (_super) {
             var value = parseFloat(input);
             if (this.drawingpoint) {
                 point = this.points[this.points.length - 1];
-                var normal = this.drawingpoint.sub(point).normalize();
-                this.points.push(new THREE.Vector3(point.x + normal.x * value, point.y + normal.y * value, point.z + normal.z * value));
+                if (point) {
+                    var normal = this.drawingpoint.sub(point).normalize();
+                    this.points.push(new THREE.Vector3(point.x + normal.x * value, point.y + normal.y * value, point.z + normal.z * value));
+                }
             }
             else {
                 this.points.push(new THREE.Vector3(value, 0, 0));
@@ -401,6 +421,7 @@ var Canvas3D = /** @class */ (function (_super) {
             points.push(new THREE.Vector3(x + size, y + i, z));
         }
         var lines = this.GenerateLines(points, "#444");
+        lines.name = "grid";
         this.AddObject(lines);
         this.drawinggrid = lines;
     };
@@ -475,6 +496,7 @@ var Canvas3D = /** @class */ (function (_super) {
                     points.push(point);
                     points.push(current);
                     self_1.drawingguide = self_1.GeneratePolyLines(points);
+                    self_1.drawingguide.name = "guide";
                     self_1.AddObject(self_1.drawingguide);
                     self_1.Render();
                 }
@@ -616,22 +638,57 @@ var Canvas3D = /** @class */ (function (_super) {
         this.camera.updateMatrixWorld();
         this.raycaster.setFromCamera(mouse, this.camera);
         var intersects;
+        var snappoint;
+        var snapdistance;
         for (var _i = 0, _a = this.scene.children; _i < _a.length; _i++) {
             var child = _a[_i];
-            if (child.type === "Object3D" && child.name !== "axis") {
+            if (child.type === "Object3D" && child.name !== "axis" && child.name !== "grid" && child.name !== "guide") {
                 intersects = this.raycaster.intersectObjects(child.children, true);
                 if (intersects && intersects.length > 0) {
-                    //For grid
-                    {
-                        var point = intersects[0].point;
-                        point.x = Math.round(point.x);
-                        point.y = Math.round(point.y);
-                        point.z = Math.round(point.z);
-                        this.mousecurrent.x = point.x;
-                        this.mousecurrent.y = point.y;
-                        this.mousecurrent.z = point.z;
+                    var point = intersects[0].point;
+                    var distance = intersects[0].distance;
+                    //Check also the second point
+                    var position = intersects[0].object.geometry.attributes["position"].array;
+                    var point1 = new THREE.Vector3(position[0], position[1], position[2]);
+                    var point2 = new THREE.Vector3(position[3], position[4], position[5]);
+                    var diff1 = point1.clone().sub(point).length();
+                    var diff2 = point2.clone().sub(point).length();
+                    if (diff1 < 0.1 && diff1 < diff2) {
+                        point = point1;
+                        distance = diff1;
                     }
-                    res(intersects[0].point);
+                    else if (diff2 < 0.1 && diff2 < diff1) {
+                        point = point2;
+                        distance = diff2;
+                    }
+                    if (!snappoint || snapdistance > distance) {
+                        snappoint = point;
+                        snapdistance = distance;
+                        this.snapline = intersects[0].object;
+                    }
+                }
+            }
+        }
+        if (snappoint) {
+            this.mousecurrent.x = snappoint.x;
+            this.mousecurrent.y = snappoint.y;
+            this.mousecurrent.z = snappoint.z;
+            res(snappoint);
+            return;
+        }
+        for (var _b = 0, _c = this.scene.children; _b < _c.length; _b++) {
+            var child = _c[_b];
+            if (child.name === "grid") {
+                intersects = this.raycaster.intersectObjects(child.children, true);
+                if (intersects && intersects.length > 0) {
+                    var point = intersects[0].point;
+                    point.x = Math.round(point.x);
+                    point.y = Math.round(point.y);
+                    point.z = Math.round(point.z);
+                    this.mousecurrent.x = point.x;
+                    this.mousecurrent.y = point.y;
+                    this.mousecurrent.z = point.z;
+                    res(point);
                     return;
                 }
             }
