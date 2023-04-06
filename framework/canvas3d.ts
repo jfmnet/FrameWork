@@ -74,24 +74,30 @@ class Canvas3D extends FrameWork {
                 self.ctrlKey = event.ctrlKey;
                 self.controls.enabled = false;
 
-                if (event.key === "Enter" || event.key === "Escape") {
-                    //Add current drawing
-                    if (this.points.length > 1) {
-                        if (this.drawingactive) {
-                            this.Remove(this.drawingactive);
-                            this.drawingactive = undefined;
-                        }
+                if (event.key === "Escape") {
+                    self.drawingactive = undefined;
 
-                        let drawing = this.GeneratePolyLines(this.points);
-                        this.AddObject(drawing);
-                        this.Render();
-                    }
+                    // //Add current drawing
+                    // if (self.points.length > 1) {
+                    //     if (self.drawingactive) {
+                    //         self.Remove(this.drawingactive);
+                    //         self.drawingactive = undefined;
+                    //     }
 
-                    this.points = [];
+                    //     let drawing = this.GeneratePolyLines(this.points);
+                    //     self.AddObject(drawing);
+                    //     self.Render();
+                    // }
+
+                    self.points = [];
                 }
                 else {
                     input.object.classList.remove("hidden");
                     input.Focus();
+                }
+            } else {
+                if (event.key === "Enter" || event.key === "Escape") {
+                    input.object.classList.add("hidden");
                 }
             }
         });
@@ -104,8 +110,11 @@ class Canvas3D extends FrameWork {
         let input = new FrameWork.Input({ classes: ["canvas-input", "hidden"] });
 
         input.onchange = (object: FrameWork.Input) => {
-            let value = input.value;
-            self.ParseInput(value);
+            let value = input.value.trim();
+
+            if (value)
+                self.ParseInput(value);
+
             input.object.classList.add("hidden");
         };
 
@@ -461,14 +470,28 @@ class Canvas3D extends FrameWork {
             let value = parseFloat(input);
 
             if (this.drawingpoint) {
-                point = this.points[this.points.length - 1];
+                if (this.snapline) {
+                    let position = this.snapline.geometry.attributes["position"].array;
+                    let point1 = new THREE.Vector3(position[0], position[1], position[2]);
+                    let point2 = new THREE.Vector3(position[3], position[4], position[5]);
+                    let normal = point2.clone().sub(point1).normalize();
+                    this.points.push(new THREE.Vector3(point1.x + normal.x * value, point1.y + normal.y * value, point1.z + normal.z * value));
 
-                if (point) {
-                    let normal = this.drawingpoint.sub(point).normalize();
-                    this.points.push(new THREE.Vector3(point.x + normal.x * value, point.y + normal.y * value, point.z + normal.z * value));
+                } else {
+                    point = this.points[this.points.length - 1];
+
+                    if (point) {
+                        let normal = this.drawingpoint.sub(point).normalize();
+                        this.points.push(new THREE.Vector3(point.x + normal.x * value, point.y + normal.y * value, point.z + normal.z * value));
+
+                    }
                 }
-            } else {
+
+            } else if (!Number.isNaN(value)) {
                 this.points.push(new THREE.Vector3(value, 0, 0));
+
+            } else {
+                return;
             }
         }
 
@@ -533,9 +556,9 @@ class Canvas3D extends FrameWork {
         let points: THREE.Vector3[] = [];
         let colors: string[] = [];
 
-        colors.push("#FFFFFF");
-        colors.push("#FFFFFF");
-        colors.push("#FFFFFF");
+        // colors.push("#FFFFFF");
+        // colors.push("#FFFFFF");
+        // colors.push("#FFFFFF");
 
         //Blue
         colors.push("#0000FF");
@@ -560,19 +583,19 @@ class Canvas3D extends FrameWork {
         points.push(new THREE.Vector3(x, y, z - size));
         points.push(new THREE.Vector3(x, y, z + size));
 
-        size = 10;
+        // size = 10;
 
-        //X
-        points.push(new THREE.Vector3(x - size, y, z));
-        points.push(new THREE.Vector3(x + size, y, z));
+        // //X
+        // points.push(new THREE.Vector3(x - size, y, z));
+        // points.push(new THREE.Vector3(x + size, y, z));
 
-        //Y
-        points.push(new THREE.Vector3(x, y - size, z));
-        points.push(new THREE.Vector3(x, y + size, z));
+        // //Y
+        // points.push(new THREE.Vector3(x, y - size, z));
+        // points.push(new THREE.Vector3(x, y + size, z));
 
-        //Z
-        points.push(new THREE.Vector3(x, y, z - size));
-        points.push(new THREE.Vector3(x, y, z + size));
+        // //Z
+        // points.push(new THREE.Vector3(x, y, z - size));
+        // points.push(new THREE.Vector3(x, y, z + size));
 
         if (this.drawingaxis) {
             this.Remove(this.drawingaxis);
@@ -590,7 +613,7 @@ class Canvas3D extends FrameWork {
 
             geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
 
-            let material = new THREE.LineBasicMaterial({ color: colors.pop(), opacity: i < 6 ? 1 : 0, transparent: true });
+            let material = new THREE.LineBasicMaterial({ color: colors.pop(), opacity: 1, transparent: true }); //i < 6 ? 1 : 0
             let lines = new THREE.LineSegments(geometry, material);
             this.drawingaxis.add(lines);
         }
@@ -796,6 +819,9 @@ class Canvas3D extends FrameWork {
         let snappoint: THREE.Vector3;
         let snapdistance: number;
 
+        this.snapline = null;
+
+        //Snap to lines
         for (let child of this.scene.children) {
             if (child.type === "Object3D" && child.name !== "axis" && child.name !== "grid" && child.name !== "guide") {
                 intersects = this.raycaster.intersectObjects(child.children, true);
@@ -804,7 +830,7 @@ class Canvas3D extends FrameWork {
                     let point = intersects[0].point;
                     let distance = intersects[0].distance;
 
-                    //Check also the second point
+                    //Check the end points
                     let position = intersects[0].object.geometry.attributes["position"].array;
                     let point1 = new THREE.Vector3(position[0], position[1], position[2]);
                     let point2 = new THREE.Vector3(position[3], position[4], position[5]);
@@ -813,14 +839,18 @@ class Canvas3D extends FrameWork {
                     let diff2 = point2.clone().sub(point).length();
 
                     if (diff1 < 0.1 && diff1 < diff2) {
+                        //Cursor is closer to the starting point
                         point = point1;
                         distance = diff1;
+
                     } else if (diff2 < 0.1 && diff2 < diff1) {
+                        //Cursor is closer to the ending point
                         point = point2;
                         distance = diff2;
                     }
 
                     if (!snappoint || snapdistance > distance) {
+                        //Update the snappoint
                         snappoint = point;
                         snapdistance = distance;
                         this.snapline = intersects[0].object;
@@ -838,6 +868,7 @@ class Canvas3D extends FrameWork {
             return;
         }
 
+        //Snap to grid
         for (let child of this.scene.children) {
             if (child.name === "grid") {
                 intersects = this.raycaster.intersectObjects(child.children, true);
