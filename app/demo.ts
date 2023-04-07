@@ -2,7 +2,6 @@ class Demo {
     Show(): void {
         //this.Tree();
         //this.Menu();
-
         //this.Input();
         this.MaterialDesign2();
     }
@@ -43,20 +42,41 @@ class Demo {
 
     Input(): void {
         let data = new InputData();
-
         let container = new FrameWork.Container();
         container.AddDataSource(data);
         container.Show();
     }
 
     MaterialDesign2(): void {
-        let button = new MaterialDesign2.Button({ text: "OK", icon: "favorite" });
-        button.type = MaterialDesign2.ButtonType.RAISED;
-        button.Show();
-
-        let cards = new MaterialDesign2.Cards({ text: "Cards" });
-        cards.Show();
+        let txtName = new MaterialDesign2.TextField({id: "txtName", text:"write your name"});
+        txtName.type = MaterialDesign2.TextFieldType.OUTLINE;
+        let txtCourse = new MaterialDesign2.TextField({id: "txtCourse", text:"write your course"});
+        txtCourse.type = MaterialDesign2.TextFieldType.OUTLINE;
+        let txtPassword = new MaterialDesign2.Password({id: "txtPass", text:"password"});
+        txtPassword.type = MaterialDesign2.InputType.OUTLINE;
+        let rdMale = new MaterialDesign2.Radio({ text:"Male", value: "male", id:"rdmal", name:"gender"});
+        let rdFemale = new MaterialDesign2.Radio({text:"Female", value:"female", id:"rdfe", name:"gender"});
+        let checkBook = new MaterialDesign2.CheckBox({id:"ckdBook", text:"Book"});
+        let checkSport = new MaterialDesign2.CheckBox({id:"ckSport", text:"Sport"});
+        let txtArea = new MaterialDesign2.TextArea({id: "txtArea", rownum: 4, colsnum: 22, maxCount: 50, text: "enter your story"}); 
+        let Floatbutton = new MaterialDesign2.FloatingButton({icon:"add"});  
+        Floatbutton.type = MaterialDesign2.FloatButtonType.MINI;
+       
+        let container = new FrameWork.Container();   
+        container.classes.push("center");     
+        container.Add(txtName);
+        container.Add(txtCourse);
+        container.Add(txtPassword);
+        container.Add(rdMale);
+        container.Add(rdFemale);
+        container.Add(checkBook);
+        container.Add(checkSport);
+        container.Add(txtArea);
+        container.Add(Floatbutton);      
+        container.Show()
+        
     }
+    
 }
 
 class InputData {
