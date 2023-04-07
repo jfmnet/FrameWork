@@ -2,6 +2,7 @@ interface Window {
     JSZip: any;
     JSZipUtils: any;
     mdc: any;
+    chrome: any;
 }
 
 interface Parameter {
@@ -896,6 +897,7 @@ namespace FrameWork {
 
                 let input = document.createElement("input");
                 input.type = this.type;
+                this.input = input;
 
                 switch (this.type) {
                     case "checkbox":
@@ -920,6 +922,7 @@ namespace FrameWork {
             } else {
                 let input = document.createElement("input");
                 input.type = this.type;
+                this.input = input;
 
                 if (this.value !== undefined)
                     input.value = this.value;
@@ -962,16 +965,30 @@ namespace FrameWork {
                         break;
 
                     default:
+                        input.addEventListener('change', function (e) {
+                            e.preventDefault();
+                            self.value = this.value;
+                        });
+
                         input.addEventListener('input', function () {
                             self.value = this.value;
+                        });
 
-                            if (self.onchange)
-                                self.onchange(self);
+                        input.addEventListener('keydown', function (e) {
+                            if (e.key === "Enter") {
+                                if (self.onchange)
+                                    self.onchange(self);
+                            }
                         });
                         break;
                 }
             }
         };
+
+        Focus(): void {
+            this.input.value = "";
+            this.input.focus();
+        }
     }
 
     export abstract class InputBase {
@@ -1762,6 +1779,7 @@ namespace MaterialDesign2 {
                 this.children[i].Show(this.object);
             }
 
+<<<<<<< HEAD
             this.RenderDataSource();
         };
     }  
@@ -1824,6 +1842,8 @@ namespace MaterialDesign2 {
                 this.children[i].Show(this.object);
             }
 
+=======
+>>>>>>> a20c04a8766e0741adc6cb9d773814f2eaaf5032
             this.RenderDataSource();
         };
     }

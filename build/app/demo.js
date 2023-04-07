@@ -2,10 +2,18 @@ var Demo = /** @class */ (function () {
     function Demo() {
     }
     Demo.prototype.Show = function () {
+        this.Show3D();
         //this.Tree();
         //this.Menu();
         //this.Input();
-        this.MaterialDesign2();
+        //this.MaterialDesign2();
+    };
+    Demo.prototype.Show3D = function () {
+        var canvas = new Canvas3D();
+        canvas.Show();
+        // let sphere = new Canvas3DGraphics.Sphere(1, 0, 0, 0);
+        // canvas.AddObject(sphere.Generate());
+        // canvas.ZoomAll();
     };
     Demo.prototype.Tree = function () {
         var tree = new FrameWork.TreeContainer();
