@@ -14,7 +14,8 @@ class Canvas3D extends FrameWork {
     raycaster: THREE.Raycaster;
     font: THREE.Font;
     clock: THREE.Clock = new THREE.Clock();
-    drawingaxis: THREE.Object3D;
+    pointeraxis: THREE.Object3D;
+    guideaxis: THREE.Object3D;
     drawinggrid: THREE.Object3D;
     drawingguide: THREE.Object3D;
     drawingactive: THREE.Object3D;
@@ -112,7 +113,7 @@ class Canvas3D extends FrameWork {
 
         this.ShowGridXY(0, 0, 0);
         this.Resize();
-        this.ShowDrawingAxis(0, 0, 0);
+        this.ShowPointerAxis(0, 0, 0);
         this.ZoomAll();
 
         (function anim() {
@@ -254,7 +255,7 @@ class Canvas3D extends FrameWork {
         let self = this;
 
         this.CurrentPoint(this.mousemove.x, this.mousemove.y, function (current: THREE.Vector3) {
-            self.ShowDrawingAxis(current.x, current.y, current.z);
+            self.ShowPointerAxis(current.x, current.y, current.z);
         });
     }
 
@@ -272,9 +273,9 @@ class Canvas3D extends FrameWork {
         let point = this.points[this.points.length - 1];
 
         if (point)
-            this.ShowDrawingAxis(point.x, point.y, point.z);
+            this.ShowPointerAxis(point.x, point.y, point.z);
         else
-            this.ShowDrawingAxis(0, 0, 0);
+            this.ShowPointerAxis(0, 0, 0);
     }
 
     ZoomAll(res?: Function, xrot?: number, yrot?: number): void {
@@ -405,8 +406,6 @@ class Canvas3D extends FrameWork {
             input = input.replace("z=", "");
 
             let value = parseFloat(input);
-            //this.currentz = value;
-
             this.ShowGridXY(0, 0, value);
             return;
 
@@ -449,7 +448,7 @@ class Canvas3D extends FrameWork {
         }
 
         point = this.points[this.points.length - 1];
-        this.ShowDrawingAxis(point.x, point.y, point.z);
+        this.ShowGuideAxis(point.x, point.y, point.z);
 
         this.ShowActiveDrawing();
 
@@ -495,7 +494,7 @@ class Canvas3D extends FrameWork {
         this.drawinggrid = lines;
     }
 
-    ShowDrawingAxis(x: number, y: number, z: number): void {
+    ShowPointerAxis(x: number, y: number, z: number): void {
         let vector = this.camera.position.clone();
 
         if (Number.isNaN(vector.x))
@@ -507,10 +506,6 @@ class Canvas3D extends FrameWork {
 
         let points: THREE.Vector3[] = [];
         let colors: string[] = [];
-
-        colors.push("#FFFFFF");
-        colors.push("#FFFFFF");
-        colors.push("#FFFFFF");
 
         //Blue
         colors.push("#0000FF");
@@ -535,7 +530,45 @@ class Canvas3D extends FrameWork {
         points.push(new THREE.Vector3(x, y, z - size));
         points.push(new THREE.Vector3(x, y, z + size));
 
-        size = 10;
+        if (this.pointeraxis) {
+            this.Remove(this.pointeraxis);
+            this.pointeraxis = undefined;
+        }
+
+        this.pointeraxis = new THREE.Object3D();
+        this.pointeraxis.name = "axis";
+
+        for (let i = 0; i < points.length; i += 2) {
+            let geometry = new THREE.BufferGeometry();
+            let vertices = [];
+
+            vertices.push(points[i].x, points[i].y, points[i].z, points[i + 1].x, points[i + 1].y, points[i + 1].z);
+
+            geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+
+            let material = new THREE.LineBasicMaterial({ color: colors.pop() });
+            let lines = new THREE.LineSegments(geometry, material);
+            this.pointeraxis.add(lines);
+        }
+
+        this.AddObject(this.pointeraxis);
+        this.Render();
+    }
+
+    ShowGuideAxis(x: number, y: number, z: number): void {
+        let vector = this.camera.position.clone();
+
+        if (Number.isNaN(vector.x))
+            return;
+
+        let points: THREE.Vector3[] = [];
+        let colors: string[] = [];
+
+        colors.push("#FFFFFF");
+        colors.push("#FFFFFF");
+        colors.push("#FFFFFF");
+
+        let size = 10;
 
         //X
         points.push(new THREE.Vector3(x - size, y, z));
@@ -549,13 +582,12 @@ class Canvas3D extends FrameWork {
         points.push(new THREE.Vector3(x, y, z - size));
         points.push(new THREE.Vector3(x, y, z + size));
 
-        if (this.drawingaxis) {
-            this.Remove(this.drawingaxis);
-            this.drawingaxis = undefined;
+        if (this.guideaxis) {
+            this.Remove(this.guideaxis);
+            this.guideaxis = undefined;
         }
 
-        this.drawingaxis = new THREE.Object3D();
-        this.drawingaxis.name = "axis";
+        this.guideaxis = new THREE.Object3D();
 
         for (let i = 0; i < points.length; i += 2) {
             let geometry = new THREE.BufferGeometry();
@@ -565,12 +597,12 @@ class Canvas3D extends FrameWork {
 
             geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
 
-            let material = new THREE.LineBasicMaterial({ color: colors.pop(), opacity: i < 6 ? 1 : 0, transparent: true });
+            let material = new THREE.LineBasicMaterial({ color: colors.pop(), opacity: 0, transparent: true });
             let lines = new THREE.LineSegments(geometry, material);
-            this.drawingaxis.add(lines);
+            this.guideaxis.add(lines);
         }
 
-        this.AddObject(this.drawingaxis);
+        this.AddObject(this.guideaxis);
         this.Render();
     }
 
@@ -607,13 +639,13 @@ class Canvas3D extends FrameWork {
     UpdateDrawingGuide(): void {
         if (this.points.length && this.drawingpoint) {
             this.points.push(this.drawingpoint);
-            this.ShowDrawingAxis(this.drawingpoint.x, this.drawingpoint.y, this.drawingpoint.z);
+            this.ShowGuideAxis(this.drawingpoint.x, this.drawingpoint.y, this.drawingpoint.z);
             this.ShowActiveDrawing();
 
         } else {
             let self = this;
             self.points.push(new THREE.Vector3(this.mousecurrent.x, this.mousecurrent.y, this.mousecurrent.z));
-            self.ShowDrawingAxis(this.mousecurrent.x, this.mousecurrent.y, this.mousecurrent.z);
+            self.ShowGuideAxis(this.mousecurrent.x, this.mousecurrent.y, this.mousecurrent.z);
             self.ShowActiveDrawing();
         }
     }

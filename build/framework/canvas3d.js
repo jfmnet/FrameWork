@@ -95,7 +95,7 @@ var Canvas3D = /** @class */ (function (_super) {
         input.Show(this.object);
         this.ShowGridXY(0, 0, 0);
         this.Resize();
-        this.ShowDrawingAxis(0, 0, 0);
+        this.ShowPointerAxis(0, 0, 0);
         this.ZoomAll();
         (function anim() {
             var delta = self.clock.getDelta();
@@ -212,7 +212,7 @@ var Canvas3D = /** @class */ (function (_super) {
         this.ShowDrawingGuide();
         var self = this;
         this.CurrentPoint(this.mousemove.x, this.mousemove.y, function (current) {
-            self.ShowDrawingAxis(current.x, current.y, current.z);
+            self.ShowPointerAxis(current.x, current.y, current.z);
         });
     };
     Canvas3D.prototype.MouseUp = function (event) {
@@ -225,9 +225,9 @@ var Canvas3D = /** @class */ (function (_super) {
     Canvas3D.prototype.MouseWheel = function (event) {
         var point = this.points[this.points.length - 1];
         if (point)
-            this.ShowDrawingAxis(point.x, point.y, point.z);
+            this.ShowPointerAxis(point.x, point.y, point.z);
         else
-            this.ShowDrawingAxis(0, 0, 0);
+            this.ShowPointerAxis(0, 0, 0);
     };
     Canvas3D.prototype.ZoomAll = function (res, xrot, yrot) {
         this.Resize();
@@ -332,7 +332,6 @@ var Canvas3D = /** @class */ (function (_super) {
             input = input.replace("  ", " ");
             input = input.replace("z=", "");
             var value = parseFloat(input);
-            //this.currentz = value;
             this.ShowGridXY(0, 0, value);
             return;
         }
@@ -369,7 +368,7 @@ var Canvas3D = /** @class */ (function (_super) {
             }
         }
         point = this.points[this.points.length - 1];
-        this.ShowDrawingAxis(point.x, point.y, point.z);
+        this.ShowGuideAxis(point.x, point.y, point.z);
         this.ShowActiveDrawing();
         if (this.points.length === 1)
             this.ZoomAll();
@@ -404,7 +403,7 @@ var Canvas3D = /** @class */ (function (_super) {
         this.AddObject(lines);
         this.drawinggrid = lines;
     };
-    Canvas3D.prototype.ShowDrawingAxis = function (x, y, z) {
+    Canvas3D.prototype.ShowPointerAxis = function (x, y, z) {
         var vector = this.camera.position.clone();
         if (Number.isNaN(vector.x))
             return;
@@ -413,9 +412,6 @@ var Canvas3D = /** @class */ (function (_super) {
         var height = distance * Math.tan(camera.fov * Math.PI / 180) / 25;
         var points = [];
         var colors = [];
-        colors.push("#FFFFFF");
-        colors.push("#FFFFFF");
-        colors.push("#FFFFFF");
         //Blue
         colors.push("#0000FF");
         //Green
@@ -432,7 +428,34 @@ var Canvas3D = /** @class */ (function (_super) {
         //Z
         points.push(new THREE.Vector3(x, y, z - size));
         points.push(new THREE.Vector3(x, y, z + size));
-        size = 10;
+        if (this.pointeraxis) {
+            this.Remove(this.pointeraxis);
+            this.pointeraxis = undefined;
+        }
+        this.pointeraxis = new THREE.Object3D();
+        this.pointeraxis.name = "axis";
+        for (var i = 0; i < points.length; i += 2) {
+            var geometry = new THREE.BufferGeometry();
+            var vertices = [];
+            vertices.push(points[i].x, points[i].y, points[i].z, points[i + 1].x, points[i + 1].y, points[i + 1].z);
+            geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+            var material = new THREE.LineBasicMaterial({ color: colors.pop() });
+            var lines = new THREE.LineSegments(geometry, material);
+            this.pointeraxis.add(lines);
+        }
+        this.AddObject(this.pointeraxis);
+        this.Render();
+    };
+    Canvas3D.prototype.ShowGuideAxis = function (x, y, z) {
+        var vector = this.camera.position.clone();
+        if (Number.isNaN(vector.x))
+            return;
+        var points = [];
+        var colors = [];
+        colors.push("#FFFFFF");
+        colors.push("#FFFFFF");
+        colors.push("#FFFFFF");
+        var size = 10;
         //X
         points.push(new THREE.Vector3(x - size, y, z));
         points.push(new THREE.Vector3(x + size, y, z));
@@ -442,22 +465,21 @@ var Canvas3D = /** @class */ (function (_super) {
         //Z
         points.push(new THREE.Vector3(x, y, z - size));
         points.push(new THREE.Vector3(x, y, z + size));
-        if (this.drawingaxis) {
-            this.Remove(this.drawingaxis);
-            this.drawingaxis = undefined;
+        if (this.guideaxis) {
+            this.Remove(this.guideaxis);
+            this.guideaxis = undefined;
         }
-        this.drawingaxis = new THREE.Object3D();
-        this.drawingaxis.name = "axis";
+        this.guideaxis = new THREE.Object3D();
         for (var i = 0; i < points.length; i += 2) {
             var geometry = new THREE.BufferGeometry();
             var vertices = [];
             vertices.push(points[i].x, points[i].y, points[i].z, points[i + 1].x, points[i + 1].y, points[i + 1].z);
             geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
-            var material = new THREE.LineBasicMaterial({ color: colors.pop(), opacity: i < 6 ? 1 : 0, transparent: true });
+            var material = new THREE.LineBasicMaterial({ color: colors.pop(), opacity: 0, transparent: true });
             var lines = new THREE.LineSegments(geometry, material);
-            this.drawingaxis.add(lines);
+            this.guideaxis.add(lines);
         }
-        this.AddObject(this.drawingaxis);
+        this.AddObject(this.guideaxis);
         this.Render();
     };
     Canvas3D.prototype.ShowDrawingGuide = function () {
@@ -488,13 +510,13 @@ var Canvas3D = /** @class */ (function (_super) {
     Canvas3D.prototype.UpdateDrawingGuide = function () {
         if (this.points.length && this.drawingpoint) {
             this.points.push(this.drawingpoint);
-            this.ShowDrawingAxis(this.drawingpoint.x, this.drawingpoint.y, this.drawingpoint.z);
+            this.ShowGuideAxis(this.drawingpoint.x, this.drawingpoint.y, this.drawingpoint.z);
             this.ShowActiveDrawing();
         }
         else {
             var self_2 = this;
             self_2.points.push(new THREE.Vector3(this.mousecurrent.x, this.mousecurrent.y, this.mousecurrent.z));
-            self_2.ShowDrawingAxis(this.mousecurrent.x, this.mousecurrent.y, this.mousecurrent.z);
+            self_2.ShowGuideAxis(this.mousecurrent.x, this.mousecurrent.y, this.mousecurrent.z);
             self_2.ShowActiveDrawing();
         }
     };
