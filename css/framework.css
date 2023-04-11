@@ -334,3 +334,35 @@ input {
         top: 24px;
     }
 } */
+
+
+/* .my-card {
+    height: 350px;
+    width: 350px;
+  } */
+
+  /* .my-card__media_pic {
+    background-image: url("https://i.pinimg.com/736x/ab/18/40/ab184006414acb7642365b4f4c654b0d.jpg");
+  } */
+
+  .mdc-card-title{
+    font-size:1rem;
+    color: blue;
+    text-align: center;
+  }
+  .appbar{
+    height: 10px;
+    color:red;
+  }
+
+
+  .textField, .password, .textArea {
+    margin-bottom: 1rem;
+  }
+
+ .center{
+    display: grid;
+    align-items: center;
+    justify-content: center;
+    margin-top: 10px;
+ }
