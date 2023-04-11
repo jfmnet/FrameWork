@@ -28,7 +28,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     function verb(n) { return function (v) { return step([n, v]); }; }
     function step(op) {
         if (f) throw new TypeError("Generator is already executing.");
-        while (_) try {
+        while (g && (g = 0, op[0] && (_ = 0)), _) try {
             if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
             if (y = 0, t) op = [op[0] & 2, t.value];
             switch (op[0]) {
@@ -1481,30 +1481,6 @@ var MaterialDesign2;
         return AppBar;
     }(FrameWork));
     MaterialDesign2.AppBar = AppBar;
-    var DataTable = /** @class */ (function (_super) {
-        __extends(DataTable, _super);
-        function DataTable(param) {
-            var _this = _super.call(this, param, "checkbox") || this;
-            _this.id = param.id;
-            return _this;
-        }
-        DataTable.prototype.Refresh = function () {
-            this.Clear();
-            var html = "\n            <div class=\"mdc-data-table\">\n            <div class=\"mdc-data-table__table-container\">\n              <table class=\"mdc-data-table__table\" aria-label=\"Dessert calories\">\n                <thead>\n                  <tr class=\"mdc-data-table__header-row\">\n                    <th class=\"mdc-data-table__header-cell\" role=\"columnheader\" scope=\"col\">Dessert</th>\n                    <th class=\"mdc-data-table__header-cell mdc-data-table__header-cell--numeric\" role=\"columnheader\" scope=\"col\">Carbs (g)</th>\n                    <th class=\"mdc-data-table__header-cell mdc-data-table__header-cell--numeric\" role=\"columnheader\" scope=\"col\">Protein (g)</th>\n                    <th class=\"mdc-data-table__header-cell\" role=\"columnheader\" scope=\"col\">Comments</th>\n                  </tr>\n                </thead>\n                <tbody class=\"mdc-data-table__content\">\n                  <tr class=\"mdc-data-table__row\">\n                    <th class=\"mdc-data-table__cell\" scope=\"row\">Frozen yogurt</th>\n                    <td class=\"mdc-data-table__cell mdc-data-table__cell--numeric\">24</td>\n                    <td class=\"mdc-data-table__cell mdc-data-table__cell--numeric\">4.0</td>\n                    <td class=\"mdc-data-table__cell\">Super tasty</td>\n                  </tr>\n                  <tr class=\"mdc-data-table__row\">\n                    <th class=\"mdc-data-table__cell\" scope=\"row\">Ice cream sandwich</th>\n                    <td class=\"mdc-data-table__cell mdc-data-table__cell--numeric\">37</td>\n                    <td class=\"mdc-data-table__cell mdc-data-table__cell--numeric\">4.33333333333</td>\n                    <td class=\"mdc-data-table__cell\">I like ice cream more</td>\n                  </tr>\n                  <tr class=\"mdc-data-table__row\">\n                    <th class=\"mdc-data-table__cell\" scope=\"row\">Eclair</th>\n                    <td class=\"mdc-data-table__cell mdc-data-table__cell--numeric\">24</td>\n                    <td class=\"mdc-data-table__cell mdc-data-table__cell--numeric\">6.0</td>\n                    <td class=\"mdc-data-table__cell\">New filing flavor</td>\n                  </tr>\n                </tbody>\n              </table>\n            </div>\n          </div>\n            ";
-            this.object.innerHTML = html;
-            this.RenderChildren();
-        };
-        DataTable.prototype.RenderChildren = function () {
-            //Show children
-            for (var i = 0; i < this.children.length; i++) {
-                this.children[i].Show(this.object);
-            }
-            this.RenderDataSource();
-        };
-        ;
-        return DataTable;
-    }(FrameWork));
-    MaterialDesign2.DataTable = DataTable;
     var Tabs = /** @class */ (function (_super) {
         __extends(Tabs, _super);
         function Tabs(param) {
