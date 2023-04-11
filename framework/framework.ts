@@ -1245,7 +1245,8 @@ namespace MaterialDesign2 {
     export enum ButtonType {
         NONE = "",
         OUTLINED = "mdc-button--outlined",
-        RAISED = "mdc-button--raised"
+        RAISED = "mdc-button--raised",
+        APPBAR = "material-icons mdc-top-app-bar__action-item mdc-icon-button"
     }
 
     export enum FloatButtonType {
@@ -1271,31 +1272,41 @@ namespace MaterialDesign2 {
         type: ButtonType = ButtonType.NONE;
 
         constructor(param?: Parameter) {
-            super(param, "button");
+            super(param, "mdc-button");
+            this.element = "button";
         }
 
         Refresh(): void {
             this.Clear();
 
+            let classes = this.type.split(" ");
+
+            if (this.type === ButtonType.APPBAR)
+                this.object.classList.remove("mdc-button");
+
+            for (let c of classes)
+                if (c.trim() !== "")
+                    this.object.classList.add(c.trim());
+
             if (this.icon) {
                 let html = `
-                <button class="mdc-button ${this.type}">
                     <div class="mdc-button__ripple"></div>
                     <i class="material-icons mdc-button__icon" aria-hidden="true">${this.icon}</i>
                     <span class="mdc-button__label">${this.text}</span>
-                </button>`;
+                `;
 
                 this.object.innerHTML = html;
             } else {
                 let html = `
-                <button class="mdc-button">
                     <div class="mdc-button__ripple"></div>
-                    <span class="mdc-button__label">${this.text}</span>
-                </button>`;
+                    <span class="mdc-button__label">${this.text}</span>`;
 
                 this.object.innerHTML = html;
             }
-            window.mdc.ripple.MDCRipple.attachTo(document.querySelector('.mdc-button'));
+
+            if (this.type !== ButtonType.APPBAR)
+                window.mdc.ripple.MDCRipple.attachTo(document.querySelector('.mdc-button'));
+
             this.Events();
         }
     }
@@ -1740,6 +1751,7 @@ namespace MaterialDesign2 {
 
     export class AppBar extends FrameWork {
         contents: HTMLElement;
+        buttons: Button[] = [];
 
         constructor(param?: Parameter) {
             super(param, "appbar");
@@ -1753,33 +1765,33 @@ namespace MaterialDesign2 {
                 <div class="mdc-top-app-bar__row">
                     <section class="mdc-top-app-bar__section mdc-top-app-bar__section--align-start">
                         <button class="material-icons mdc-top-app-bar__navigation-icon mdc-icon-button" aria-label="Open navigation menu">menu</button>
-                        <span class="mdc-top-app-bar__title">Page title</span>
+                        <span class="mdc-top-app-bar__title">${this.text}</span>
                     </section>
-                    <section class="mdc-top-app-bar__section mdc-top-app-bar__section--align-end" role="toolbar">
-                        <button class="material-icons mdc-top-app-bar__action-item mdc-icon-button" aria-label="Favorite">favorite</button>
-                        <button class="material-icons mdc-top-app-bar__action-item mdc-icon-button" aria-label="Search">search</button>
-                        <button class="material-icons mdc-top-app-bar__action-item mdc-icon-button" aria-label="Options">more_vert</button>
+                    <section class="appbar-buttons mdc-top-app-bar__section mdc-top-app-bar__section--align-end" role="toolbar">
                     </section>
                 </div>
                 </header>
-                <main class="mdc-top-app-bar--fixed-adjust">
-                    App content
+                <main class="appbar-body mdc-top-app-bar--fixed-adjust">
                 </main>
             `;
 
             this.object.innerHTML = html;
-            //this.contents = this.object.querySelector("");
-
             this.RenderChildren();
         }
 
         RenderChildren(): void {
             //Show children
+            let body = document.querySelector(".appbar-body");
+
             for (let i = 0; i < this.children.length; i++) {
-                this.children[i].Show(this.object);
+                this.children[i].Show(body);
             }
 
-            this.RenderDataSource();
+            let buttons = document.querySelector(".appbar-buttons");
+
+            for (let button of this.buttons) {
+                button.Show(buttons);
+            }
         };
     }
 
@@ -2139,6 +2151,7 @@ document.body.addEventListener('MDCDrawer:closed', () => {
             this.Events();
         }
     }
+
     export class List extends FrameWork {
         constructor(param?: Parameter) {
             super(param, "list");
@@ -2173,6 +2186,7 @@ document.body.addEventListener('MDCDrawer:closed', () => {
             this.Events();
         }
     }
+    
     export class Chips extends FrameWork {
         constructor(param?: Parameter) {
             super(param, "chips");
