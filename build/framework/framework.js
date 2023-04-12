@@ -1213,6 +1213,24 @@ var MaterialDesign2;
         return Button;
     }(FrameWork));
     MaterialDesign2.Button = Button;
+    var Anchor = /** @class */ (function (_super) {
+        __extends(Anchor, _super);
+        function Anchor(param) {
+            var _this = _super.call(this, param, "mdc-list-item") || this;
+            _this.type = ButtonType.NONE;
+            _this.element = "a";
+            return _this;
+        }
+        Anchor.prototype.Refresh = function () {
+            this.Clear();
+            this.object.setAttribute('href', this.link == undefined ? "#" : this.link);
+            var html = "<span class=\"mdc-list-item__ripple\"></span>\n            <i class=\"material-icons mdc-list-item__graphic\" aria-hidden=\"true\">".concat(this.icon, "</i>\n            <span class=\"mdc-list-item__text\">").concat(this.text, "</span>");
+            this.object.innerHTML = html;
+            this.Events();
+        };
+        return Anchor;
+    }(FrameWork));
+    MaterialDesign2.Anchor = Anchor;
     var FloatingButton = /** @class */ (function (_super) {
         __extends(FloatingButton, _super);
         function FloatingButton(param) {
@@ -1478,11 +1496,7 @@ var MaterialDesign2;
         }
         AppBar.prototype.Refresh = function () {
             this.Clear();
-<<<<<<< HEAD
-            var html = "\n                <header class=\"mdc-top-app-bar\">\n                <div class=\"mdc-top-app-bar__row\">\n                    <section class=\"mdc-top-app-bar__section mdc-top-app-bar__section--align-start\">\n                        <button id=\"app-action\" class=\"material-icons mdc-top-app-bar__navigation-icon mdc-icon-button\" aria-label=\"Open navigation menu\">menu</button>\n                        <span class=\"mdc-top-app-bar__title\">Page title</span>\n                    </section>\n                    <section class=\"mdc-top-app-bar__section mdc-top-app-bar__section--align-end\" role=\"toolbar\">\n                        <button class=\"material-icons mdc-top-app-bar__action-item mdc-icon-button\" aria-label=\"Favorite\">favorite</button>\n                        <button class=\"material-icons mdc-top-app-bar__action-item mdc-icon-button\" aria-label=\"Search\">search</button>\n                        <button class=\"material-icons mdc-top-app-bar__action-item mdc-icon-button\" aria-label=\"Options\">more_vert</button>\n                    </section>\n                </div>\n                </header>\n                <main class=\"mdc-top-app-bar--fixed-adjust\">\n                    App content\n                </main>\n            ";
-=======
-            var html = "\n                <header class=\"mdc-top-app-bar\">\n                <div class=\"mdc-top-app-bar__row\">\n                    <section class=\"mdc-top-app-bar__section mdc-top-app-bar__section--align-start\">\n                        <button class=\"material-icons mdc-top-app-bar__navigation-icon mdc-icon-button\" aria-label=\"Open navigation menu\">menu</button>\n                        <span class=\"mdc-top-app-bar__title\">".concat(this.text, "</span>\n                    </section>\n                    <section class=\"appbar-buttons mdc-top-app-bar__section mdc-top-app-bar__section--align-end\" role=\"toolbar\">\n                    </section>\n                </div>\n                </header>\n                <main class=\"appbar-body mdc-top-app-bar--fixed-adjust\">\n                </main>\n            ");
->>>>>>> 3eeb643a32a8c648e7c12ee9809d7389d582325b
+            var html = "\n                <header class=\"mdc-top-app-bar\">\n                <div class=\"mdc-top-app-bar__row\">\n                    <section class=\"mdc-top-app-bar__section mdc-top-app-bar__section--align-start\">\n                        <button id=\"app-action\" class=\"material-icons mdc-top-app-bar__navigation-icon mdc-icon-button\" aria-label=\"Open navigation menu\">menu</button>\n                        <span class=\"mdc-top-app-bar__title\">".concat(this.text, "</span>\n                    </section>\n                    <section class=\"appbar-buttons mdc-top-app-bar__section mdc-top-app-bar__section--align-end\" role=\"toolbar\">\n                    </section>\n                </div>\n                </header>\n                <main class=\"appbar-body mdc-top-app-bar--fixed-adjust\">\n                </main>\n            ");
             this.object.innerHTML = html;
             this.RenderChildren();
         };
@@ -1490,22 +1504,17 @@ var MaterialDesign2;
             //Show children
             var body = document.querySelector(".appbar-body");
             for (var i = 0; i < this.children.length; i++) {
-<<<<<<< HEAD
-                //    let tem = this.children[i].classes;
-                //    if(tem.indexOf("navDrawer") != -1){
-                //         this.children[i].Show();
-                //    }else{
-                //         this.children[i].Show(this.object);
-                //    }    
-                this.children[i].Show(this.object);
-=======
-                this.children[i].Show(body);
+                if (this.children[i].classes.indexOf('navDrawer') != -1) {
+                    this.children[i].Show();
+                }
+                else {
+                    this.children[i].Show(body);
+                }
             }
             var buttons = document.querySelector(".appbar-buttons");
             for (var _i = 0, _a = this.buttons; _i < _a.length; _i++) {
                 var button = _a[_i];
                 button.Show(buttons);
->>>>>>> 3eeb643a32a8c648e7c12ee9809d7389d582325b
             }
         };
         ;

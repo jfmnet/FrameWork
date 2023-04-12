@@ -1311,6 +1311,25 @@ namespace MaterialDesign2 {
         }
     }
 
+    export class Anchor extends FrameWork {
+        type: ButtonType = ButtonType.NONE;
+        link: string;
+        constructor(param?: Parameter) {
+            super(param, "mdc-list-item");
+            this.element = "a";
+        }
+
+        Refresh(): void {
+            this.Clear();
+            this.object.setAttribute('href', this.link == undefined ? "#" : this.link);
+            let html = `<span class="mdc-list-item__ripple"></span>
+            <i class="material-icons mdc-list-item__graphic" aria-hidden="true">${this.icon}</i>
+            <span class="mdc-list-item__text">${this.text}</span>`;
+            this.object.innerHTML = html;
+            this.Events();
+        }
+    }
+
     export class FloatingButton extends FrameWork {
         type: FloatButtonType = FloatButtonType.REGULAR;
         constructor(param?: Parameter) {
@@ -1764,7 +1783,7 @@ namespace MaterialDesign2 {
                 <header class="mdc-top-app-bar">
                 <div class="mdc-top-app-bar__row">
                     <section class="mdc-top-app-bar__section mdc-top-app-bar__section--align-start">
-                        <button class="material-icons mdc-top-app-bar__navigation-icon mdc-icon-button" aria-label="Open navigation menu">menu</button>
+                        <button id="app-action" class="material-icons mdc-top-app-bar__navigation-icon mdc-icon-button" aria-label="Open navigation menu">menu</button>
                         <span class="mdc-top-app-bar__title">${this.text}</span>
                     </section>
                     <section class="appbar-buttons mdc-top-app-bar__section mdc-top-app-bar__section--align-end" role="toolbar">
@@ -1784,7 +1803,12 @@ namespace MaterialDesign2 {
             let body = document.querySelector(".appbar-body");
 
             for (let i = 0; i < this.children.length; i++) {
-                this.children[i].Show(body);
+                if(this.children[i].classes.indexOf('navDrawer') != -1){
+                    this.children[i].Show();
+                }else{
+                    this.children[i].Show(body);
+                }
+                
             }
 
             let buttons = document.querySelector(".appbar-buttons");

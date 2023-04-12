@@ -84,16 +84,42 @@ var Demo = /** @class */ (function () {
         // container.Add(txtArea);
         // container.Add(Floatbutton);      
         // container.Show()
-        var appbar = new MaterialDesign2.AppBar();
-        var btnTest = new MaterialDesign2.Button({ text: "Index", icon: "home" });
+        // let appbar = new MaterialDesign2.AppBar({text: "sangpi"});
+        // let btnTest = new MaterialDesign2.Button({text:"Index", icon: "home"});    
+        // let drawer = new MaterialDesign2.NavDrawer();
+        // drawer.headerEmail = 'bsangpi@ait.asia';
+        // drawer.headerName = 'Mr. Biak Nei ';
+        // drawer.headerImage = 'https://th.bing.com/th/id/OIP.AA5M9TpxmIwgFwQKmdZ2jQHaLH?pid=ImgDet&rs=1';
+        // drawer.Add(btnTest);
+        // appbar.Add(drawer);
+        // //appbar.addAction();
+        // appbar.Show();
+        var app = new MaterialDesign2.AppBar({ text: "XWind" });
+        var canvas;
+        var select = new MaterialDesign2.Button({ icon: "ads_click" });
+        select.type = MaterialDesign2.ButtonType.APPBAR;
+        select.onclick = function () {
+            alert(1);
+        };
+        app.buttons.push(select);
+        var draw = new MaterialDesign2.Button({ icon: "draw" });
+        draw.type = MaterialDesign2.ButtonType.APPBAR;
+        draw.onclick = function () {
+            alert(2);
+        };
+        app.buttons.push(draw);
+        canvas = app.Add(new Canvas3D());
         var drawer = new MaterialDesign2.NavDrawer();
         drawer.headerEmail = 'bsangpi@ait.asia';
         drawer.headerName = 'Mr. Biak Nei ';
         drawer.headerImage = 'https://th.bing.com/th/id/OIP.AA5M9TpxmIwgFwQKmdZ2jQHaLH?pid=ImgDet&rs=1';
+        var btnTest = new MaterialDesign2.Anchor({ text: "Index", icon: "search" });
+        //btnTest.link = "https://www.w3schools.com/";
+        var btnHome = new MaterialDesign2.Anchor({ text: "Home", icon: "home" });
         drawer.Add(btnTest);
-        appbar.Add(drawer);
-        //appbar.addAction();
-        appbar.Show();
+        drawer.Add(btnHome);
+        app.Add(drawer);
+        app.Show();
     };
     return Demo;
 }());

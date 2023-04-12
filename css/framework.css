@@ -406,4 +406,11 @@ input {
     vertical-align:super;
  }
 
+ a.mdc-list-item{
+    padding: 10px;
+ }
+ a.mdc-list-item span.mdc-list-item__text {
+    padding-left: 10px;
+ }
+
 
