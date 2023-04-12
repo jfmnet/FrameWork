@@ -28,7 +28,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     function verb(n) { return function (v) { return step([n, v]); }; }
     function step(op) {
         if (f) throw new TypeError("Generator is already executing.");
-        while (g && (g = 0, op[0] && (_ = 0)), _) try {
+        while (_) try {
             if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
             if (y = 0, t) op = [op[0] & 2, t.value];
             switch (op[0]) {
@@ -1465,7 +1465,7 @@ var MaterialDesign2;
         }
         AppBar.prototype.Refresh = function () {
             this.Clear();
-            var html = "\n                <header class=\"mdc-top-app-bar\">\n                <div class=\"mdc-top-app-bar__row\">\n                    <section class=\"mdc-top-app-bar__section mdc-top-app-bar__section--align-start\">\n                        <button class=\"material-icons mdc-top-app-bar__navigation-icon mdc-icon-button\" aria-label=\"Open navigation menu\">menu</button>\n                        <span class=\"mdc-top-app-bar__title\">Page title</span>\n                    </section>\n                    <section class=\"mdc-top-app-bar__section mdc-top-app-bar__section--align-end\" role=\"toolbar\">\n                        <button class=\"material-icons mdc-top-app-bar__action-item mdc-icon-button\" aria-label=\"Favorite\">favorite</button>\n                        <button class=\"material-icons mdc-top-app-bar__action-item mdc-icon-button\" aria-label=\"Search\">search</button>\n                        <button class=\"material-icons mdc-top-app-bar__action-item mdc-icon-button\" aria-label=\"Options\">more_vert</button>\n                    </section>\n                </div>\n                </header>\n                <main class=\"mdc-top-app-bar--fixed-adjust\">\n                    App content\n                </main>\n            ";
+            var html = "\n                <header class=\"mdc-top-app-bar\">\n                <div class=\"mdc-top-app-bar__row\">\n                    <section class=\"mdc-top-app-bar__section mdc-top-app-bar__section--align-start\">\n                        <button id=\"app-action\" class=\"material-icons mdc-top-app-bar__navigation-icon mdc-icon-button\" aria-label=\"Open navigation menu\">menu</button>\n                        <span class=\"mdc-top-app-bar__title\">Page title</span>\n                    </section>\n                    <section class=\"mdc-top-app-bar__section mdc-top-app-bar__section--align-end\" role=\"toolbar\">\n                        <button class=\"material-icons mdc-top-app-bar__action-item mdc-icon-button\" aria-label=\"Favorite\">favorite</button>\n                        <button class=\"material-icons mdc-top-app-bar__action-item mdc-icon-button\" aria-label=\"Search\">search</button>\n                        <button class=\"material-icons mdc-top-app-bar__action-item mdc-icon-button\" aria-label=\"Options\">more_vert</button>\n                    </section>\n                </div>\n                </header>\n                <main class=\"mdc-top-app-bar--fixed-adjust\">\n                    App content\n                </main>\n            ";
             this.object.innerHTML = html;
             //this.contents = this.object.querySelector("");
             this.RenderChildren();
@@ -1473,6 +1473,12 @@ var MaterialDesign2;
         AppBar.prototype.RenderChildren = function () {
             //Show children
             for (var i = 0; i < this.children.length; i++) {
+                //    let tem = this.children[i].classes;
+                //    if(tem.indexOf("navDrawer") != -1){
+                //         this.children[i].Show();
+                //    }else{
+                //         this.children[i].Show(this.object);
+                //    }    
                 this.children[i].Show(this.object);
             }
             this.RenderDataSource();
@@ -1629,27 +1635,43 @@ var MaterialDesign2;
     var NavDrawer = /** @class */ (function (_super) {
         __extends(NavDrawer, _super);
         function NavDrawer(param) {
-            return _super.call(this, param, "drawer") || this;
+            return _super.call(this, param, "navDrawer") || this;
         }
         NavDrawer.prototype.Refresh = function () {
+            var _a, _b;
             this.Clear();
-            var html = "\n        \n        <aside class=\"mdc-drawer mdc-drawer--modal\">\n          <div class=\"mdc-drawer__content\">\n            <nav class=\"mdc-list\">\n              <a class=\"mdc-list-item mdc-list-item--activated\" href=\"#\" aria-current=\"page\" tabindex=\"0\">\n                <span class=\"mdc-list-item__ripple\"></span>\n                <i class=\"material-icons mdc-list-item__graphic\" aria-hidden=\"true\">inbox</i>\n                <span class=\"mdc-list-item__text\">Inbox</span>\n              </a>\n              <a class=\"mdc-list-item\" href=\"#\">\n                <span class=\"mdc-list-item__ripple\"></span>\n                <i class=\"material-icons mdc-list-item__graphic\" aria-hidden=\"true\">send</i>\n                <span class=\"mdc-list-item__text\">Outgoing</span>\n              </a>\n              <a class=\"mdc-list-item\" href=\"#\">\n                <span class=\"mdc-list-item__ripple\"></span>\n                <i class=\"material-icons mdc-list-item__graphic\" aria-hidden=\"true\">drafts</i>\n                <span class=\"mdc-list-item__text\">Drafts</span>\n              </a>\n            </nav>\n          </div>\n        </aside>\n      \n        <div class=\"mdc-drawer-scrim\"></div>\n        <button id=\"st\">Drawer</button>\n      \n            ";
+            var html = "<aside class=\"mdc-drawer mdc-drawer--modal mdc-drawer-full-height\">\n            <div class=\"mdc-drawer__header drawer-header\">\n                <div class=\"drawer-header-close\">&#10006;</div>\n                <img class=\"avatar\" alt=\"Avatar\" src=\"".concat(this.headerImage, "\"/>\n                <div class=\"mdc-drawer-text-group\">\n                    <h3 class=\"mdc-drawer__title\">").concat((_a = this.headerName) !== null && _a !== void 0 ? _a : "Name", "</h3>\n                    <h6 class=\"mdc-drawer__subtitle\">").concat((_b = this.headerEmail) !== null && _b !== void 0 ? _b : "Email", "</h6> \n                </div>\n            </div>        \n            <div class=\"mdc-drawer__content\">\n            <hr class=\"mdc-list-divider\">\n                <nav class=\"mdc-list drawer-action-list\"></nav>\n            </div>\n            </aside>\n            <div class=\"mdc-drawer-scrim\"></div>");
             this.object.innerHTML = html;
             //const listEl = document.querySelector('.mdc-drawer .mdc-list');
-            var list = window.mdc.list.MDCList.attachTo(document.querySelector('.mdc-list'));
-            list.wrapFocus = true;
+            // const list = window.mdc.list.MDCList.attachTo(document.querySelector('.mdc-list'));
+            // list.wrapFocus = true;
             var drawer = window.mdc.drawer.MDCDrawer.attachTo(document.querySelector('.mdc-drawer'));
             // console.log(drawer);
             // drawer.focusTrap = true;
-            var listEl = document.querySelector('#st');
-            var mainContentEl = document.querySelector('.main-content');
-            listEl.addEventListener('click', function (event) {
+            // const listEl = document.querySelector('#st');
+            // const mainContentEl = document.querySelector('.main-content');
+            // listEl.addEventListener('click', (event) => {                
+            //     drawer.open = !drawer.open;
+            // });
+            var btn = this.object.parentNode.querySelector('#app-action');
+            btn === null || btn === void 0 ? void 0 : btn.addEventListener('click', function (event) {
                 drawer.open = !drawer.open;
+            });
+            var btnClose = this.object.querySelector('.drawer-header-close');
+            btnClose.addEventListener('click', function (event) {
+                drawer.open = false;
             });
             document.body.addEventListener('MDCDrawer:closed', function () {
             });
             this.RenderChildren();
-            this.Events();
+            //this.Events();
+        };
+        NavDrawer.prototype.RenderChildren = function () {
+            var lst = this.object.querySelector('.drawer-action-list');
+            for (var i = 0; i < this.children.length; i++) {
+                this.children[i].Show(lst);
+            }
+            this.RenderDataSource();
         };
         return NavDrawer;
     }(FrameWork));

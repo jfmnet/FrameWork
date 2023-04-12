@@ -1752,7 +1752,7 @@ namespace MaterialDesign2 {
                 <header class="mdc-top-app-bar">
                 <div class="mdc-top-app-bar__row">
                     <section class="mdc-top-app-bar__section mdc-top-app-bar__section--align-start">
-                        <button class="material-icons mdc-top-app-bar__navigation-icon mdc-icon-button" aria-label="Open navigation menu">menu</button>
+                        <button id="app-action" class="material-icons mdc-top-app-bar__navigation-icon mdc-icon-button" aria-label="Open navigation menu">menu</button>
                         <span class="mdc-top-app-bar__title">Page title</span>
                     </section>
                     <section class="mdc-top-app-bar__section mdc-top-app-bar__section--align-end" role="toolbar">
@@ -1776,11 +1776,18 @@ namespace MaterialDesign2 {
         RenderChildren(): void {
             //Show children
             for (let i = 0; i < this.children.length; i++) {
-                this.children[i].Show(this.object);
+            //    let tem = this.children[i].classes;
+            //    if(tem.indexOf("navDrawer") != -1){
+            //         this.children[i].Show();
+            //    }else{
+            //         this.children[i].Show(this.object);
+            //    }    
+            this.children[i].Show(this.object);
             }
-
             this.RenderDataSource();
         };
+
+        
     }
 
     export class Tabs extends FrameWork {
@@ -2038,61 +2045,72 @@ namespace MaterialDesign2 {
     }  
 
     export class NavDrawer extends FrameWork {
+        headerName: string;
+        headerEmail: string;
+        headerImage: string;
         constructor(param?: Parameter) {
-            super(param, "drawer");
+            super(param, "navDrawer");
         }
         Refresh(): void {
             this.Clear();  
 
-        let html = `
-        
-        <aside class="mdc-drawer mdc-drawer--modal">
-          <div class="mdc-drawer__content">
-            <nav class="mdc-list">
-              <a class="mdc-list-item mdc-list-item--activated" href="#" aria-current="page" tabindex="0">
-                <span class="mdc-list-item__ripple"></span>
-                <i class="material-icons mdc-list-item__graphic" aria-hidden="true">inbox</i>
-                <span class="mdc-list-item__text">Inbox</span>
-              </a>
-              <a class="mdc-list-item" href="#">
-                <span class="mdc-list-item__ripple"></span>
-                <i class="material-icons mdc-list-item__graphic" aria-hidden="true">send</i>
-                <span class="mdc-list-item__text">Outgoing</span>
-              </a>
-              <a class="mdc-list-item" href="#">
-                <span class="mdc-list-item__ripple"></span>
-                <i class="material-icons mdc-list-item__graphic" aria-hidden="true">drafts</i>
-                <span class="mdc-list-item__text">Drafts</span>
-              </a>
-            </nav>
-          </div>
-        </aside>
-      
-        <div class="mdc-drawer-scrim"></div>
-        <button id="st">Drawer</button>
-      
-            `;
+        let html = 
+            `<aside class="mdc-drawer mdc-drawer--modal mdc-drawer-full-height">
+            <div class="mdc-drawer__header drawer-header">
+                <div class="drawer-header-close">&#10006;</div>
+                <img class="avatar" alt="Avatar" src="${this.headerImage}"/>
+                <div class="mdc-drawer-text-group">
+                    <h3 class="mdc-drawer__title">${this.headerName ?? "Name"}</h3>
+                    <h6 class="mdc-drawer__subtitle">${this.headerEmail ?? "Email"}</h6> 
+                </div>
+            </div>        
+            <div class="mdc-drawer__content">
+            <hr class="mdc-list-divider">
+                <nav class="mdc-list drawer-action-list"></nav>
+            </div>
+            </aside>
+            <div class="mdc-drawer-scrim"></div>`;
+
             this.object.innerHTML = html;     
             //const listEl = document.querySelector('.mdc-drawer .mdc-list');
-            const list = window.mdc.list.MDCList.attachTo(document.querySelector('.mdc-list'));
-            list.wrapFocus = true;
+            // const list = window.mdc.list.MDCList.attachTo(document.querySelector('.mdc-list'));
+            // list.wrapFocus = true;
 
             const drawer = window.mdc.drawer.MDCDrawer.attachTo(document.querySelector('.mdc-drawer'));
             // console.log(drawer);
             // drawer.focusTrap = true;
-            const listEl = document.querySelector('#st');
-            const mainContentEl = document.querySelector('.main-content');
+            // const listEl = document.querySelector('#st');
+            // const mainContentEl = document.querySelector('.main-content');
 
-            listEl.addEventListener('click', (event) => {                
+            // listEl.addEventListener('click', (event) => {                
+            //     drawer.open = !drawer.open;
+            // });
+            let btn = this.object.parentNode.querySelector('#app-action');
+            btn?.addEventListener('click', (event) =>{
                 drawer.open = !drawer.open;
-            });
+            })
 
-document.body.addEventListener('MDCDrawer:closed', () => {
-  
-});
+            let btnClose = this.object.querySelector('.drawer-header-close');
+            btnClose.addEventListener('click', (event) =>{
+                drawer.open = false;
+            });
+            
+            document.body.addEventListener('MDCDrawer:closed', () => {
+                
+            });
             this.RenderChildren();
-            this.Events();
+            //this.Events();
         }
+
+        RenderChildren(): void{
+            let lst = this.object.querySelector('.drawer-action-list');
+            for (let i = 0; i < this.children.length; i++) {                
+                this.children[i].Show(lst);                      
+            }
+            this.RenderDataSource();
+        }
+
+
     }
 
     export class Menu extends FrameWork {
@@ -2139,6 +2157,7 @@ document.body.addEventListener('MDCDrawer:closed', () => {
             this.Events();
         }
     }
+
     export class List extends FrameWork {
         constructor(param?: Parameter) {
             super(param, "list");
@@ -2173,6 +2192,7 @@ document.body.addEventListener('MDCDrawer:closed', () => {
             this.Events();
         }
     }
+    
     export class Chips extends FrameWork {
         constructor(param?: Parameter) {
             super(param, "chips");

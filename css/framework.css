@@ -366,3 +366,44 @@ input {
     justify-content: center;
     margin-top: 10px;
  }
+
+ .mdc-drawer-full-height{
+    top: 0px !important;
+ }
+
+ .drawer-header{
+    display: relative;
+ }
+
+ .drawer-header-close{
+    position: absolute;
+    display: block;
+    padding:8px;
+    background-color: pink;
+    top:0.7px;
+    right: 0.7px;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.5s;
+ }
+
+ .drawer-header-close:hover{
+    background-color: #DC143C;
+    transform: rotate(180deg);
+ }
+
+ .avatar{
+    margin-top: 0px;
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    display: inline-block;
+    margin-top: 20px !important;
+ }
+
+ .mdc-drawer-text-group{
+    display: inline-block;
+    vertical-align:super;
+ }
+
+

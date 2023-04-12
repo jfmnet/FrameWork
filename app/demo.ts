@@ -1,11 +1,11 @@
 class Demo {
     Show(): void {
-        this.Show3D();
+        //this.Show3D();
 
         //this.Tree();
         //this.Menu();
         //this.Input();
-        //this.MaterialDesign2();
+        this.MaterialDesign2();
     }
 
     Show3D(): void {
@@ -59,32 +59,44 @@ class Demo {
     }
 
     MaterialDesign2(): void {
-        let txtName = new MaterialDesign2.TextField({id: "txtName", text:"write your name"});
-        txtName.type = MaterialDesign2.TextFieldType.OUTLINE;
-        let txtCourse = new MaterialDesign2.TextField({id: "txtCourse", text:"write your course"});
-        txtCourse.type = MaterialDesign2.TextFieldType.OUTLINE;
-        let txtPassword = new MaterialDesign2.Password({id: "txtPass", text:"password"});
-        txtPassword.type = MaterialDesign2.InputType.OUTLINE;
-        let rdMale = new MaterialDesign2.Radio({ text:"Male", value: "male", id:"rdmal", name:"gender"});
-        let rdFemale = new MaterialDesign2.Radio({text:"Female", value:"female", id:"rdfe", name:"gender"});
-        let checkBook = new MaterialDesign2.CheckBox({id:"ckdBook", text:"Book"});
-        let checkSport = new MaterialDesign2.CheckBox({id:"ckSport", text:"Sport"});
-        let txtArea = new MaterialDesign2.TextArea({id: "txtArea", rownum: 4, colsnum: 22, maxCount: 50, text: "enter your story"}); 
-        let Floatbutton = new MaterialDesign2.FloatingButton({icon:"add"});  
-        Floatbutton.type = MaterialDesign2.FloatButtonType.MINI;
+        // let txtName = new MaterialDesign2.TextField({id: "txtName", text:"write your name"});
+        // txtName.type = MaterialDesign2.TextFieldType.OUTLINE;
+        // let txtCourse = new MaterialDesign2.TextField({id: "txtCourse", text:"write your course"});
+        // txtCourse.type = MaterialDesign2.TextFieldType.OUTLINE;
+        // let txtPassword = new MaterialDesign2.Password({id: "txtPass", text:"password"});
+        // txtPassword.type = MaterialDesign2.InputType.OUTLINE;
+        // let rdMale = new MaterialDesign2.Radio({ text:"Male", value: "male", id:"rdmal", name:"gender"});
+        // let rdFemale = new MaterialDesign2.Radio({text:"Female", value:"female", id:"rdfe", name:"gender"});
+        // let checkBook = new MaterialDesign2.CheckBox({id:"ckdBook", text:"Book"});
+        // let checkSport = new MaterialDesign2.CheckBox({id:"ckSport", text:"Sport"});
+        // let txtArea = new MaterialDesign2.TextArea({id: "txtArea", rownum: 4, colsnum: 22, maxCount: 50, text: "enter your story"}); 
+        // let Floatbutton = new MaterialDesign2.FloatingButton({icon:"add"});  
+        // Floatbutton.type = MaterialDesign2.FloatButtonType.MINI;
        
-        let container = new FrameWork.Container();   
-        container.classes.push("center");     
-        container.Add(txtName);
-        container.Add(txtCourse);
-        container.Add(txtPassword);
-        container.Add(rdMale);
-        container.Add(rdFemale);
-        container.Add(checkBook);
-        container.Add(checkSport);
-        container.Add(txtArea);
-        container.Add(Floatbutton);      
-        container.Show()
+        // let container = new FrameWork.Container();   
+        // container.classes.push("center");     
+        // container.Add(txtName);
+        // container.Add(txtCourse);
+        // container.Add(txtPassword);
+        // container.Add(rdMale);
+        // container.Add(rdFemale);
+        // container.Add(checkBook);
+        // container.Add(checkSport);
+        // container.Add(txtArea);
+        // container.Add(Floatbutton);      
+        // container.Show()
+
+
+        let appbar = new MaterialDesign2.AppBar();
+        let btnTest = new MaterialDesign2.Button({text:"Index", icon: "home"});    
+        let drawer = new MaterialDesign2.NavDrawer();
+        drawer.headerEmail = 'bsangpi@ait.asia';
+        drawer.headerName = 'Mr. Biak Nei ';
+        drawer.headerImage = 'https://th.bing.com/th/id/OIP.AA5M9TpxmIwgFwQKmdZ2jQHaLH?pid=ImgDet&rs=1';
+        drawer.Add(btnTest);
+        appbar.Add(drawer);
+        //appbar.addAction();
+        appbar.Show();
         
     }
     
