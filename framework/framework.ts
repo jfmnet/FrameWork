@@ -1765,7 +1765,7 @@ namespace MaterialDesign2 {
                 <div class="mdc-top-app-bar__row">
                     <section class="mdc-top-app-bar__section mdc-top-app-bar__section--align-start">
                         <button class="material-icons mdc-top-app-bar__navigation-icon mdc-icon-button" aria-label="Open navigation menu">menu</button>
-                        <span class="mdc-top-app-bar__title">Page title</span>
+                        <span class="mdc-top-app-bar__title">${this.text}</span>
                     </section>
                     <section class="appbar-buttons mdc-top-app-bar__section mdc-top-app-bar__section--align-end" role="toolbar">
                     </section>
@@ -1784,13 +1784,15 @@ namespace MaterialDesign2 {
             let body = document.querySelector(".appbar-body");
 
             for (let i = 0; i < this.children.length; i++) {
-                this.children[i].Show(this.object);
+                this.children[i].Show(body);
             }
 
-            this.RenderDataSource();
-        };
+            let buttons = document.querySelector(".appbar-buttons");
 
-        
+            for (let button of this.buttons) {
+                button.Show(buttons);
+            }
+        };
     }
 
     export class Tabs extends FrameWork {
