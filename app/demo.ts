@@ -9,12 +9,27 @@ class Demo {
     }
 
     Show3D(): void {
-        let canvas = new Canvas3D();
-        canvas.Show();
+        let app = new MaterialDesign2.AppBar({ text: "XWind" });
+        let canvas: Canvas3D;
 
-        // let sphere = new Canvas3DGraphics.Sphere(1, 0, 0, 0);
-        // canvas.AddObject(sphere.Generate());
-        // canvas.ZoomAll();
+        let select = new MaterialDesign2.Button({ icon: "ads_click" });
+        select.type = MaterialDesign2.ButtonType.APPBAR;
+        select.onclick = ()=> {
+            alert(1);
+        };
+
+        app.buttons.push(select);
+
+        let draw = new MaterialDesign2.Button({ icon: "draw" });
+        draw.type = MaterialDesign2.ButtonType.APPBAR;
+        draw.onclick = ()=> {
+            alert(1);
+        };
+
+        app.buttons.push(draw);
+
+        canvas = app.Add(new Canvas3D()) as Canvas3D;
+        app.Show();
     }
 
     Tree(): void {

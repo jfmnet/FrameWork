@@ -9,11 +9,22 @@ var Demo = /** @class */ (function () {
         this.MaterialDesign2();
     };
     Demo.prototype.Show3D = function () {
-        var canvas = new Canvas3D();
-        canvas.Show();
-        // let sphere = new Canvas3DGraphics.Sphere(1, 0, 0, 0);
-        // canvas.AddObject(sphere.Generate());
-        // canvas.ZoomAll();
+        var app = new MaterialDesign2.AppBar({ text: "XWind" });
+        var canvas;
+        var select = new MaterialDesign2.Button({ icon: "ads_click" });
+        select.type = MaterialDesign2.ButtonType.APPBAR;
+        select.onclick = function () {
+            alert(1);
+        };
+        app.buttons.push(select);
+        var draw = new MaterialDesign2.Button({ icon: "draw" });
+        draw.type = MaterialDesign2.ButtonType.APPBAR;
+        draw.onclick = function () {
+            alert(1);
+        };
+        app.buttons.push(draw);
+        canvas = app.Add(new Canvas3D());
+        app.Show();
     };
     Demo.prototype.Tree = function () {
         var tree = new FrameWork.TreeContainer();

@@ -1159,6 +1159,7 @@ var MaterialDesign2;
         ButtonType["NONE"] = "";
         ButtonType["OUTLINED"] = "mdc-button--outlined";
         ButtonType["RAISED"] = "mdc-button--raised";
+        ButtonType["APPBAR"] = "material-icons mdc-top-app-bar__action-item mdc-icon-button";
     })(ButtonType = MaterialDesign2.ButtonType || (MaterialDesign2.ButtonType = {}));
     var FloatButtonType;
     (function (FloatButtonType) {
@@ -1182,21 +1183,31 @@ var MaterialDesign2;
     var Button = /** @class */ (function (_super) {
         __extends(Button, _super);
         function Button(param) {
-            var _this = _super.call(this, param, "button") || this;
+            var _this = _super.call(this, param, "mdc-button") || this;
             _this.type = ButtonType.NONE;
+            _this.element = "button";
             return _this;
         }
         Button.prototype.Refresh = function () {
             this.Clear();
+            var classes = this.type.split(" ");
+            if (this.type === ButtonType.APPBAR)
+                this.object.classList.remove("mdc-button");
+            for (var _i = 0, classes_1 = classes; _i < classes_1.length; _i++) {
+                var c = classes_1[_i];
+                if (c.trim() !== "")
+                    this.object.classList.add(c.trim());
+            }
             if (this.icon) {
-                var html = "\n                <button class=\"mdc-button ".concat(this.type, "\">\n                    <div class=\"mdc-button__ripple\"></div>\n                    <i class=\"material-icons mdc-button__icon\" aria-hidden=\"true\">").concat(this.icon, "</i>\n                    <span class=\"mdc-button__label\">").concat(this.text, "</span>\n                </button>");
+                var html = "\n                    <div class=\"mdc-button__ripple\"></div>\n                    <i class=\"material-icons mdc-button__icon\" aria-hidden=\"true\">".concat(this.icon, "</i>\n                    <span class=\"mdc-button__label\">").concat(this.text, "</span>\n                ");
                 this.object.innerHTML = html;
             }
             else {
-                var html = "\n                <button class=\"mdc-button\">\n                    <div class=\"mdc-button__ripple\"></div>\n                    <span class=\"mdc-button__label\">".concat(this.text, "</span>\n                </button>");
+                var html = "\n                    <div class=\"mdc-button__ripple\"></div>\n                    <span class=\"mdc-button__label\">".concat(this.text, "</span>");
                 this.object.innerHTML = html;
             }
-            window.mdc.ripple.MDCRipple.attachTo(document.querySelector('.mdc-button'));
+            if (this.type !== ButtonType.APPBAR)
+                window.mdc.ripple.MDCRipple.attachTo(document.querySelector('.mdc-button'));
             this.Events();
         };
         return Button;
@@ -1461,18 +1472,25 @@ var MaterialDesign2;
     var AppBar = /** @class */ (function (_super) {
         __extends(AppBar, _super);
         function AppBar(param) {
-            return _super.call(this, param, "appbar") || this;
+            var _this = _super.call(this, param, "appbar") || this;
+            _this.buttons = [];
+            return _this;
         }
         AppBar.prototype.Refresh = function () {
             this.Clear();
+<<<<<<< HEAD
             var html = "\n                <header class=\"mdc-top-app-bar\">\n                <div class=\"mdc-top-app-bar__row\">\n                    <section class=\"mdc-top-app-bar__section mdc-top-app-bar__section--align-start\">\n                        <button id=\"app-action\" class=\"material-icons mdc-top-app-bar__navigation-icon mdc-icon-button\" aria-label=\"Open navigation menu\">menu</button>\n                        <span class=\"mdc-top-app-bar__title\">Page title</span>\n                    </section>\n                    <section class=\"mdc-top-app-bar__section mdc-top-app-bar__section--align-end\" role=\"toolbar\">\n                        <button class=\"material-icons mdc-top-app-bar__action-item mdc-icon-button\" aria-label=\"Favorite\">favorite</button>\n                        <button class=\"material-icons mdc-top-app-bar__action-item mdc-icon-button\" aria-label=\"Search\">search</button>\n                        <button class=\"material-icons mdc-top-app-bar__action-item mdc-icon-button\" aria-label=\"Options\">more_vert</button>\n                    </section>\n                </div>\n                </header>\n                <main class=\"mdc-top-app-bar--fixed-adjust\">\n                    App content\n                </main>\n            ";
+=======
+            var html = "\n                <header class=\"mdc-top-app-bar\">\n                <div class=\"mdc-top-app-bar__row\">\n                    <section class=\"mdc-top-app-bar__section mdc-top-app-bar__section--align-start\">\n                        <button class=\"material-icons mdc-top-app-bar__navigation-icon mdc-icon-button\" aria-label=\"Open navigation menu\">menu</button>\n                        <span class=\"mdc-top-app-bar__title\">".concat(this.text, "</span>\n                    </section>\n                    <section class=\"appbar-buttons mdc-top-app-bar__section mdc-top-app-bar__section--align-end\" role=\"toolbar\">\n                    </section>\n                </div>\n                </header>\n                <main class=\"appbar-body mdc-top-app-bar--fixed-adjust\">\n                </main>\n            ");
+>>>>>>> 3eeb643a32a8c648e7c12ee9809d7389d582325b
             this.object.innerHTML = html;
-            //this.contents = this.object.querySelector("");
             this.RenderChildren();
         };
         AppBar.prototype.RenderChildren = function () {
             //Show children
+            var body = document.querySelector(".appbar-body");
             for (var i = 0; i < this.children.length; i++) {
+<<<<<<< HEAD
                 //    let tem = this.children[i].classes;
                 //    if(tem.indexOf("navDrawer") != -1){
                 //         this.children[i].Show();
@@ -1480,8 +1498,15 @@ var MaterialDesign2;
                 //         this.children[i].Show(this.object);
                 //    }    
                 this.children[i].Show(this.object);
+=======
+                this.children[i].Show(body);
             }
-            this.RenderDataSource();
+            var buttons = document.querySelector(".appbar-buttons");
+            for (var _i = 0, _a = this.buttons; _i < _a.length; _i++) {
+                var button = _a[_i];
+                button.Show(buttons);
+>>>>>>> 3eeb643a32a8c648e7c12ee9809d7389d582325b
+            }
         };
         ;
         return AppBar;
