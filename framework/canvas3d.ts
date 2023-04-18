@@ -2,8 +2,15 @@ interface Window {
     CameraControls: any;
 }
 
+class MeshTriangle {
+    point1: THREE.Vector3;
+    point2: THREE.Vector3;
+    point3: THREE.Vector3;
+}
+
 class Canvas3DSettings {
     backcolor: number = 0x000000;
+    allowdraw: boolean;
 }
 
 class Canvas3D extends FrameWork {
@@ -57,56 +64,65 @@ class Canvas3D extends FrameWork {
         this.scene = new THREE.Scene();
         this.raycaster = new THREE.Raycaster();
         this.raycaster.params.Line.threshold = 0.05;
+        this.raycaster.params.Mesh.threshold = 0.05;
 
         this.InitializePerspectiveCamera();
         this.InitializeRenderer();
         this.InitializeControls();
         this.InitializeLight();
 
+        //Initialize events
+        this.Events();
+
+        //Initialize drag and drop
+        this.DragandDrop();
+
         window.addEventListener("resize", function () {
             self.Resize();
             self.ZoomAll();
         });
 
-        document.body.addEventListener("keydown", (event) => {
-            let element = event.target as HTMLElement;
-
-            if (element.localName !== "input") {
-                self.ctrlKey = event.ctrlKey;
-                self.controls.enabled = false;
-
-                if (event.key === "Escape") {
-                    self.drawingactive = undefined;
-
-                    // //Add current drawing
-                    // if (self.points.length > 1) {
-                    //     if (self.drawingactive) {
-                    //         self.Remove(this.drawingactive);
-                    //         self.drawingactive = undefined;
-                    //     }
-
-                    //     let drawing = this.GeneratePolyLines(this.points);
-                    //     self.AddObject(drawing);
-                    //     self.Render();
-                    // }
-
-                    self.points = [];
+        if (this.settings.allowdraw) {
+            document.body.addEventListener("keydown", (event) => {
+                let element = event.target as HTMLElement;
+    
+                if (element.localName !== "input") {
+                    self.ctrlKey = event.ctrlKey;
+                    self.controls.enabled = false;
+    
+                    if (event.key === "Escape") {
+                        self.drawingactive = undefined;
+    
+                        // //Add current drawing
+                        // if (self.points.length > 1) {
+                        //     if (self.drawingactive) {
+                        //         self.Remove(this.drawingactive);
+                        //         self.drawingactive = undefined;
+                        //     }
+    
+                        //     let drawing = this.GeneratePolyLines(this.points);
+                        //     self.AddObject(drawing);
+                        //     self.Render();
+                        // }
+    
+                        self.points = [];
+                    }
+                    else {
+                        input.object.classList.remove("hidden");
+                        input.Focus();
+                    }
+                } else {
+                    if (event.key === "Enter" || event.key === "Escape") {
+                        input.object.classList.add("hidden");
+                    }
                 }
-                else {
-                    input.object.classList.remove("hidden");
-                    input.Focus();
-                }
-            } else {
-                if (event.key === "Enter" || event.key === "Escape") {
-                    input.object.classList.add("hidden");
-                }
-            }
-        });
-
-        document.body.addEventListener("keyup", (event) => {
-            self.ctrlKey = false;
-            self.controls.enabled = true;
-        });
+            });
+    
+            document.body.addEventListener("keyup", (event) => {
+                self.ctrlKey = false;
+                self.controls.enabled = true;
+            });
+        }
 
         let input = new FrameWork.Input({ classes: ["canvas-input", "hidden"] });
 
@@ -121,9 +137,9 @@ class Canvas3D extends FrameWork {
 
         input.Show(this.object);
 
-        this.ShowGridXY(0, 0, 0);
+        //this.ShowGridXY(0, 0, 0);
         this.Resize();
-        this.ShowPointerAxis(0, 0, 0);
+        //this.ShowPointerAxis(0, 0, 0);
         this.ZoomAll();
 
         (function anim() {
@@ -247,11 +263,22 @@ class Canvas3D extends FrameWork {
         this.scene.children = objects;
     }
 
+    SetVisibility(name: string, value: boolean): void {
+        for (let item of this.scene.children) {
+            if (item.name === name)
+                item.visible = value;
+        }
+
+        this.Render();
+    }
+
     MouseDown(event: MouseEvent): void {
         event.preventDefault();
 
         this.mousedown.x = event.clientX;
         this.mousedown.y = event.clientY;
+
+        this.SetRotationPoint(event);
     }
 
     MouseMove(event: MouseEvent): void {
@@ -260,13 +287,15 @@ class Canvas3D extends FrameWork {
         this.mousemove.x = event.clientX;
         this.mousemove.y = event.clientY;
 
-        this.ShowDrawingGuide();
+        if (this.settings.allowdraw) {
+            this.ShowDrawingGuide();
 
-        let self = this;
+            let self = this;
 
-        this.CurrentPoint(this.mousemove.x, this.mousemove.y, function (current: THREE.Vector3) {
-            self.ShowPointerAxis(current.x, current.y, current.z);
-        });
+            this.CurrentPoint(this.mousemove.x, this.mousemove.y, function (current: THREE.Vector3) {
+                self.ShowPointerAxis(current.x, current.y, current.z);
+            });
+        }
     }
 
     MouseUp(event: MouseEvent): void {
@@ -275,17 +304,21 @@ class Canvas3D extends FrameWork {
         this.mouseup.x = event.clientX;
         this.mouseup.y = event.clientY;
 
-        if (Math.abs(this.mousedown.x - this.mousemove.x) < 5 && Math.abs(this.mousedown.y - this.mousemove.y) < 5)
-            this.UpdateDrawingGuide();
+        if (this.settings.allowdraw) {
+            if (Math.abs(this.mousedown.x - this.mousemove.x) < 5 && Math.abs(this.mousedown.y - this.mousemove.y) < 5)
+                this.UpdateDrawingGuide();
+        }
     }
 
     MouseWheel(event: MouseEvent): void {
         let point = this.points[this.points.length - 1];
 
-        if (point)
-            this.ShowPointerAxis(point.x, point.y, point.z);
-        else
-            this.ShowPointerAxis(0, 0, 0);
+        if (this.settings.allowdraw) {
+            if (point)
+                this.ShowPointerAxis(point.x, point.y, point.z);
+            else
+                this.ShowPointerAxis(0, 0, 0);
+        }
     }
 
     ZoomAll(res?: Function, xrot?: number, yrot?: number): void {
@@ -306,20 +339,13 @@ class Canvas3D extends FrameWork {
                 this.controls.reset(true);
                 this.controls.update(true);
 
-                let padding = 1;
+                let padding = radius / 10;
                 let options = { paddingLeft: padding, paddingRight: padding, paddingBottom: padding, paddingTop: padding };
 
                 try {
                     this.controls.fitToBox(bounds, false, options).then(function () {
-                        if (yrot)
-                            self.controls.rotate(0, yrot, false);
-                        else
-                            self.controls.rotate(0, -Math.PI / 10, false);
-
-                        if (xrot)
-                            self.controls.rotate(xrot, 0, false);
-                        else
-                            self.controls.rotate(-Math.PI / 4, 0, false);
+                        self.controls.rotate(0, -Math.PI / 10, false);
+                        //self.controls.rotate(-Math.PI / 4, 0, false);
 
                         if (res)
                             res();
@@ -676,6 +702,39 @@ class Canvas3D extends FrameWork {
         }
     }
 
+    SetRotationPoint(event: MouseEvent): void {
+        let x = event.x;
+        let y = event.y;
+
+        let left = this.parent.offsetLeft;
+        let top = this.parent.offsetTop;
+
+        let mouse = {
+            x: ((x - left) / this.renderer.domElement.clientWidth) * 2 - 1,
+            y: -((y - top) / this.renderer.domElement.clientHeight) * 2 + 1
+        };
+
+        this.camera.updateMatrixWorld();
+        this.raycaster.setFromCamera(mouse, this.camera);
+
+        let intersects;
+
+        for (let child of this.scene.children) {
+            if (child.type === "Object3D" || child.type === "Mesh") {
+                intersects = this.raycaster.intersectObjects(child.children);
+
+                if (intersects && intersects.length > 0) {
+                    for (let object of intersects) {
+                        let point = object.point as THREE.Vector3;
+                        this.controls.setOrbitPoint(point.x, point.y, point.z);
+                        this.controls.update(this.clock.getDelta());
+                        break;
+                }
+                }
+            }
+        }
+    }
+
     UpdateDrawingGuide(): void {
         if (this.points.length && this.drawingpoint) {
             this.points.push(this.drawingpoint);
@@ -728,6 +787,63 @@ class Canvas3D extends FrameWork {
 
         return object;
     }
+
+    GenerateTriangles(triangles: MeshTriangle[]): THREE.Mesh {
+        let geometry = new THREE.BufferGeometry();
+        let vertices = new Float32Array(triangles.length * 9);
+        //let colors = new Float32Array(colors.length * 9);
+
+        let j: number;
+        let elem;
+
+        for (let i = 0; i < triangles.length; i++) {
+            j = i * 9;
+
+            vertices[j + 0] = triangles[i].point1.x;
+            vertices[j + 1] = triangles[i].point1.y;
+            vertices[j + 2] = triangles[i].point1.z;
+
+            vertices[j + 3] = triangles[i].point2.x;
+            vertices[j + 4] = triangles[i].point2.y;
+            vertices[j + 5] = triangles[i].point2.z;
+
+            vertices[j + 6] = triangles[i].point3.x;
+            vertices[j + 7] = triangles[i].point3.y;
+            vertices[j + 8] = triangles[i].point3.z;
+
+            // if (usepointcolor) {
+            //     colors[j + 0] = colors[i].x;
+            //     colors[j + 1] = colors[i].y;
+            //     colors[j + 2] = colors[i].z;
+
+            //     colors[j + 3] = colors[i].point2.x;
+            //     colors[j + 4] = colors[i].point2.y;
+            //     colors[j + 5] = colors[i].point2.z;
+
+            //     colors[j + 6] = colors[i].point3.x;
+            //     colors[j + 7] = colors[i].point3.y;
+            //     colors[j + 8] = colors[i].point3.z;
+            // }
+        }
+
+        geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+
+        // if (usepointcolor) {
+        //     material = new THREE.MeshPhongMaterial({
+        //         color: 0xffffff,
+        //         flatShading: false,
+        //         vertexColors: true,
+        //         shininess: 0
+        //     });
+
+        //     geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3, true));
+        // }
+
+        geometry.computeVertexNormals();
+
+        let material = new THREE.MeshPhongMaterial({ color: 0x8888ff, emissive: 0x111111, side: THREE.DoubleSide, transparent: true, opacity: 0.75 });
+        return new THREE.Mesh(geometry, material);
+    };
 
     Select(x: number, y: number, res?: Function): void {
         let left = this.parent.offsetLeft;

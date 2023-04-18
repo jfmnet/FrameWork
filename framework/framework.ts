@@ -19,7 +19,7 @@ interface Parameter {
 interface InputParam extends Parameter {
     id: any;
     name?: any;
-    maxCount?: number ;
+    maxCount?: number;
     rownum?: number;
     colsnum?: number;
     surfix?: any;
@@ -94,7 +94,7 @@ class FrameWork {
     ondrop: Function;
 
     icon: string;
-    text: string;
+    text: string | FrameWork;
     tag: any;
     fileformat: FILEFORMAT = FILEFORMAT.RAW;
 
@@ -161,10 +161,15 @@ class FrameWork {
             this.object.appendChild(icon);
         }
 
-        if (this.text) {
+        if (this.text !== undefined) {
             let text = document.createElement("div");
             text.classList.add("text");
-            text.innerHTML = this.text;
+
+            if (this.text instanceof FrameWork)
+                this.text.Show(text.innerHTML);
+            else
+                text.innerHTML = this.text.toString();
+
             this.object.append(text);
         }
 
@@ -201,8 +206,66 @@ class FrameWork {
         }
     }
 
+    RenderObject(object: any): void {
+        let item: any;
+        let node: FrameWork.TreeNode;
+
+        this.children = [];
+
+        if (Array.isArray(object)) {
+            let index = 0;
+
+            for (let obj of object) {
+                if (typeof obj === "object") {
+                    node = new FrameWork.TreeNode({ text: index });
+                    this.Add(node);
+                    node.RenderObject(obj);
+                } else {
+                    this.Add(new FrameWork.Input({ text: index, value: obj }));
+                }
+
+                index++;
+            }
+
+        } else {
+            let prop: any;
+
+            for (let name in object) {
+                prop = object[name];
+
+                if (Array.isArray(prop)) {
+                } else if (typeof prop === "object") {
+                } else if (name.substring(0, 1) !== "$") {
+                    this.Add(new FrameWork.Input({ text: name, value: prop }));
+                }
+            }
+
+            //Objects
+            for (let name in object) {
+                prop = object[name];
+
+                if (Array.isArray(prop)) {
+                    this.RenderObject(prop);
+                } else if (typeof prop === "object") {
+                    node = new FrameWork.TreeNode({ text: name || "node" });
+                    this.Add(node);
+                    node.RenderObject(prop);
+                }
+            }
+        }
+
+        this.Refresh();
+    }
+
+    Resize(): void {
+    }
+
     Clear(): void {
         this.object.innerHTML = "";
+    }
+
+    ClearChildren(): void {
+        this.children = [];
     }
 
     Add(object: FrameWork): FrameWork {
@@ -339,7 +402,7 @@ class FrameWork {
         };
 
         xhttp.send();
-    };
+    }
 
     static GetJSON(url: string, resolve: Function, reject?: Function) {
         let xhttp = new XMLHttpRequest();
@@ -357,7 +420,7 @@ class FrameWork {
         };
 
         xhttp.send();
-    };
+    }
 
     static GetXML(url: string, resolve: Function, reject?: Function) {
         let xhttp = new XMLHttpRequest();
@@ -379,7 +442,51 @@ class FrameWork {
         };
 
         xhttp.send();
-    };
+    }
+
+    static OpenFile(success: Function, extension: string = "*.*"): void {
+        let input = document.createElement("input");
+        input.type = "file";
+        input.accept = extension;
+        input.classList.add("hidden");
+
+        input.addEventListener('change', (e: any) => {
+            var file = e.target.files[0];
+
+            if (file) {
+                var reader = new FileReader();
+                reader.onload = function (e) {
+                    if (success)
+                        success(JSON.parse(e.target.result.toString()));
+                }
+                reader.readAsText(file)
+            }
+        });
+
+        // input.addEventListener('change', (event: any) => {
+        //     const fileList = event.target.files;
+        //     var zip = new window.JSZip();
+        //     zip.loadAsync(fileList[0])
+        //         .then(function (data: any) {
+        //             for (let name in data.files) {
+        //                 let file = data.files[name];
+
+        //                 if (file) {
+        //                     file.async("string").then(function (response) {
+        //                         if (success)
+        //                             success(JSON.parse(response));
+        //                     });
+        //                 } else {
+        //                 }
+        //             }
+        //         }, function (err: any) {
+        //             //error(err);
+        //         });
+        // });
+
+        document.body.appendChild(input);
+        input.click();
+    }
 }
 
 namespace FrameWork {
@@ -414,7 +521,7 @@ namespace FrameWork {
 
             let text = document.createElement("div");
             text.classList.add("text");
-            text.innerHTML = this.text;
+            text.innerHTML = this.text.toString();
             this.header.append(text);
 
             this.headericon = this.DisplayIcon(this.icon);
@@ -524,26 +631,27 @@ namespace FrameWork {
 
             if (this.divider) {
                 this.divider.onmousedown = function (e) {
+                    self.parent.addEventListener("mousemove", MouseMove);
                     self.divider.style.zIndex = "1";
-                    document.body.addEventListener("mousemove", MouseMove);
                 };
 
                 this.divider.onmouseup = function (e) {
+                    self.parent.removeEventListener("mousemove", MouseMove);
                     self.divider.style.zIndex = "";
-                    document.body.removeEventListener("mousemove", MouseMove);
+
+                    for (let child of self.children) {
+                        child.Resize();
+                    }
                 };
             }
 
             function MouseMove(e: MouseEvent) {
-                if (self.orientation === ORIENTATION.VERTICAL)
-                    self.divider.style.top = (e.clientY - self.parent.offsetTop) + "px";
-                else
-                    self.divider.style.left = (e.clientX - self.parent.offsetLeft) + "px";
+                let rect = self.object.getBoundingClientRect();
 
                 if (self.orientation === ORIENTATION.VERTICAL)
-                    self.size = [e.clientY - self.parent.offsetTop - self.splittersize / 2];
+                    self.size = [e.clientY - rect.top - self.splittersize / 2];
                 else
-                    self.size = [e.clientX - self.parent.offsetLeft - self.splittersize / 2];
+                    self.size = [e.clientX - rect.left - self.splittersize / 2];
 
                 self.Resize();
             }
@@ -737,7 +845,7 @@ namespace FrameWork {
             if (this.text) {
                 let text = document.createElement("div");
                 text.classList.add("text");
-                text.innerHTML = this.text;
+                text.innerHTML = this.text.toString();
                 this.object.append(text);
             }
 
@@ -802,13 +910,18 @@ namespace FrameWork {
 
             header.appendChild(this.treeIcon);
 
-            let icon = this.DisplayIcon("book-information-variant");
-            header.appendChild(icon);
+            // let icon = this.DisplayIcon("book-information-variant");
+            // header.appendChild(icon);
 
-            if (this.text) {
+            if (this.text !== undefined) {
                 this.treeText = document.createElement("div");
                 this.treeText.classList.add("text");
-                this.treeText.innerHTML = this.text;
+
+                if (this.text instanceof FrameWork.Input)
+                    this.text.Show(this.treeText);
+                else
+                    this.treeText.innerHTML = this.text.toString();
+
                 header.append(this.treeText);
             }
 
@@ -840,6 +953,10 @@ namespace FrameWork {
                         self.Expand(self.isExpanded);
                     }
                 };
+            }
+
+            if (this.treeText) {
+                let self = this;
 
                 this.treeText.onclick = function (e) {
                     e.stopPropagation();
@@ -882,7 +999,7 @@ namespace FrameWork {
         constructor(param?: Parameter, type: INPUTTYPE = INPUTTYPE.TEXT) {
             super(param, "input");
             this.classes.push("inline");
-            this.classes.push("textbox");
+            this.classes.push(type);
 
             this.type = type;
         }
@@ -890,9 +1007,9 @@ namespace FrameWork {
         Refresh(): void {
             this.object.innerHTML = "";
 
-            if (this.text) {
+            if (this.text !== undefined) {
                 let text = document.createElement("div");
-                text.innerText = this.text;
+                text.innerText = this.text.toString();
                 this.object.appendChild(text);
 
                 let input = document.createElement("input");
@@ -1022,7 +1139,7 @@ namespace FrameWork {
         type = INPUTTYPE.CHECKBOX;
         value: string;
 
-        constructor(text: string, value: string) {
+        constructor(text: string, value?: string) {
             super();
             this.text = text;
             this.value = value;
@@ -1386,7 +1503,7 @@ namespace MaterialDesign2 {
         }
         Refresh(): void {
             this.Clear();
-                let html = `
+            let html = `
                 <div class="mdc-form-field">
                     <div class="mdc-checkbox">
                         <input type="checkbox" class="mdc-checkbox__native-control" id="${this.id}" value="${this.value}"/>
@@ -1406,13 +1523,13 @@ namespace MaterialDesign2 {
             this.object.innerHTML = html;
             //this.RenderChildren();
         }
-    }    
+    }
 
     export class TextField extends FrameWork {
-       id: string;
-       type: TextFieldType = TextFieldType.OUTLINE;
-       prefix: string ;
-       surfix: string ;
+        id: string;
+        type: TextFieldType = TextFieldType.OUTLINE;
+        prefix: string;
+        surfix: string;
 
         constructor(param?: InputParam) {
             super(param, "textField");
@@ -1423,9 +1540,9 @@ namespace MaterialDesign2 {
 
         Refresh(): void {
             this.Clear();
-            let html;           
-        
-            if(this.type == TextFieldType.FILLED){
+            let html;
+
+            if (this.type == TextFieldType.FILLED) {
                 html = `
                 <label class="mdc-text-field mdc-text-field--filled ${this.id}">
                     <span class="mdc-text-field__ripple"></span>
@@ -1434,7 +1551,7 @@ namespace MaterialDesign2 {
                     <span class="mdc-line-ripple"></span>
                 </label>
                 `;
-            }else if(this.type == TextFieldType.OUTLINE){
+            } else if (this.type == TextFieldType.OUTLINE) {
                 html = `
                 <label class="mdc-text-field mdc-text-field--outlined ${this.id}">
                     <span class="mdc-notched-outline">
@@ -1447,15 +1564,15 @@ namespace MaterialDesign2 {
                     <input type="text" class="mdc-text-field__input" aria-labelledby="${this.id}">
                 </label>
                 `;
-            }else if(this.type == TextFieldType.FILLEDNOLABEL){
+            } else if (this.type == TextFieldType.FILLEDNOLABEL) {
                 html = `
                 <label class="mdc-text-field mdc-text-field--filled mdc-text-field--no-label ${this.id}">
                     <span class="mdc-text-field__ripple"></span>
                     <input class="mdc-text-field__input" type="text" placeholder="${this.text}" aria-label="Label">
                     <span class="mdc-line-ripple"></span>
                 </label>
-                `;          
-            }else if(this.type == TextFieldType.OUTLINENOLABEL){
+                `;
+            } else if (this.type == TextFieldType.OUTLINENOLABEL) {
                 html = `
                 <label class="mdc-text-field mdc-text-field--outlined mdc-text-field--no-label ${this.id}">
                     <span class="mdc-notched-outline">
@@ -1465,7 +1582,7 @@ namespace MaterialDesign2 {
                     <input class="mdc-text-field__input" type="text"  placeholder="${this.text}" aria-label="Label">
                 </label>
                 `;
-            }else if (this.type == TextFieldType.PRESUFFIX){
+            } else if (this.type == TextFieldType.PRESUFFIX) {
                 html = `
                 <label class="mdc-text-field mdc-text-field--filled ${this.id}">
                     <span class="mdc-text-field__ripple"></span>
@@ -1478,7 +1595,7 @@ namespace MaterialDesign2 {
                 `;
             }
 
-            this.object.innerHTML = html;       
+            this.object.innerHTML = html;
             const text = new window.mdc.textField.MDCTextField(this.object.querySelector(`.${this.id}`));
             this.RenderChildren();
         }
@@ -1493,12 +1610,12 @@ namespace MaterialDesign2 {
     }
 
     export class TextArea extends FrameWork {
-        id: string;     
-        type: InputType = InputType.OUTLINE; 
+        id: string;
+        type: InputType = InputType.OUTLINE;
         maxCount: number;
         rownum: number;
         colsnum: number;
- 
+
         constructor(param?: InputParam) {
             super(param, "textArea");
             this.id = param.id;
@@ -1506,11 +1623,11 @@ namespace MaterialDesign2 {
             this.rownum = param.rownum ?? 4;
             this.colsnum = param.colsnum ?? 30;
         }
- 
-         Refresh(): void {
-             this.Clear();
-             let html;
-             if(this.type == InputType.FILLED){
+
+        Refresh(): void {
+            this.Clear();
+            let html;
+            if (this.type == InputType.FILLED) {
                 html = `
                     <label class="mdc-text-field ${this.type} mdc-text-field--textarea mdc-text-field--with-internal-counter ${this.id}">
                         <span class="mdc-notched-filled">
@@ -1526,7 +1643,7 @@ namespace MaterialDesign2 {
                         </span>
                     </label>
                 `;
-             }else if (this.type == InputType.OUTLINE){
+            } else if (this.type == InputType.OUTLINE) {
                 html = `
                 <label class="mdc-text-field ${this.type} mdc-text-field--textarea mdc-text-field--with-internal-counter ${this.id}">
                     <span class="mdc-notched-outline">
@@ -1542,35 +1659,35 @@ namespace MaterialDesign2 {
                     </span>
                 </label>
                 `;
-             }      
-             this.object.innerHTML = html;       
-             new window.mdc.textField.MDCTextField(document.querySelector(`.${this.id}`));
+            }
+            this.object.innerHTML = html;
+            new window.mdc.textField.MDCTextField(document.querySelector(`.${this.id}`));
             //  new window.mdc.textField.MDCTextField(document.querySelector('.mdc-text-field'));
-             this.RenderChildren();
-         }
- 
-         RenderChildren(): void {
-             //Show children
-             for (let i = 0; i < this.children.length; i++) {
-                 this.children[i].Show(this.object);
-             }
-             this.RenderDataSource();
-         };
+            this.RenderChildren();
+        }
+
+        RenderChildren(): void {
+            //Show children
+            for (let i = 0; i < this.children.length; i++) {
+                this.children[i].Show(this.object);
+            }
+            this.RenderDataSource();
+        };
     }
 
     export class Password extends FrameWork {
         id: string;
         type: InputType = InputType.OUTLINE;
- 
-         constructor(param?: InputParam) {
-             super(param, "password");
-             this.id = param.id;
-         }
- 
-         Refresh(): void {
-             this.Clear();
-             let html;
-             if(this.type == InputType.FILLED){
+
+        constructor(param?: InputParam) {
+            super(param, "password");
+            this.id = param.id;
+        }
+
+        Refresh(): void {
+            this.Clear();
+            let html;
+            if (this.type == InputType.FILLED) {
                 html = `
                 <label class="mdc-text-field mdc-text-field--filled  ${this.id}">
                     <span class="mdc-text-field__ripple"></span>
@@ -1579,8 +1696,8 @@ namespace MaterialDesign2 {
                     <span class="mdc-line-ripple"></span>
                 </label>
              `;
-             }else if(this.type == InputType.OUTLINE){
-                html =`
+            } else if (this.type == InputType.OUTLINE) {
+                html = `
                 <label class="mdc-text-field mdc-text-field--outlined  ${this.id}">
                     <span class="mdc-notched-outline">
                     <span class="mdc-notched-outline__leading"></span>
@@ -1592,20 +1709,20 @@ namespace MaterialDesign2 {
                     <input class="mdc-text-field__input" type="password" aria-labelledby="${this.id}" required minlength="8" >
                 </label>
                 `;
-             }           
-             
-             this.object.innerHTML = html;  
-             new window.mdc.textField.MDCTextField(document.querySelector(`.${this.id}`));           
-             this.RenderChildren();
-         }
- 
-         RenderChildren(): void {
-             //Show children
-             for (let i = 0; i < this.children.length; i++) {
-                 this.children[i].Show(this.object);
-             } 
-             this.RenderDataSource();
-         };
+            }
+
+            this.object.innerHTML = html;
+            new window.mdc.textField.MDCTextField(document.querySelector(`.${this.id}`));
+            this.RenderChildren();
+        }
+
+        RenderChildren(): void {
+            //Show children
+            for (let i = 0; i < this.children.length; i++) {
+                this.children[i].Show(this.object);
+            }
+            this.RenderDataSource();
+        };
     }
 
     export class Radio extends FrameWork {
@@ -1618,9 +1735,9 @@ namespace MaterialDesign2 {
             this.name = param.name;
         }
         Refresh(): void {
-            this.Clear(); 
+            this.Clear();
 
-        let html = `
+            let html = `
             <div class="mdc-form-field">
                 <div class="mdc-radio">
                     <input class="mdc-radio__native-control" type="radio" id="${this.id}" name="${this.name}">
@@ -1632,8 +1749,8 @@ namespace MaterialDesign2 {
                 </div>
                 <label for="${this.id}">${this.text}</label>    
             </div>
-        `;           
-             
+        `;
+
             this.object.innerHTML = html;
             const radio = new window.mdc.radio.MDCRadio(document.querySelector('.mdc-radio'));
             // const formField = new window.mdc.formField.MDCFormField(document.querySelector('.mdc-form-field'));
@@ -1652,11 +1769,11 @@ namespace MaterialDesign2 {
         constructor(param?: Parameter) {
             super(param, "Dialogs");
         }
-          
+
         Refresh(): void {
             this.Clear();
-            let html =     
-            `<div class="mdc-dialog">
+            let html =
+                `<div class="mdc-dialog">
             <div class="mdc-dialog__container">
             <div class="mdc-dialog__surface" role="alertdialog" aria-modal="true" aria-labelledby="my-dialog-title"
                aria-describedby="my-dialog-content">
@@ -1664,40 +1781,40 @@ namespace MaterialDesign2 {
                     Discard draft?
                </div>
                <div class="mdc-dialog__actions">`;
-            if(this.showCancel){
-                html += 
-                `<button type="button" class="mdc-button mdc-dialog__button" data-mdc-dialog-action="cancel">
+            if (this.showCancel) {
+                html +=
+                    `<button type="button" class="mdc-button mdc-dialog__button" data-mdc-dialog-action="cancel">
                 <div class="mdc-button__ripple"></div>
                 <span class="mdc-button__label">Cancel</span>
                 </button>`;
             }
 
-            if(this.showOk){
-                html += 
-                `<button type="button" class="mdc-button mdc-dialog__button" data-mdc-dialog-action="accept">
+            if (this.showOk) {
+                html +=
+                    `<button type="button" class="mdc-button mdc-dialog__button" data-mdc-dialog-action="accept">
                     <div class="mdc-button__ripple"></div>
                     <span class="mdc-button__label">${this.labelOk}</span>
                     </button>`;
             }
 
-            html +=            
-            `</div>
+            html +=
+                `</div>
              </div>
              </div>
              <div class="mdc-dialog__scrim"></div>
              </div>`;
-           console.log(html);
-            
+            console.log(html);
+
             this.object.innerHTML = html;
             this.RenderChildren();
             const dialog = new window.mdc.dialog.MDCDialog((document.querySelector('.mdc-dialog')));
             dialog.open();
-           
+
             dialog.listen('MDCDialog:closing', function () {
                 console.log("colse");
                 //document.body.removeChild(document.querySelector(".mdc-dialog")); 
             });
-            
+
         }
 
         RenderChildren(): void {
@@ -1754,7 +1871,7 @@ namespace MaterialDesign2 {
 
             this.object.innerHTML = html;
             this.contents = this.object.querySelector(".my-card__media_pic");
-            this.contents.style.backgroundImage = `url('${this.backgroundImage}')`;                    
+            this.contents.style.backgroundImage = `url('${this.backgroundImage}')`;
             this.RenderChildren();
         }
 
@@ -1766,7 +1883,7 @@ namespace MaterialDesign2 {
 
             this.RenderDataSource();
         };
-    }    
+    }
 
     export class AppBar extends FrameWork {
         contents: HTMLElement;
@@ -1778,7 +1895,7 @@ namespace MaterialDesign2 {
 
         Refresh(): void {
             this.Clear();
-            
+
             let html = `
                 <header class="mdc-top-app-bar">
                 <div class="mdc-top-app-bar__row">
@@ -1803,12 +1920,12 @@ namespace MaterialDesign2 {
             let body = document.querySelector(".appbar-body");
 
             for (let i = 0; i < this.children.length; i++) {
-                if(this.children[i].classes.indexOf('navDrawer') != -1){
+                if (this.children[i].classes.indexOf('navDrawer') != -1) {
                     this.children[i].Show();
-                }else{
+                } else {
                     this.children[i].Show(body);
                 }
-                
+
             }
 
             let buttons = document.querySelector(".appbar-buttons");
@@ -1855,8 +1972,8 @@ namespace MaterialDesign2 {
             </div>
           </div>
             `;
-            
-             
+
+
             this.object.innerHTML = html;
 
             const tabBar = new window.mdc.tabBar.MDCTabBar(document.querySelector('.mdc-tab-bar'));
@@ -1896,8 +2013,8 @@ namespace MaterialDesign2 {
             </div>
           </div>
             `;
-            
-             
+
+
             this.object.innerHTML = html;
 
             const tabBar = new window.mdc.tooltip.MDCTooltip(document.querySelector('.mdc-tooltip'));
@@ -1913,30 +2030,30 @@ namespace MaterialDesign2 {
         }
         Refresh(): void {
             this.Clear();
-        //     let html = `
-        //     <button id="basic-switch" class="mdc-switch mdc-switch--unselected" type="button" role="switch" aria-checked="false">
-        //     <div class="mdc-switch__track"></div>
-        //     <div class="mdc-switch__handle-track">
-        //       <div class="mdc-switch__handle">
-        //         <div class="mdc-switch__shadow">
-        //           <div class="mdc-elevation-overlay"></div>
-        //         </div>
-        //         <div class="mdc-switch__ripple"></div>
-        //         <div class="mdc-switch__icons">
-        //           <svg class="mdc-switch__icon mdc-switch__icon--on" viewBox="0 0 24 24">
-        //             <path d="M19.69,5.23L8.96,15.96l-4.23-4.23L2.96,13.5l6,6L21.46,7L19.69,5.23z" />
-        //           </svg>
-        //           <svg class="mdc-switch__icon mdc-switch__icon--off" viewBox="0 0 24 24">
-        //             <path d="M20 13H4v-2h16v2z" />
-        //           </svg>
-        //         </div>
-        //       </div>
-        //     </div>
-        //   </button>
-        //   <label for="basic-switch">Switching</label>
-        //     `;
+            //     let html = `
+            //     <button id="basic-switch" class="mdc-switch mdc-switch--unselected" type="button" role="switch" aria-checked="false">
+            //     <div class="mdc-switch__track"></div>
+            //     <div class="mdc-switch__handle-track">
+            //       <div class="mdc-switch__handle">
+            //         <div class="mdc-switch__shadow">
+            //           <div class="mdc-elevation-overlay"></div>
+            //         </div>
+            //         <div class="mdc-switch__ripple"></div>
+            //         <div class="mdc-switch__icons">
+            //           <svg class="mdc-switch__icon mdc-switch__icon--on" viewBox="0 0 24 24">
+            //             <path d="M19.69,5.23L8.96,15.96l-4.23-4.23L2.96,13.5l6,6L21.46,7L19.69,5.23z" />
+            //           </svg>
+            //           <svg class="mdc-switch__icon mdc-switch__icon--off" viewBox="0 0 24 24">
+            //             <path d="M20 13H4v-2h16v2z" />
+            //           </svg>
+            //         </div>
+            //       </div>
+            //     </div>
+            //   </button>
+            //   <label for="basic-switch">Switching</label>
+            //     `;
 
-        let html = `
+            let html = `
         <button id="selected-switch" class="mdc-switch mdc-switch--selected" type="button" role="switch" aria-checked="true">
         <div class="mdc-switch__track"></div>
         <div class="mdc-switch__handle-track">
@@ -1958,8 +2075,8 @@ namespace MaterialDesign2 {
       </button>
       <label for="selected-switch">off/on</label>
             `;
-            
-             
+
+
             this.object.innerHTML = html;
 
             // const tabBar = new window.mdc.tooltip.MDCTooltip(document.querySelector('.mdc-tooltip'));
@@ -1968,7 +2085,7 @@ namespace MaterialDesign2 {
             // for (const el in sangpi) {
             //     const switchControl = new window.mdc.switchControl.MDCSwitch(el);
             //   }
-            const switchcontrol  = new window.mdc.switchControl.MDCSwitch(document.querySelector('.mdc-switch'))
+            const switchcontrol = new window.mdc.switchControl.MDCSwitch(document.querySelector('.mdc-switch'))
             this.RenderChildren();
             this.Events();
         }
@@ -1980,30 +2097,30 @@ namespace MaterialDesign2 {
         }
         Refresh(): void {
             this.Clear();
-        //     let html = `
-        //     <button id="basic-switch" class="mdc-switch mdc-switch--unselected" type="button" role="switch" aria-checked="false">
-        //     <div class="mdc-switch__track"></div>
-        //     <div class="mdc-switch__handle-track">
-        //       <div class="mdc-switch__handle">
-        //         <div class="mdc-switch__shadow">
-        //           <div class="mdc-elevation-overlay"></div>
-        //         </div>
-        //         <div class="mdc-switch__ripple"></div>
-        //         <div class="mdc-switch__icons">
-        //           <svg class="mdc-switch__icon mdc-switch__icon--on" viewBox="0 0 24 24">
-        //             <path d="M19.69,5.23L8.96,15.96l-4.23-4.23L2.96,13.5l6,6L21.46,7L19.69,5.23z" />
-        //           </svg>
-        //           <svg class="mdc-switch__icon mdc-switch__icon--off" viewBox="0 0 24 24">
-        //             <path d="M20 13H4v-2h16v2z" />
-        //           </svg>
-        //         </div>
-        //       </div>
-        //     </div>
-        //   </button>
-        //   <label for="basic-switch">Switching</label>
-        //     `;
+            //     let html = `
+            //     <button id="basic-switch" class="mdc-switch mdc-switch--unselected" type="button" role="switch" aria-checked="false">
+            //     <div class="mdc-switch__track"></div>
+            //     <div class="mdc-switch__handle-track">
+            //       <div class="mdc-switch__handle">
+            //         <div class="mdc-switch__shadow">
+            //           <div class="mdc-elevation-overlay"></div>
+            //         </div>
+            //         <div class="mdc-switch__ripple"></div>
+            //         <div class="mdc-switch__icons">
+            //           <svg class="mdc-switch__icon mdc-switch__icon--on" viewBox="0 0 24 24">
+            //             <path d="M19.69,5.23L8.96,15.96l-4.23-4.23L2.96,13.5l6,6L21.46,7L19.69,5.23z" />
+            //           </svg>
+            //           <svg class="mdc-switch__icon mdc-switch__icon--off" viewBox="0 0 24 24">
+            //             <path d="M20 13H4v-2h16v2z" />
+            //           </svg>
+            //         </div>
+            //       </div>
+            //     </div>
+            //   </button>
+            //   <label for="basic-switch">Switching</label>
+            //     `;
 
-        let html = `
+            let html = `
         <aside class="mdc-snackbar">
         <div class="mdc-snackbar__surface" role="status" aria-relevant="additions">
           <div class="mdc-snackbar__label" aria-atomic="false">
@@ -2018,8 +2135,8 @@ namespace MaterialDesign2 {
         </div>
       </aside>
             `;
-            
-             
+
+
             this.object.innerHTML = html;
 
             // const tabBar = new window.mdc.tooltip.MDCTooltip(document.querySelector('.mdc-tooltip'));
@@ -2028,7 +2145,7 @@ namespace MaterialDesign2 {
             // for (const el in sangpi) {
             //     const switchControl = new window.mdc.switchControl.MDCSwitch(el);
             //   }
-            const snackbar  = new window.mdc.snackbar.MDCSnackbar(document.querySelector('.mdc-snackbar'));
+            const snackbar = new window.mdc.snackbar.MDCSnackbar(document.querySelector('.mdc-snackbar'));
             snackbar.open();
             this.RenderChildren();
             this.Events();
@@ -2041,9 +2158,9 @@ namespace MaterialDesign2 {
         }
         Refresh(): void {
             this.Clear();
-   
 
-        let html = `
+
+            let html = `
         <div class="mdc-slider">
         <input class="mdc-slider__input" type="range" min="0" max="100" value="50" name="volume" aria-label="Continuous slider demo">
         <div class="mdc-slider__track">
@@ -2057,8 +2174,8 @@ namespace MaterialDesign2 {
         </div>
       </div>
             `;
-            
-             
+
+
             this.object.innerHTML = html;
 
             // const tabBar = new window.mdc.tooltip.MDCTooltip(document.querySelector('.mdc-tooltip'));
@@ -2071,7 +2188,7 @@ namespace MaterialDesign2 {
             this.RenderChildren();
             this.Events();
         }
-    }  
+    }
 
     export class NavDrawer extends FrameWork {
         headerName: string;
@@ -2081,10 +2198,10 @@ namespace MaterialDesign2 {
             super(param, "navDrawer");
         }
         Refresh(): void {
-            this.Clear();  
+            this.Clear();
 
-        let html = 
-            `<aside class="mdc-drawer mdc-drawer--modal mdc-drawer-full-height">
+            let html =
+                `<aside class="mdc-drawer mdc-drawer--modal mdc-drawer-full-height">
             <div class="mdc-drawer__header drawer-header">
                 <div class="drawer-header-close">&#10006;</div>
                 <img class="avatar" alt="Avatar" src="${this.headerImage}"/>
@@ -2100,7 +2217,7 @@ namespace MaterialDesign2 {
             </aside>
             <div class="mdc-drawer-scrim"></div>`;
 
-            this.object.innerHTML = html;     
+            this.object.innerHTML = html;
             //const listEl = document.querySelector('.mdc-drawer .mdc-list');
             // const list = window.mdc.list.MDCList.attachTo(document.querySelector('.mdc-list'));
             // list.wrapFocus = true;
@@ -2115,26 +2232,26 @@ namespace MaterialDesign2 {
             //     drawer.open = !drawer.open;
             // });
             let btn = this.object.parentNode.querySelector('#app-action');
-            btn?.addEventListener('click', (event) =>{
+            btn?.addEventListener('click', (event) => {
                 drawer.open = !drawer.open;
             })
 
             let btnClose = this.object.querySelector('.drawer-header-close');
-            btnClose.addEventListener('click', (event) =>{
+            btnClose.addEventListener('click', (event) => {
                 drawer.open = false;
             });
-            
+
             document.body.addEventListener('MDCDrawer:closed', () => {
-                
+
             });
             this.RenderChildren();
             //this.Events();
         }
 
-        RenderChildren(): void{
+        RenderChildren(): void {
             let lst = this.object.querySelector('.drawer-action-list');
-            for (let i = 0; i < this.children.length; i++) {                
-                this.children[i].Show(lst);                      
+            for (let i = 0; i < this.children.length; i++) {
+                this.children[i].Show(lst);
             }
             this.RenderDataSource();
         }
@@ -2147,9 +2264,9 @@ namespace MaterialDesign2 {
             super(param, "menu");
         }
         Refresh(): void {
-            this.Clear();  
+            this.Clear();
 
-        let html = `      
+            let html = `      
         <div class="mdc-menu mdc-menu-surface" id="demo-menu">
         <ul class="mdc-list" role="menu" aria-hidden="true" aria-orientation="vertical" tabindex="-1">
           <li>
@@ -2179,7 +2296,7 @@ namespace MaterialDesign2 {
         </ul>
       </div>    
             `;
-            this.object.innerHTML = html;     
+            this.object.innerHTML = html;
             const menu = new window.mdc.menu.MDCMenu(document.querySelector('.mdc-menu'));
             menu.open = true;
             this.RenderChildren();
@@ -2192,9 +2309,9 @@ namespace MaterialDesign2 {
             super(param, "list");
         }
         Refresh(): void {
-            this.Clear();  
+            this.Clear();
 
-        let html = `  
+            let html = `  
         <ul class="mdc-list">
         <li class="mdc-list-item" tabindex="0">
           <span class="mdc-list-item__ripple"></span>
@@ -2215,21 +2332,21 @@ namespace MaterialDesign2 {
         </li>
       </ul>
             `;
-            this.object.innerHTML = html;     
+            this.object.innerHTML = html;
             const lis = new window.mdc.list.MDCList(document.querySelector('.mdc-list'));
             this.RenderChildren();
             this.Events();
         }
     }
-    
+
     export class Chips extends FrameWork {
         constructor(param?: Parameter) {
             super(param, "chips");
         }
         Refresh(): void {
-            this.Clear();  
+            this.Clear();
 
-        let html = `  
+            let html = `  
         <span class="mdc-evolution-chip-set" role="grid">
         <span class="mdc-evolution-chip-set__chips" role="presentation">
           <span class="mdc-evolution-chip" role="row" id="c0">
@@ -2251,7 +2368,7 @@ namespace MaterialDesign2 {
         </span>
       </span>
             `;
-            this.object.innerHTML = html;     
+            this.object.innerHTML = html;
             const chip = new window.mdc.chips.MDCChipSet(document.querySelector('.mdc-evolution-chip-set'));
             this.RenderChildren();
             this.Events();

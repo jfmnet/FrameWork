@@ -28,7 +28,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     function verb(n) { return function (v) { return step([n, v]); }; }
     function step(op) {
         if (f) throw new TypeError("Generator is already executing.");
-        while (_) try {
+        while (g && (g = 0, op[0] && (_ = 0)), _) try {
             if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
             if (y = 0, t) op = [op[0] & 2, t.value];
             switch (op[0]) {
@@ -149,10 +149,13 @@ var FrameWork = /** @class */ (function () {
             var icon = this.DisplayIcon(this.icon);
             this.object.appendChild(icon);
         }
-        if (this.text) {
+        if (this.text !== undefined) {
             var text = document.createElement("div");
             text.classList.add("text");
-            text.innerHTML = this.text;
+            if (this.text instanceof FrameWork)
+                this.text.Show(text.innerHTML);
+            else
+                text.innerHTML = this.text.toString();
             this.object.append(text);
         }
         //Show children
@@ -182,8 +185,59 @@ var FrameWork = /** @class */ (function () {
             }
         }
     };
+    FrameWork.prototype.RenderObject = function (object) {
+        var item;
+        var node;
+        this.children = [];
+        if (Array.isArray(object)) {
+            var index = 0;
+            for (var _i = 0, object_1 = object; _i < object_1.length; _i++) {
+                var obj = object_1[_i];
+                if (typeof obj === "object") {
+                    node = new FrameWork.TreeNode({ text: index });
+                    this.Add(node);
+                    node.RenderObject(obj);
+                }
+                else {
+                    this.Add(new FrameWork.Input({ text: index, value: obj }));
+                }
+                index++;
+            }
+        }
+        else {
+            var prop = void 0;
+            for (var name_3 in object) {
+                prop = object[name_3];
+                if (Array.isArray(prop)) {
+                }
+                else if (typeof prop === "object") {
+                }
+                else if (name_3.substring(0, 1) !== "$") {
+                    this.Add(new FrameWork.Input({ text: name_3, value: prop }));
+                }
+            }
+            //Objects
+            for (var name_4 in object) {
+                prop = object[name_4];
+                if (Array.isArray(prop)) {
+                    this.RenderObject(prop);
+                }
+                else if (typeof prop === "object") {
+                    node = new FrameWork.TreeNode({ text: name_4 || "node" });
+                    this.Add(node);
+                    node.RenderObject(prop);
+                }
+            }
+        }
+        this.Refresh();
+    };
+    FrameWork.prototype.Resize = function () {
+    };
     FrameWork.prototype.Clear = function () {
         this.object.innerHTML = "";
+    };
+    FrameWork.prototype.ClearChildren = function () {
+        this.children = [];
     };
     FrameWork.prototype.Add = function (object) {
         //Add to the collections
@@ -309,7 +363,6 @@ var FrameWork = /** @class */ (function () {
         };
         xhttp.send();
     };
-    ;
     FrameWork.GetJSON = function (url, resolve, reject) {
         var xhttp = new XMLHttpRequest();
         xhttp.open("GET", url, true);
@@ -326,7 +379,6 @@ var FrameWork = /** @class */ (function () {
         };
         xhttp.send();
     };
-    ;
     FrameWork.GetXML = function (url, resolve, reject) {
         var xhttp = new XMLHttpRequest();
         xhttp.open("GET", url, true);
@@ -346,7 +398,45 @@ var FrameWork = /** @class */ (function () {
         };
         xhttp.send();
     };
-    ;
+    FrameWork.OpenFile = function (success, extension) {
+        if (extension === void 0) { extension = "*.*"; }
+        var input = document.createElement("input");
+        input.type = "file";
+        input.accept = extension;
+        input.classList.add("hidden");
+        input.addEventListener('change', function (e) {
+            var file = e.target.files[0];
+            if (file) {
+                var reader = new FileReader();
+                reader.onload = function (e) {
+                    if (success)
+                        success(JSON.parse(e.target.result.toString()));
+                };
+                reader.readAsText(file);
+            }
+        });
+        // input.addEventListener('change', (event: any) => {
+        //     const fileList = event.target.files;
+        //     var zip = new window.JSZip();
+        //     zip.loadAsync(fileList[0])
+        //         .then(function (data: any) {
+        //             for (let name in data.files) {
+        //                 let file = data.files[name];
+        //                 if (file) {
+        //                     file.async("string").then(function (response) {
+        //                         if (success)
+        //                             success(JSON.parse(response));
+        //                     });
+        //                 } else {
+        //                 }
+        //             }
+        //         }, function (err: any) {
+        //             //error(err);
+        //         });
+        // });
+        document.body.appendChild(input);
+        input.click();
+    };
     FrameWork.theme = Theme.SYSTEM;
     return FrameWork;
 }());
@@ -377,7 +467,7 @@ var FrameWork = /** @class */ (function () {
             this.object.append(this.header);
             var text = document.createElement("div");
             text.classList.add("text");
-            text.innerHTML = this.text;
+            text.innerHTML = this.text.toString();
             this.header.append(text);
             this.headericon = this.DisplayIcon(this.icon);
             this.header.appendChild(this.headericon);
@@ -470,23 +560,24 @@ var FrameWork = /** @class */ (function () {
             var self = this;
             if (this.divider) {
                 this.divider.onmousedown = function (e) {
+                    self.parent.addEventListener("mousemove", MouseMove);
                     self.divider.style.zIndex = "1";
-                    document.body.addEventListener("mousemove", MouseMove);
                 };
                 this.divider.onmouseup = function (e) {
+                    self.parent.removeEventListener("mousemove", MouseMove);
                     self.divider.style.zIndex = "";
-                    document.body.removeEventListener("mousemove", MouseMove);
+                    for (var _i = 0, _a = self.children; _i < _a.length; _i++) {
+                        var child = _a[_i];
+                        child.Resize();
+                    }
                 };
             }
             function MouseMove(e) {
+                var rect = self.object.getBoundingClientRect();
                 if (self.orientation === ORIENTATION.VERTICAL)
-                    self.divider.style.top = (e.clientY - self.parent.offsetTop) + "px";
+                    self.size = [e.clientY - rect.top - self.splittersize / 2];
                 else
-                    self.divider.style.left = (e.clientX - self.parent.offsetLeft) + "px";
-                if (self.orientation === ORIENTATION.VERTICAL)
-                    self.size = [e.clientY - self.parent.offsetTop - self.splittersize / 2];
-                else
-                    self.size = [e.clientX - self.parent.offsetLeft - self.splittersize / 2];
+                    self.size = [e.clientX - rect.left - self.splittersize / 2];
                 self.Resize();
             }
         };
@@ -665,7 +756,7 @@ var FrameWork = /** @class */ (function () {
             if (this.text) {
                 var text = document.createElement("div");
                 text.classList.add("text");
-                text.innerHTML = this.text;
+                text.innerHTML = this.text.toString();
                 this.object.append(text);
             }
             this.body = document.createElement("div");
@@ -724,12 +815,15 @@ var FrameWork = /** @class */ (function () {
             else
                 this.treeIcon = this.DisplayIcon("circle-small");
             header.appendChild(this.treeIcon);
-            var icon = this.DisplayIcon("book-information-variant");
-            header.appendChild(icon);
-            if (this.text) {
+            // let icon = this.DisplayIcon("book-information-variant");
+            // header.appendChild(icon);
+            if (this.text !== undefined) {
                 this.treeText = document.createElement("div");
                 this.treeText.classList.add("text");
-                this.treeText.innerHTML = this.text;
+                if (this.text instanceof FrameWork.Input)
+                    this.text.Show(this.treeText);
+                else
+                    this.treeText.innerHTML = this.text.toString();
                 header.append(this.treeText);
             }
             //Initialize events
@@ -756,14 +850,17 @@ var FrameWork = /** @class */ (function () {
                         self_3.Expand(self_3.isExpanded);
                     }
                 };
+            }
+            if (this.treeText) {
+                var self_4 = this;
                 this.treeText.onclick = function (e) {
                     e.stopPropagation();
                     var selected = document.body.querySelector(".tree-node.selected");
                     if (selected)
                         selected.classList.remove("selected");
-                    self_3.object.classList.add("selected");
-                    if (self_3.onclick)
-                        self_3.onclick(self_3);
+                    self_4.object.classList.add("selected");
+                    if (self_4.onclick)
+                        self_4.onclick(self_4);
                 };
             }
         };
@@ -790,15 +887,15 @@ var FrameWork = /** @class */ (function () {
             if (type === void 0) { type = INPUTTYPE.TEXT; }
             var _this = _super.call(this, param, "input") || this;
             _this.classes.push("inline");
-            _this.classes.push("textbox");
+            _this.classes.push(type);
             _this.type = type;
             return _this;
         }
         Input.prototype.Refresh = function () {
             this.object.innerHTML = "";
-            if (this.text) {
+            if (this.text !== undefined) {
                 var text = document.createElement("div");
-                text.innerText = this.text;
+                text.innerText = this.text.toString();
                 this.object.appendChild(text);
                 var input = document.createElement("input");
                 input.type = this.type;
@@ -837,35 +934,35 @@ var FrameWork = /** @class */ (function () {
         Input.prototype.Events = function () {
             if (!this.readonly) {
                 var input = this.object.querySelector("input");
-                var self_4 = this;
+                var self_5 = this;
                 switch (this.type) {
                     case "submit":
                         input.addEventListener('click', function (e) {
                             e.preventDefault();
-                            if (self_4.onclick)
-                                self_4.onclick();
+                            if (self_5.onclick)
+                                self_5.onclick();
                         });
                         break;
                     case "checkbox":
                         input.addEventListener('change', function (e) {
                             e.preventDefault();
-                            self_4.value = this.checked;
-                            if (self_4.onchange)
-                                self_4.onchange(self_4);
+                            self_5.value = this.checked;
+                            if (self_5.onchange)
+                                self_5.onchange(self_5);
                         });
                         break;
                     default:
                         input.addEventListener('change', function (e) {
                             e.preventDefault();
-                            self_4.value = this.value;
+                            self_5.value = this.value;
                         });
                         input.addEventListener('input', function () {
-                            self_4.value = this.value;
+                            self_5.value = this.value;
                         });
                         input.addEventListener('keydown', function (e) {
                             if (e.key === "Enter") {
-                                if (self_4.onchange)
-                                    self_4.onchange(self_4);
+                                if (self_5.onchange)
+                                    self_5.onchange(self_5);
                             }
                         });
                         break;
