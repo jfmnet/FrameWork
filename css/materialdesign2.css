@@ -1,0 +1,8 @@
+.mdc-top-app-bar--fixed-adjust {
+    padding: 0;
+    position: absolute;
+    top: 64px;
+    bottom: 0;
+    left: 0;
+    right: 0;
+}

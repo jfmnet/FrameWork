@@ -13,6 +13,11 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
+var MeshTriangle = /** @class */ (function () {
+    function MeshTriangle() {
+    }
+    return MeshTriangle;
+}());
 var Canvas3DSettings = /** @class */ (function () {
     function Canvas3DSettings() {
         this.backcolor = 0x000000;
@@ -49,48 +54,55 @@ var Canvas3D = /** @class */ (function (_super) {
         this.scene = new THREE.Scene();
         this.raycaster = new THREE.Raycaster();
         this.raycaster.params.Line.threshold = 0.05;
+        this.raycaster.params.Mesh.threshold = 0.05;
         this.InitializePerspectiveCamera();
         this.InitializeRenderer();
         this.InitializeControls();
         this.InitializeLight();
+        //Initialize events
+        this.Events();
+        //Initialize drag and drop
+        this.DragandDrop();
         window.addEventListener("resize", function () {
             self.Resize();
             self.ZoomAll();
         });
-        document.body.addEventListener("keydown", function (event) {
-            var element = event.target;
-            if (element.localName !== "input") {
-                self.ctrlKey = event.ctrlKey;
-                self.controls.enabled = false;
-                if (event.key === "Escape") {
-                    self.drawingactive = undefined;
-                    // //Add current drawing
-                    // if (self.points.length > 1) {
-                    //     if (self.drawingactive) {
-                    //         self.Remove(this.drawingactive);
-                    //         self.drawingactive = undefined;
-                    //     }
-                    //     let drawing = this.GeneratePolyLines(this.points);
-                    //     self.AddObject(drawing);
-                    //     self.Render();
-                    // }
-                    self.points = [];
+        if (this.settings.allowdraw) {
+            document.body.addEventListener("keydown", function (event) {
+                var element = event.target;
+                if (element.localName !== "input") {
+                    self.ctrlKey = event.ctrlKey;
+                    self.controls.enabled = false;
+                    if (event.key === "Escape") {
+                        self.drawingactive = undefined;
+                        // //Add current drawing
+                        // if (self.points.length > 1) {
+                        //     if (self.drawingactive) {
+                        //         self.Remove(this.drawingactive);
+                        //         self.drawingactive = undefined;
+                        //     }
+                        //     let drawing = this.GeneratePolyLines(this.points);
+                        //     self.AddObject(drawing);
+                        //     self.Render();
+                        // }
+                        self.points = [];
+                    }
+                    else {
+                        input.object.classList.remove("hidden");
+                        input.Focus();
+                    }
                 }
                 else {
-                    input.object.classList.remove("hidden");
-                    input.Focus();
+                    if (event.key === "Enter" || event.key === "Escape") {
+                        input.object.classList.add("hidden");
+                    }
                 }
-            }
-            else {
-                if (event.key === "Enter" || event.key === "Escape") {
-                    input.object.classList.add("hidden");
-                }
-            }
-        });
-        document.body.addEventListener("keyup", function (event) {
-            self.ctrlKey = false;
-            self.controls.enabled = true;
-        });
+            });
+            document.body.addEventListener("keyup", function (event) {
+                self.ctrlKey = false;
+                self.controls.enabled = true;
+            });
+        }
         var input = new FrameWork.Input({ classes: ["canvas-input", "hidden"] });
         input.onchange = function (object) {
             var value = input.value.trim();
@@ -99,9 +111,9 @@ var Canvas3D = /** @class */ (function (_super) {
             input.object.classList.add("hidden");
         };
         input.Show(this.object);
-        this.ShowGridXY(0, 0, 0);
+        //this.ShowGridXY(0, 0, 0);
         this.Resize();
-        this.ShowPointerAxis(0, 0, 0);
+        //this.ShowPointerAxis(0, 0, 0);
         this.ZoomAll();
         (function anim() {
             var delta = self.clock.getDelta();
@@ -206,34 +218,49 @@ var Canvas3D = /** @class */ (function (_super) {
         }
         this.scene.children = objects;
     };
+    Canvas3D.prototype.SetVisibility = function (name, value) {
+        for (var _i = 0, _a = this.scene.children; _i < _a.length; _i++) {
+            var item = _a[_i];
+            if (item.name === name)
+                item.visible = value;
+        }
+        this.Render();
+    };
     Canvas3D.prototype.MouseDown = function (event) {
         event.preventDefault();
         this.mousedown.x = event.clientX;
         this.mousedown.y = event.clientY;
+        this.SetRotationPoint(event);
     };
     Canvas3D.prototype.MouseMove = function (event) {
         event.preventDefault();
         this.mousemove.x = event.clientX;
         this.mousemove.y = event.clientY;
-        this.ShowDrawingGuide();
-        var self = this;
-        this.CurrentPoint(this.mousemove.x, this.mousemove.y, function (current) {
-            self.ShowPointerAxis(current.x, current.y, current.z);
-        });
+        if (this.settings.allowdraw) {
+            this.ShowDrawingGuide();
+            var self_1 = this;
+            this.CurrentPoint(this.mousemove.x, this.mousemove.y, function (current) {
+                self_1.ShowPointerAxis(current.x, current.y, current.z);
+            });
+        }
     };
     Canvas3D.prototype.MouseUp = function (event) {
         event.preventDefault();
         this.mouseup.x = event.clientX;
         this.mouseup.y = event.clientY;
-        if (Math.abs(this.mousedown.x - this.mousemove.x) < 5 && Math.abs(this.mousedown.y - this.mousemove.y) < 5)
-            this.UpdateDrawingGuide();
+        if (this.settings.allowdraw) {
+            if (Math.abs(this.mousedown.x - this.mousemove.x) < 5 && Math.abs(this.mousedown.y - this.mousemove.y) < 5)
+                this.UpdateDrawingGuide();
+        }
     };
     Canvas3D.prototype.MouseWheel = function (event) {
         var point = this.points[this.points.length - 1];
-        if (point)
-            this.ShowPointerAxis(point.x, point.y, point.z);
-        else
-            this.ShowPointerAxis(0, 0, 0);
+        if (this.settings.allowdraw) {
+            if (point)
+                this.ShowPointerAxis(point.x, point.y, point.z);
+            else
+                this.ShowPointerAxis(0, 0, 0);
+        }
     };
     Canvas3D.prototype.ZoomAll = function (res, xrot, yrot) {
         this.Resize();
@@ -249,18 +276,12 @@ var Canvas3D = /** @class */ (function (_super) {
                 radius = Math.max(bounds.max.x - bounds.min.x, bounds.max.y - bounds.min.y, bounds.max.z - bounds.min.z) / 2;
                 this.controls.reset(true);
                 this.controls.update(true);
-                var padding = 1;
+                var padding = radius / 10;
                 var options = { paddingLeft: padding, paddingRight: padding, paddingBottom: padding, paddingTop: padding };
                 try {
                     this.controls.fitToBox(bounds, false, options).then(function () {
-                        if (yrot)
-                            self.controls.rotate(0, yrot, false);
-                        else
-                            self.controls.rotate(0, -Math.PI / 10, false);
-                        if (xrot)
-                            self.controls.rotate(xrot, 0, false);
-                        else
-                            self.controls.rotate(-Math.PI / 4, 0, false);
+                        self.controls.rotate(0, -Math.PI / 10, false);
+                        //self.controls.rotate(-Math.PI / 4, 0, false);
                         if (res)
                             res();
                         self.Render();
@@ -519,24 +540,52 @@ var Canvas3D = /** @class */ (function (_super) {
             this.drawingguide = undefined;
         }
         if (this.points.length) {
-            var self_1 = this;
+            var self_2 = this;
             this.CurrentPoint(this.mousemove.x, this.mousemove.y, function (current) {
                 if (current) {
                     var points = [];
-                    var point = self_1.points[self_1.points.length - 1];
-                    self_1.drawingpoint = current;
+                    var point = self_2.points[self_2.points.length - 1];
+                    self_2.drawingpoint = current;
                     points.push(point);
                     points.push(current);
-                    self_1.drawingguide = self_1.GeneratePolyLines(points);
-                    self_1.drawingguide.name = "guide";
-                    self_1.AddObject(self_1.drawingguide);
-                    self_1.Render();
+                    self_2.drawingguide = self_2.GeneratePolyLines(points);
+                    self_2.drawingguide.name = "guide";
+                    self_2.AddObject(self_2.drawingguide);
+                    self_2.Render();
                 }
                 else {
-                    self_1.drawingpoint = undefined;
-                    self_1.Render();
+                    self_2.drawingpoint = undefined;
+                    self_2.Render();
                 }
             });
+        }
+    };
+    Canvas3D.prototype.SetRotationPoint = function (event) {
+        var x = event.x;
+        var y = event.y;
+        var left = this.parent.offsetLeft;
+        var top = this.parent.offsetTop;
+        var mouse = {
+            x: ((x - left) / this.renderer.domElement.clientWidth) * 2 - 1,
+            y: -((y - top) / this.renderer.domElement.clientHeight) * 2 + 1
+        };
+        this.camera.updateMatrixWorld();
+        this.raycaster.setFromCamera(mouse, this.camera);
+        var intersects;
+        for (var _i = 0, _a = this.scene.children; _i < _a.length; _i++) {
+            var child = _a[_i];
+            if (child.type === "Object3D" || child.type === "Mesh") {
+                intersects = this.raycaster.intersectObjects(child.children);
+                if (intersects && intersects.length > 0) {
+                    for (var _b = 0, intersects_1 = intersects; _b < intersects_1.length; _b++) {
+                        var object = intersects_1[_b];
+                        var point = object.point;
+                        this.controls.setOrbitPoint(point.x, point.y, point.z);
+                        this.controls.update(this.clock.getDelta());
+                        break;
+                    }
+                }
+            }
         }
     };
     Canvas3D.prototype.UpdateDrawingGuide = function () {
@@ -546,10 +595,10 @@ var Canvas3D = /** @class */ (function (_super) {
             this.ShowActiveDrawing();
         }
         else {
-            var self_2 = this;
-            self_2.points.push(new THREE.Vector3(this.mousecurrent.x, this.mousecurrent.y, this.mousecurrent.z));
-            self_2.ShowGuideAxis(this.mousecurrent.x, this.mousecurrent.y, this.mousecurrent.z);
-            self_2.ShowActiveDrawing();
+            var self_3 = this;
+            self_3.points.push(new THREE.Vector3(this.mousecurrent.x, this.mousecurrent.y, this.mousecurrent.z));
+            self_3.ShowGuideAxis(this.mousecurrent.x, this.mousecurrent.y, this.mousecurrent.z);
+            self_3.ShowActiveDrawing();
         }
     };
     Canvas3D.prototype.GenerateLines = function (points, color, opacity) {
@@ -579,6 +628,50 @@ var Canvas3D = /** @class */ (function (_super) {
         }
         return object;
     };
+    Canvas3D.prototype.GenerateTriangles = function (triangles) {
+        var geometry = new THREE.BufferGeometry();
+        var vertices = new Float32Array(triangles.length * 9);
+        //let colors = new Float32Array(colors.length * 9);
+        var j;
+        var elem;
+        for (var i = 0; i < triangles.length; i++) {
+            j = i * 9;
+            vertices[j + 0] = triangles[i].point1.x;
+            vertices[j + 1] = triangles[i].point1.y;
+            vertices[j + 2] = triangles[i].point1.z;
+            vertices[j + 3] = triangles[i].point2.x;
+            vertices[j + 4] = triangles[i].point2.y;
+            vertices[j + 5] = triangles[i].point2.z;
+            vertices[j + 6] = triangles[i].point3.x;
+            vertices[j + 7] = triangles[i].point3.y;
+            vertices[j + 8] = triangles[i].point3.z;
+            // if (usepointcolor) {
+            //     colors[j + 0] = colors[i].x;
+            //     colors[j + 1] = colors[i].y;
+            //     colors[j + 2] = colors[i].z;
+            //     colors[j + 3] = colors[i].point2.x;
+            //     colors[j + 4] = colors[i].point2.y;
+            //     colors[j + 5] = colors[i].point2.z;
+            //     colors[j + 6] = colors[i].point3.x;
+            //     colors[j + 7] = colors[i].point3.y;
+            //     colors[j + 8] = colors[i].point3.z;
+            // }
+        }
+        geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+        // if (usepointcolor) {
+        //     material = new THREE.MeshPhongMaterial({
+        //         color: 0xffffff,
+        //         flatShading: false,
+        //         vertexColors: true,
+        //         shininess: 0
+        //     });
+        //     geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3, true));
+        // }
+        geometry.computeVertexNormals();
+        var material = new THREE.MeshPhongMaterial({ color: 0x8888ff, emissive: 0x111111, side: THREE.DoubleSide, transparent: true, opacity: 0.75 });
+        return new THREE.Mesh(geometry, material);
+    };
+    ;
     Canvas3D.prototype.Select = function (x, y, res) {
         var left = this.parent.offsetLeft;
         var top = this.parent.offsetTop;
@@ -624,8 +717,8 @@ var Canvas3D = /** @class */ (function (_super) {
             this.selectedmaterial = undefined;
         }
         if (intersects && intersects.length > 0) {
-            for (var _d = 0, intersects_1 = intersects; _d < intersects_1.length; _d++) {
-                var object = intersects_1[_d];
+            for (var _d = 0, intersects_2 = intersects; _d < intersects_2.length; _d++) {
+                var object = intersects_2[_d];
                 var material = new THREE.MeshPhongMaterial({ color: 0xffff44, specular: 0x333333, opacity: 0.75, transparent: true, side: THREE.DoubleSide });
                 ;
                 if (this.selectedobject) {

@@ -37,7 +37,6 @@ input {
 }
 
 .tree-container {
-    padding: 8px;
     position: absolute;
     left: 0;
     right: 0;
@@ -56,7 +55,6 @@ input {
 }
 
 .split-container>div {
-    border: 1px solid #CCC;
     position: absolute;
 }
 
@@ -65,6 +63,7 @@ input {
     border: none;
     left: calc(50% - 2px);
     right: unset;
+    cursor: ew-resize;
 }
 
 .split-container>div:first-child {
@@ -85,7 +84,7 @@ input {
     -ms-transition: max-height 0.5s;
     -o-transition: max-height 0.5s;
     transition: max-height 0.5s;
-    max-height: 26px;
+    height: 26px;
     overflow: hidden;
 }
 
@@ -98,7 +97,7 @@ input {
 
 .tree-header .icon {
     font-size: 16px;
-    padding: 0 0 0 8px;
+    padding: 0 4px 0 8px;
 }
 
 .tree-header .text {
@@ -117,7 +116,23 @@ input {
     -ms-transition: max-height 1s;
     -o-transition: max-height 1s;
     transition: max-height 1s;
-    max-height: 1000px;
+    height: unset;
+}
+
+.tree-node.tree-node-level-1>.input {
+    padding-left: 24px;
+}
+
+.tree-node.tree-node-level-2>.input {
+    padding-left: 40px;
+}
+
+.tree-node.tree-node-level-3>.input {
+    padding-left: 56px;
+}
+
+.tree-node.tree-node-level-4>.input {
+    padding-left: 72px;
 }
 
 .tree-node.tree-node-level-2>.tree-header {
@@ -134,6 +149,23 @@ input {
 
 .tree-node.tree-node-level-5>.tree-header {
     padding-left: 64px;
+}
+
+.tree-node .checkbox {
+    border: none;
+    margin: 0;
+    padding: 0;
+    position: relative;
+}
+
+.tree-node .checkbox > input {
+    width: 100%;
+}
+
+.tree-node .checkbox > div {
+    position: absolute;
+    left: 16px;
+    top: 4px;
 }
 
 
@@ -235,8 +267,10 @@ input {
 /* Input */
 
 .input {
+    border-bottom: 1px solid #EEE;
     display: flex;
-    margin-bottom: 4px;
+    margin-bottom: 2px;
+    padding: 0px 0 2px 0;
 }
 
 .input>div {
@@ -246,7 +280,7 @@ input {
 
 .input>input {
     border: 1px solid #CCC;
-    height: 22px;
+    height: 18px;
     padding: 0 4px;
     width: 50%;
 }
@@ -352,7 +386,6 @@ input {
   }
   .appbar{
     height: 10px;
-    color:red;
   }
 
 
@@ -409,8 +442,29 @@ input {
  a.mdc-list-item{
     padding: 10px;
  }
+
  a.mdc-list-item span.mdc-list-item__text {
     padding-left: 10px;
  }
 
 
+ .mdc-top-app-bar__row {
+    height: 40px;
+ }
+
+ .mdc-top-app-bar {
+    background-color: #CCC;
+}
+
+ .mdc-top-app-bar--fixed-adjust {
+    top: 40px;
+ }
+
+ .mdc-top-app-bar__title {
+    font-size: 18px;
+    padding-left: 0;
+ }
+
+ .mdc-top-app-bar__section {
+    padding: 8px 12px 8px 0;
+ }
