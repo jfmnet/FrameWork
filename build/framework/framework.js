@@ -1532,38 +1532,50 @@ var MaterialDesign2;
             return _this;
         }
         Dialogs.prototype.Refresh = function () {
+            var _a, _b;
             this.Clear();
-            var html = "<div class=\"mdc-dialog\">\n            <div class=\"mdc-dialog__container\">\n            <div class=\"mdc-dialog__surface\" role=\"alertdialog\" aria-modal=\"true\" aria-labelledby=\"my-dialog-title\"\n               aria-describedby=\"my-dialog-content\">\n               <div class=\"mdc-dialog__content\" id=\"my-dialog-content\">\n                    Discard draft?\n               </div>\n               <div class=\"mdc-dialog__actions\">";
+            var html = "<div class=\"mdc-dialog\">\n            <div class=\"mdc-dialog__container\">\n            <div class=\"mdc-dialog__surface\" role=\"alertdialog\" aria-modal=\"true\" aria-labelledby=\"my-dialog-title\"\n               aria-describedby=\"my-dialog-content\">\n               <div class=\"mdc-dialog__content\" id=\"my-dialog-content\">\n                    ".concat((_a = this.title) !== null && _a !== void 0 ? _a : "", "\n                    <div class=\"mdc-list\">\n                        ").concat((_b = this.text) !== null && _b !== void 0 ? _b : "", "                    \n                    </div>\n               </div>\n               <div class=\"mdc-dialog__actions\">");
             if (this.showCancel) {
                 html +=
                     "<button type=\"button\" class=\"mdc-button mdc-dialog__button\" data-mdc-dialog-action=\"cancel\">\n                <div class=\"mdc-button__ripple\"></div>\n                <span class=\"mdc-button__label\">Cancel</span>\n                </button>";
             }
             if (this.showOk) {
                 html +=
-                    "<button type=\"button\" class=\"mdc-button mdc-dialog__button\" data-mdc-dialog-action=\"accept\">\n                    <div class=\"mdc-button__ripple\"></div>\n                    <span class=\"mdc-button__label\">".concat(this.labelOk, "</span>\n                    </button>");
+                    "<button type=\"button\" id=\"btnOkDialog\" class=\"mdc-button mdc-dialog__button\" data-mdc-dialog-action=\"cancel\">\n                    <div class=\"mdc-button__ripple\"></div>\n                    <span class=\"mdc-button__label\">".concat(this.labelOk, "</span>\n                    </button>");
             }
             html +=
                 "</div>\n             </div>\n             </div>\n             <div class=\"mdc-dialog__scrim\"></div>\n             </div>";
-            console.log(html);
             this.object.innerHTML = html;
             this.RenderChildren();
             var dialog = new window.mdc.dialog.MDCDialog((document.querySelector('.mdc-dialog')));
             dialog.open();
             dialog.listen('MDCDialog:closing', function () {
-                console.log("colse");
-                //document.body.removeChild(document.querySelector(".mdc-dialog")); 
+                console.log("closing...");
+                document.body.removeChild(document.querySelector('.Dialogs'));
             });
+            this.Event(dialog);
         };
         Dialogs.prototype.RenderChildren = function () {
-            //Show children
-            console.log("render ....");
-            console.log();
             for (var i = 0; i < this.children.length; i++) {
                 this.children[i].Show(this.object.querySelector('.mdc-dialog__content'));
             }
             this.RenderDataSource();
         };
         ;
+        Dialogs.prototype.Event = function (dialog) {
+            if (this.onclick) {
+                if (!this.readonly) {
+                    var self_5 = this;
+                    console.log(self_5);
+                    var btnOk = this.object.querySelector('#btnOkDialog');
+                    btnOk.addEventListener('click', function (e) {
+                        e.stopPropagation();
+                        self_5.onclick(self_5);
+                        dialog.close();
+                    });
+                }
+            }
+        };
         return Dialogs;
     }(FrameWork));
     MaterialDesign2.Dialogs = Dialogs;

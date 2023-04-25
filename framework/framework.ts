@@ -1777,6 +1777,7 @@ namespace MaterialDesign2 {
         showCancel: boolean = true;
         showOk: boolean = true;
         labelOk: string = "ok";
+        title: string;
 
         constructor(param?: Parameter) {
             super(param, "Dialogs");
@@ -1790,7 +1791,10 @@ namespace MaterialDesign2 {
             <div class="mdc-dialog__surface" role="alertdialog" aria-modal="true" aria-labelledby="my-dialog-title"
                aria-describedby="my-dialog-content">
                <div class="mdc-dialog__content" id="my-dialog-content">
-                    Discard draft?
+                    ${this.title ?? ""}
+                    <div class="mdc-list">
+                        ${this.text ?? ""}                    
+                    </div>
                </div>
                <div class="mdc-dialog__actions">`;
             if (this.showCancel) {
@@ -1801,9 +1805,9 @@ namespace MaterialDesign2 {
                 </button>`;
             }
 
-            if (this.showOk) {
-                html +=
-                    `<button type="button" class="mdc-button mdc-dialog__button" data-mdc-dialog-action="accept">
+            if(this.showOk){
+                html += 
+                `<button type="button" id="btnOkDialog" class="mdc-button mdc-dialog__button" data-mdc-dialog-action="cancel">
                     <div class="mdc-button__ripple"></div>
                     <span class="mdc-button__label">${this.labelOk}</span>
                     </button>`;
@@ -1814,31 +1818,44 @@ namespace MaterialDesign2 {
              </div>
              </div>
              <div class="mdc-dialog__scrim"></div>
-             </div>`;
-            console.log(html);
-
+             </div>`;          
+            
             this.object.innerHTML = html;
             this.RenderChildren();
             const dialog = new window.mdc.dialog.MDCDialog((document.querySelector('.mdc-dialog')));
             dialog.open();
 
             dialog.listen('MDCDialog:closing', function () {
-                console.log("colse");
-                //document.body.removeChild(document.querySelector(".mdc-dialog")); 
+                console.log("closing...");
+                document.body.removeChild(document.querySelector('.Dialogs'));
             });
-
+            this.Event(dialog);            
         }
 
         RenderChildren(): void {
-            //Show children
-            console.log("render ....");
-            console.log();
-
             for (let i = 0; i < this.children.length; i++) {
                 this.children[i].Show(this.object.querySelector('.mdc-dialog__content'));
             }
             this.RenderDataSource();
         };
+
+        Event(dialog: any): void {
+            if (this.onclick) {
+                if (!this.readonly) {
+                    let self = this;
+                    console.log(self);
+                    let btnOk = this.object.querySelector('#btnOkDialog');
+                    btnOk.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        self.onclick(self);
+                        dialog.close();
+                    });
+                  
+                }
+            }
+        }
+
+       
     }
 
     export class Cards extends FrameWork {
@@ -1904,10 +1921,8 @@ namespace MaterialDesign2 {
         constructor(param?: Parameter) {
             super(param, "appbar");
         }
-
         Refresh(): void {
-            this.Clear();
-
+            this.Clear();            
             let html = `
                 <header class="mdc-top-app-bar">
                 <div class="mdc-top-app-bar__row">
@@ -1939,7 +1954,6 @@ namespace MaterialDesign2 {
                 }
 
             }
-
             let buttons = document.querySelector(".appbar-buttons");
 
             for (let button of this.buttons) {
