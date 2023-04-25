@@ -27,7 +27,6 @@ input {
 /* Container */
 
 .scroll-container {
-    padding: 8px;
     position: absolute;
     left: 0;
     right: 0;
@@ -43,6 +42,17 @@ input {
     top: 0;
     bottom: 0;
     overflow: auto;
+}
+
+.tree-container>.text:first-child,
+.scroll-container>.text:first-child {
+    border-bottom: 1px solid #CCC;
+    background-color: #EEE;
+    font-weight: bold;
+    padding: 8px 16px;
+    position: sticky;
+    top: 0;
+    z-index: 1;
 }
 
 .split-container {
@@ -96,7 +106,7 @@ input {
 }
 
 .tree-header .icon {
-    font-size: 16px;
+    font-size: 24px;
     padding: 0 4px 0 8px;
 }
 
@@ -158,14 +168,18 @@ input {
     position: relative;
 }
 
-.tree-node .checkbox > input {
+.tree-node .checkbox>input {
     width: 100%;
 }
 
-.tree-node .checkbox > div {
+.tree-node .checkbox>div {
     position: absolute;
     left: 16px;
     top: 4px;
+}
+
+.scroll-container .tree-node {
+    border-bottom: 1px solid #EEE;
 }
 
 
@@ -178,7 +192,7 @@ input {
     white-space: nowrap;
 }
 
-.menu > div {
+.menu>div {
     vertical-align: top;
 }
 
@@ -204,7 +218,7 @@ input {
 }
 
 
-.menu:hover > .menu-group {
+.menu:hover>.menu-group {
     display: initial;
 }
 
@@ -270,7 +284,7 @@ input {
     border-bottom: 1px solid #EEE;
     display: flex;
     margin-bottom: 2px;
-    padding: 0px 0 2px 0;
+    padding: 4px 8px;
 }
 
 .input>div {
@@ -305,7 +319,8 @@ input {
 
 /* Canvas */
 
-.canvas, .canvas canvas {
+.canvas,
+.canvas canvas {
     position: absolute;
     left: 0;
     right: 0;
@@ -375,96 +390,64 @@ input {
     width: 350px;
   } */
 
-  /* .my-card__media_pic {
+/* .my-card__media_pic {
     background-image: url("https://i.pinimg.com/736x/ab/18/40/ab184006414acb7642365b4f4c654b0d.jpg");
   } */
 
-  .mdc-card-title{
-    font-size:1rem;
+.mdc-card-title {
+    font-size: 1rem;
     color: blue;
     text-align: center;
-  }
-  .appbar{
+}
+
+.appbar {
     height: 10px;
-  }
+}
 
 
-  .textField, .password, .textArea {
+.textField,
+.password,
+.textArea {
     margin-bottom: 1rem;
-  }
+}
 
- .center{
+.center {
     display: grid;
     align-items: center;
     justify-content: center;
     margin-top: 10px;
- }
+}
 
- .mdc-drawer-full-height{
+.mdc-drawer-full-height {
     top: 0px !important;
- }
+}
 
- .drawer-header{
+.drawer-header {
     display: relative;
- }
+}
 
- .drawer-header-close{
+.drawer-header-close {
     position: absolute;
     display: block;
-    padding:8px;
+    padding: 8px;
     background-color: pink;
-    top:0.7px;
+    top: 0.7px;
     right: 0.7px;
     border-radius: 50px;
     cursor: pointer;
     transition: all 0.5s;
- }
+}
 
- .drawer-header-close:hover{
+.drawer-header-close:hover {
     background-color: #DC143C;
     transform: rotate(180deg);
- }
+}
 
- .avatar{
+.avatar {
     margin-top: 0px;
     border-radius: 50%;
     width: 60px;
     height: 60px;
     display: inline-block;
     margin-top: 20px !important;
- }
-
- .mdc-drawer-text-group{
-    display: inline-block;
-    vertical-align:super;
- }
-
- a.mdc-list-item{
-    padding: 10px;
- }
-
- a.mdc-list-item span.mdc-list-item__text {
-    padding-left: 10px;
- }
-
-
- .mdc-top-app-bar__row {
-    height: 40px;
- }
-
- .mdc-top-app-bar {
-    background-color: #CCC;
 }
-
- .mdc-top-app-bar--fixed-adjust {
-    top: 40px;
- }
-
- .mdc-top-app-bar__title {
-    font-size: 18px;
-    padding-left: 0;
- }
-
- .mdc-top-app-bar__section {
-    padding: 8px 12px 8px 0;
- }

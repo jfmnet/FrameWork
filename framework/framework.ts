@@ -68,6 +68,18 @@ enum ORIENTATION {
     VERTICAL = 1
 }
 
+enum ALIGNHORIZONTAL {
+    LEFT = 0,
+    CENTER = 1,
+    RIGHT = 2
+}
+
+enum ALIGNVERTICAL {
+    TOP = 0,
+    MIDDLE = 1,
+    BOTTOM = 2
+}
+
 class FrameWork {
     //Default element tag
     element: string = "div";
@@ -274,7 +286,7 @@ class FrameWork {
 
         //Show if parents is already displayed
         if (this.object)
-            object.Show(this.object);
+             object.Show(this.object);
 
         //Return the object
         return object;

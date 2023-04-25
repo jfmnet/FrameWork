@@ -13,6 +13,11 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
+var CanvasDraw;
+(function (CanvasDraw) {
+    CanvasDraw[CanvasDraw["Line"] = 1] = "Line";
+    CanvasDraw[CanvasDraw["Triangle"] = 2] = "Triangle";
+})(CanvasDraw || (CanvasDraw = {}));
 var MeshTriangle = /** @class */ (function () {
     function MeshTriangle() {
     }
@@ -32,6 +37,7 @@ var Canvas3D = /** @class */ (function (_super) {
     function Canvas3D() {
         var _this = _super.call(this, null, "canvas") || this;
         _this.clock = new THREE.Clock();
+        _this.draw = CanvasDraw.Line;
         _this.points = [];
         _this.settings = new Canvas3DSettings();
         _this.aspect = 1;
@@ -45,7 +51,51 @@ var Canvas3D = /** @class */ (function (_super) {
         _this.selectedmaterials = [];
         _this.classes.push("canvas-3D");
         window.CameraControls.install({ THREE: THREE });
-        _this.LoadFont();
+        _this.LoadFont(function () {
+            // this.ShowGridXY(0, 0, 0);
+            // this.Resize();
+            // this.ShowPointerAxis(0, 0, 0);
+            // this.ZoomAll();
+            //Triangle
+            var triangles = [];
+            var triangle = new MeshTriangle();
+            triangle.point1 = new THREE.Vector3(-1, -1, 0);
+            triangle.point2 = new THREE.Vector3(-1, 1, 0);
+            triangle.point3 = new THREE.Vector3(1, 1, 0);
+            triangles.push(triangle);
+            triangle = new MeshTriangle();
+            triangle.point1 = new THREE.Vector3(-1, -1, 0);
+            triangle.point2 = new THREE.Vector3(1, 1, 0);
+            triangle.point3 = new THREE.Vector3(1, -1, 0);
+            triangles.push(triangle);
+            var drawing = _this.GenerateTriangles(triangles);
+            //this.AddObject(drawing);
+            var iterations = 2;
+            var params = {
+                split: false,
+                uvSmooth: true,
+                preserveEdges: true,
+                flatOnly: true,
+                maxTriangles: Infinity, // optional, default: Infinity
+            };
+            var geometry = LoopSubdivision.modify(drawing.geometry, iterations, params);
+            var material = new THREE.MeshPhongMaterial({
+                color: 0xccffcc,
+                side: THREE.DoubleSide,
+                shininess: 100,
+                transparent: true,
+                opacity: 0.5
+            });
+            var mesh = new THREE.Mesh(geometry, material);
+            _this.AddObject(mesh);
+            var mat = new THREE.MeshPhongMaterial({
+                color: 0xeeffee,
+                wireframe: true
+            });
+            mesh = new THREE.Mesh(geometry, mat);
+            _this.AddObject(mesh);
+            _this.ZoomAll();
+        });
         return _this;
     }
     Canvas3D.prototype.Refresh = function () {
@@ -53,8 +103,8 @@ var Canvas3D = /** @class */ (function (_super) {
         this.Clear();
         this.scene = new THREE.Scene();
         this.raycaster = new THREE.Raycaster();
-        this.raycaster.params.Line.threshold = 0.05;
-        this.raycaster.params.Mesh.threshold = 0.05;
+        this.raycaster.params.Line.threshold = 0.1;
+        this.raycaster.params.Mesh.threshold = 0.1;
         this.InitializePerspectiveCamera();
         this.InitializeRenderer();
         this.InitializeControls();
@@ -111,10 +161,6 @@ var Canvas3D = /** @class */ (function (_super) {
             input.object.classList.add("hidden");
         };
         input.Show(this.object);
-        //this.ShowGridXY(0, 0, 0);
-        this.Resize();
-        //this.ShowPointerAxis(0, 0, 0);
-        this.ZoomAll();
         (function anim() {
             var delta = self.clock.getDelta();
             var elapsed = self.clock.getElapsedTime();
@@ -252,6 +298,10 @@ var Canvas3D = /** @class */ (function (_super) {
             if (Math.abs(this.mousedown.x - this.mousemove.x) < 5 && Math.abs(this.mousedown.y - this.mousemove.y) < 5)
                 this.UpdateDrawingGuide();
         }
+        else {
+            if (Math.abs(this.mousedown.x - this.mousemove.x) < 5 && Math.abs(this.mousedown.y - this.mousemove.y) < 5)
+                this.Select(this.mouseup.x, this.mouseup.y, this.onselect);
+        }
     };
     Canvas3D.prototype.MouseWheel = function (event) {
         var point = this.points[this.points.length - 1];
@@ -351,88 +401,6 @@ var Canvas3D = /** @class */ (function (_super) {
         this.renderer.setSize(this.canvas.width, this.canvas.height);
         this.Render();
     };
-    Canvas3D.prototype.ParseInput = function (input) {
-        var point;
-        if (input.toLowerCase().indexOf("zo") !== -1 && input.toLowerCase().indexOf("=") !== -1) {
-            //Move grid to z
-            input = input.replace("  ", " ");
-            input = input.replace("  ", " ");
-            input = input.replace("  ", " ");
-            input = input.replace("zo=", "");
-            var value = parseFloat(input);
-            this.ShowGridXY(0, 0, value);
-            return;
-        }
-        else if (input.toLowerCase().indexOf("z") !== -1 && input.toLowerCase().indexOf("=") !== -1) {
-            //Draw a line from snapline z1 to z
-            var position = this.snapline.geometry.attributes["position"].array;
-            var point1 = new THREE.Vector3(position[0], position[1], position[2]);
-            var point2 = new THREE.Vector3(position[3], position[4], position[5]);
-            var normal = point1.clone().sub(point2).normalize();
-            //Move grid to z
-            input = input.replace("  ", " ");
-            input = input.replace("  ", " ");
-            input = input.replace("  ", " ");
-            input = input.replace("z=", "");
-            var value = parseFloat(input);
-            var l = value / normal.z;
-            var x = point1.x + normal.x * l;
-            var y = point1.y + normal.y * l;
-            var z = point1.z + normal.z * l;
-            this.points.push(new THREE.Vector3(x, y, z));
-        }
-        else if (input.indexOf(",") !== -1) {
-            //Format: x, y, z
-            var numbers = input.split(",");
-            if (numbers.length === 2)
-                this.points.push(new THREE.Vector3(parseFloat(numbers[0]), parseFloat(numbers[1]), 0));
-            else if (numbers.length > 2)
-                this.points.push(new THREE.Vector3(parseFloat(numbers[0]), parseFloat(numbers[1]), parseFloat(numbers[2])));
-        }
-        else if (input.indexOf(" ") !== -1) {
-            //Format: x y z
-            input = input.replace("  ", " ");
-            input = input.replace("  ", " ");
-            input = input.replace("  ", " ");
-            var numbers = input.split(" ");
-            point = this.points[this.points.length - 1];
-            if (numbers.length === 2)
-                this.points.push(new THREE.Vector3(point.x + parseFloat(numbers[0]), point.y + parseFloat(numbers[1]), 0));
-            else if (numbers.length > 2)
-                this.points.push(new THREE.Vector3(point.x + parseFloat(numbers[0]), point.y + parseFloat(numbers[1]), point.z + parseFloat(numbers[2])));
-        }
-        else {
-            //Format: number
-            var value = parseFloat(input);
-            if (this.drawingpoint) {
-                if (this.snapline) {
-                    var position = this.snapline.geometry.attributes["position"].array;
-                    var point1 = new THREE.Vector3(position[0], position[1], position[2]);
-                    var point2 = new THREE.Vector3(position[3], position[4], position[5]);
-                    var normal = point2.clone().sub(point1).normalize();
-                    this.points.push(new THREE.Vector3(point1.x + normal.x * value, point1.y + normal.y * value, point1.z + normal.z * value));
-                }
-                else {
-                    point = this.points[this.points.length - 1];
-                    if (point) {
-                        var normal = this.drawingpoint.sub(point).normalize();
-                        this.points.push(new THREE.Vector3(point.x + normal.x * value, point.y + normal.y * value, point.z + normal.z * value));
-                    }
-                }
-            }
-            else if (!Number.isNaN(value)) {
-                this.points.push(new THREE.Vector3(value, 0, 0));
-            }
-            else {
-                return;
-            }
-        }
-        point = this.points[this.points.length - 1];
-        this.ShowGuideAxis(point.x, point.y, point.z);
-        this.ShowActiveDrawing();
-        if (this.points.length === 1)
-            this.ZoomAll();
-    };
     Canvas3D.prototype.ShowActiveDrawing = function () {
         if (this.points.length > 1) {
             if (this.drawingactive) {
@@ -451,11 +419,17 @@ var Canvas3D = /** @class */ (function (_super) {
         }
         var points = [];
         var size = 10;
+        var textsize = size / 50;
+        var textmaterial = new THREE.LineBasicMaterial({
+            color: 0x888888
+        });
         for (var i = -size; i <= size; i++) {
             //Along X
+            this.AddObject(this.GenerateText(i.toString(), x + i, y - size - textsize, z, textsize, ALIGNHORIZONTAL.CENTER, ALIGNVERTICAL.TOP, new THREE.Vector3(), textmaterial));
             points.push(new THREE.Vector3(x + i, y - size, z));
             points.push(new THREE.Vector3(x + i, y + size, z));
             //Along Y
+            this.AddObject(this.GenerateText(i.toString(), x - size - textsize, y + i, z, textsize, ALIGNHORIZONTAL.RIGHT, ALIGNVERTICAL.MIDDLE, new THREE.Vector3(), textmaterial));
             points.push(new THREE.Vector3(x - size, y + i, z));
             points.push(new THREE.Vector3(x + size, y + i, z));
         }
@@ -517,6 +491,12 @@ var Canvas3D = /** @class */ (function (_super) {
         colors.push("#FFFFFF");
         colors.push("#FFFFFF");
         var size = 10;
+        points.push(new THREE.Vector3(x - size, y, z));
+        points.push(new THREE.Vector3(x + size, y, z));
+        points.push(new THREE.Vector3(x, y - size, z));
+        points.push(new THREE.Vector3(x, y + size, z));
+        points.push(new THREE.Vector3(x, y, z - size));
+        points.push(new THREE.Vector3(x, y, z + size));
         if (this.guideaxis) {
             this.Remove(this.guideaxis);
             this.guideaxis = undefined;
@@ -589,7 +569,12 @@ var Canvas3D = /** @class */ (function (_super) {
         }
     };
     Canvas3D.prototype.UpdateDrawingGuide = function () {
-        if (this.points.length && this.drawingpoint) {
+        if (this.draw === CanvasDraw.Triangle && this.points.length === 3) {
+            this.points.push(this.points[0]);
+            this.AddTriangle();
+            this.Render();
+        }
+        else if (this.points.length && this.drawingpoint) {
             this.points.push(this.drawingpoint);
             this.ShowGuideAxis(this.drawingpoint.x, this.drawingpoint.y, this.drawingpoint.z);
             this.ShowActiveDrawing();
@@ -603,16 +588,15 @@ var Canvas3D = /** @class */ (function (_super) {
     };
     Canvas3D.prototype.GenerateLines = function (points, color, opacity) {
         if (opacity === void 0) { opacity = 1; }
-        var object = new THREE.Object3D();
+        var vertices = [];
         for (var i = 0; i < points.length; i += 2) {
-            var geometry = new THREE.BufferGeometry();
-            var vertices = [];
             vertices.push(points[i].x, points[i].y, points[i].z, points[i + 1].x, points[i + 1].y, points[i + 1].z);
-            geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
-            var material = new THREE.LineBasicMaterial({ color: color, opacity: opacity, transparent: opacity === 1 ? false : true });
-            var lines = new THREE.LineSegments(geometry, material);
-            object.add(lines);
         }
+        var geometry = new THREE.BufferGeometry();
+        geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+        var object = new THREE.Object3D();
+        var material = new THREE.LineBasicMaterial({ color: color, opacity: opacity, transparent: opacity === 1 ? false : true });
+        object.add(new THREE.LineSegments(geometry, material));
         return object;
     };
     Canvas3D.prototype.GeneratePolyLines = function (points) {
@@ -628,7 +612,7 @@ var Canvas3D = /** @class */ (function (_super) {
         }
         return object;
     };
-    Canvas3D.prototype.GenerateTriangles = function (triangles) {
+    Canvas3D.prototype.GenerateTriangles = function (triangles, color) {
         var geometry = new THREE.BufferGeometry();
         var vertices = new Float32Array(triangles.length * 9);
         //let colors = new Float32Array(colors.length * 9);
@@ -668,11 +652,53 @@ var Canvas3D = /** @class */ (function (_super) {
         //     geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3, true));
         // }
         geometry.computeVertexNormals();
-        var material = new THREE.MeshPhongMaterial({ color: 0x8888ff, emissive: 0x111111, side: THREE.DoubleSide, transparent: true, opacity: 0.75 });
+        var material = new THREE.MeshPhongMaterial({ color: color ? color : 0x8888ff, emissive: 0x111111, side: THREE.DoubleSide, transparent: true, opacity: 0.75 });
         return new THREE.Mesh(geometry, material);
     };
     ;
+    Canvas3D.prototype.GenerateText = function (text, x, y, z, size, alignx, aligny, rotation, material) {
+        var geo = new THREE.TextGeometry(text, {
+            font: this.font,
+            size: size,
+            height: size / 20
+        });
+        var center = geo.center();
+        var widthx = center.boundingBox.max.x - center.boundingBox.min.x;
+        var widthy = center.boundingBox.max.y - center.boundingBox.min.y;
+        geo.computeBoundingBox();
+        geo.computeVertexNormals();
+        var mesh = new THREE.Mesh(geo, material);
+        if (alignx === ALIGNHORIZONTAL.LEFT)
+            mesh.position.x = x + widthy / 2;
+        else if (alignx === ALIGNHORIZONTAL.RIGHT)
+            mesh.position.x = x - widthy / 2;
+        else
+            mesh.position.x = x;
+        if (aligny === ALIGNVERTICAL.TOP)
+            mesh.position.y = y - widthx / 2;
+        else if (aligny === ALIGNVERTICAL.BOTTOM)
+            mesh.position.y = y + widthx / 2;
+        else
+            mesh.position.y = y;
+        mesh.position.z = z;
+        mesh.rotation.x = rotation.x;
+        mesh.rotation.z = rotation.z;
+        mesh.rotation.y = rotation.y;
+        return mesh;
+    };
+    Canvas3D.prototype.AddTriangle = function () {
+        //Triangle
+        var triangles = [];
+        var triangle = new MeshTriangle();
+        triangle.point1 = this.points[0];
+        triangle.point2 = this.points[1];
+        triangle.point3 = this.points[2];
+        triangles.push(triangle);
+        var drawing = this.GenerateTriangles(triangles);
+        this.AddObject(drawing);
+    };
     Canvas3D.prototype.Select = function (x, y, res) {
+        //let rect = this.object.getClientRects();
         var left = this.parent.offsetLeft;
         var top = this.parent.offsetTop;
         var mouse = {
@@ -721,24 +747,23 @@ var Canvas3D = /** @class */ (function (_super) {
                 var object = intersects_2[_d];
                 var material = new THREE.MeshPhongMaterial({ color: 0xffff44, specular: 0x333333, opacity: 0.75, transparent: true, side: THREE.DoubleSide });
                 ;
-                if (this.selectedobject) {
-                    this.selectedobject.material = this.selectedmaterial;
-                    this.selectedobject = null;
-                    this.selectedmaterial = null;
-                }
-                if (this.ctrlKey) {
-                    this.selectedobjects.push(object.object);
-                    this.selectedmaterials.push(object.object.material);
-                    object.object.material = material;
-                }
-                else {
-                    this.selectedobject = object.object;
-                    this.selectedmaterial = this.selectedobject.material;
-                    this.selectedobject.material = material;
-                }
-                this.Render();
+                // if (this.selectedobject) {
+                //     this.selectedobject.material = this.selectedmaterial;
+                //     this.selectedobject = null;
+                //     this.selectedmaterial = null;
+                // }
+                // if (this.ctrlKey) {
+                //     this.selectedobjects.push(object.object);
+                //     this.selectedmaterials.push(object.object.material as THREE.Material);
+                //     object.object.material = material;
+                // } else {
+                //     this.selectedobject = object.object as THREE.Mesh;
+                //     this.selectedmaterial = this.selectedobject.material as THREE.Material;
+                //     this.selectedobject.material = material;
+                // }
+                // this.Render();
                 if (res)
-                    res(intersects[0].point);
+                    res(object);
                 break;
             }
         }
@@ -850,24 +875,136 @@ var Canvas3D = /** @class */ (function (_super) {
                 bounds.max.y = mesh.geometry.boundingBox.max.y;
         }
     };
-    Canvas3D.prototype.LoadFont = function () {
-        // let self = this;
-        // let loader = new THREE.FontLoader();
-        // try {
-        //     if (window.chrome.webview) {
-        //         loader.load('https://canvas/fonts/arial.json', function (response) {
-        //             self.font = response;
-        //         });
-        //     } else {
-        //         loader.load('fonts/arial.json', function (response) {
-        //             self.font = response;
-        //         });
-        //     }
-        // } catch (error) {
-        //     loader.load('fonts/arial.json', function (response) {
-        //         self.font = response;
-        //     });
-        // }
+    Canvas3D.prototype.LoadFont = function (ret) {
+        var self = this;
+        var loader = new THREE.FontLoader();
+        try {
+            if (window.chrome.webview) {
+                loader.load('https://canvas/fonts/arial.json', function (response) {
+                    self.font = response;
+                    if (ret)
+                        ret();
+                });
+            }
+            else {
+                loader.load('fonts/arial.json', function (response) {
+                    self.font = response;
+                    if (ret)
+                        ret();
+                });
+            }
+        }
+        catch (error) {
+            loader.load('fonts/arial.json', function (response) {
+                self.font = response;
+                if (ret)
+                    ret();
+            });
+        }
+    };
+    Canvas3D.prototype.CleanInput = function (text) {
+        text = text.replace("  ", " ");
+        text = text.replace("  ", " ");
+        text = text.replace("  ", " ");
+        return text.toLowerCase();
+    };
+    Canvas3D.prototype.ParseInput = function (input) {
+        var point;
+        input = this.CleanInput(input);
+        if (input.indexOf("zo") !== -1 && input.indexOf("=") !== -1) {
+            //Move grid to z
+            input = input.replace("zo=", "");
+            var value = parseFloat(input);
+            this.ShowGridXY(0, 0, value);
+            return;
+        }
+        else if (input.indexOf("z") !== -1 && input.indexOf("=") !== -1) {
+            //Draw a line from snapline z1 to z
+            var position = this.snapline.geometry.attributes["position"].array;
+            var point1 = new THREE.Vector3(position[0], position[1], position[2]);
+            var point2 = new THREE.Vector3(position[3], position[4], position[5]);
+            var normal = point1.clone().sub(point2).normalize();
+            //Move grid to z
+            input = input.replace("z=", "");
+            var value = parseFloat(input);
+            var l = value / normal.z;
+            var x = point1.x + normal.x * l;
+            var y = point1.y + normal.y * l;
+            var z = point1.z + normal.z * l;
+            this.points.push(new THREE.Vector3(x, y, z));
+        }
+        else if (input.indexOf(",") !== -1) {
+            //Format: x, y, z
+            var numbers = input.split(",");
+            if (numbers.length === 2)
+                this.points.push(new THREE.Vector3(parseFloat(numbers[0]), parseFloat(numbers[1]), 0));
+            else if (numbers.length === 3)
+                this.points.push(new THREE.Vector3(parseFloat(numbers[0]), parseFloat(numbers[1]), parseFloat(numbers[2])));
+            else if (numbers.length === 5) {
+                //Line
+                var line = input.split(" ");
+                numbers = line[0].split(",");
+                this.points.push(new THREE.Vector3(parseFloat(numbers[0]), parseFloat(numbers[1]), parseFloat(numbers[2])));
+                numbers = line[1].split(",");
+                this.points.push(new THREE.Vector3(parseFloat(numbers[0]), parseFloat(numbers[1]), parseFloat(numbers[2])));
+            }
+            else if (numbers.length === 7) {
+                //Triangle
+                var line = input.split(" ");
+                numbers = line[0].split(",");
+                this.points.push(new THREE.Vector3(parseFloat(numbers[0]), parseFloat(numbers[1]), parseFloat(numbers[2])));
+                numbers = line[1].split(",");
+                this.points.push(new THREE.Vector3(parseFloat(numbers[0]), parseFloat(numbers[1]), parseFloat(numbers[2])));
+                numbers = line[2].split(",");
+                this.points.push(new THREE.Vector3(parseFloat(numbers[0]), parseFloat(numbers[1]), parseFloat(numbers[2])));
+                this.AddTriangle();
+                this.Render();
+                this.points = [];
+            }
+        }
+        else if (input.indexOf(" ") !== -1) {
+            //Format: x y z
+            var numbers = input.split(" ");
+            point = this.points[this.points.length - 1];
+            if (numbers.length === 2)
+                this.points.push(new THREE.Vector3(point.x + parseFloat(numbers[0]), point.y + parseFloat(numbers[1]), 0));
+            else if (numbers.length > 2)
+                this.points.push(new THREE.Vector3(point.x + parseFloat(numbers[0]), point.y + parseFloat(numbers[1]), point.z + parseFloat(numbers[2])));
+        }
+        else {
+            //Format: number
+            var value = parseFloat(input);
+            if (this.drawingpoint) {
+                if (this.snapline) {
+                    var position = this.snapline.geometry.attributes["position"].array;
+                    var point1 = new THREE.Vector3(position[0], position[1], position[2]);
+                    var point2 = new THREE.Vector3(position[3], position[4], position[5]);
+                    var normal = point2.clone().sub(point1).normalize();
+                    point = this.points[this.points.length - 1];
+                    this.points.push(new THREE.Vector3(point.x + normal.x * value, point.y + normal.y * value, point.z + normal.z * value));
+                }
+                else {
+                    point = this.points[this.points.length - 1];
+                    if (point) {
+                        var normal = this.drawingpoint.sub(point).normalize();
+                        this.points.push(new THREE.Vector3(point.x + normal.x * value, point.y + normal.y * value, point.z + normal.z * value));
+                    }
+                }
+            }
+            else if (!Number.isNaN(value)) {
+                this.points.push(new THREE.Vector3(value, 0, 0));
+            }
+            else {
+                return;
+            }
+        }
+        point = this.points[this.points.length - 1];
+        if (point) {
+            this.ShowGuideAxis(point.x, point.y, point.z);
+            this.ShowActiveDrawing();
+        }
+        if (this.points.length === 1)
+            this.ZoomAll();
     };
     return Canvas3D;
 }(FrameWork));
