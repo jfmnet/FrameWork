@@ -591,7 +591,8 @@ class SAPViewer {
         //Canvas
 
         this.canvas = new Canvas3D();
-        //this.canvas.settings.backcolor = 0xffffff;
+        this.canvas.settings.backcolor = 0xffffff;
+        this.canvas.settings.allowvr = true;
         this.canvas.fileformat = FILEFORMAT.TEXT;
         this.canvas.ondrop = function (text) {
             self.model = JSON.parse(text);

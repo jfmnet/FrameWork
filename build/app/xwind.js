@@ -23,7 +23,8 @@ var XWind = /** @class */ (function () {
         };
         app.buttons.push(poly);
         canvas = app.Add(new Canvas3D());
-        canvas.settings.allowdraw = true;
+        canvas.settings.allowvr = true;
+        canvas.settings.allowdraw = false;
         app.Show();
     };
     return XWind;

@@ -1565,12 +1565,12 @@ var MaterialDesign2;
         Dialogs.prototype.Event = function (dialog) {
             if (this.onclick) {
                 if (!this.readonly) {
-                    var self_5 = this;
-                    console.log(self_5);
+                    var self_6 = this;
+                    console.log(self_6);
                     var btnOk = this.object.querySelector('#btnOkDialog');
                     btnOk.addEventListener('click', function (e) {
                         e.stopPropagation();
-                        self_5.onclick(self_5);
+                        self_6.onclick(self_6);
                         dialog.close();
                     });
                 }
