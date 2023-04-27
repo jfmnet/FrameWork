@@ -24,6 +24,45 @@ input {
     outline: none;
 }
 
+
+/* AppBar */
+
+.app-bar {
+    border-bottom: 1px solid #CCC;
+}
+
+.app-bar > .header {
+    align-items: center;
+    display: flex;
+    font-size: 18px;
+    height: 52px;
+}
+
+.app-bar > .header .icon {
+    padding: 16px;
+}
+
+.app-bar > .header .text {
+    font-weight: bold;
+}
+
+.app-bar > .toolbar {
+    align-items: center;
+    display: flex;
+    font-size: 18px;
+    position: absolute;
+    right: 0;
+    top: 0;
+    height: 52px;
+}
+
+.app-bar > .toolbar div {
+    align-items: center;
+    cursor: pointer;
+    display: flex;
+    padding: 0 16px;
+}
+
 /* Container */
 
 .scroll-container {

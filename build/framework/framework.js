@@ -454,6 +454,35 @@ var FrameWork = /** @class */ (function () {
 }());
 (function (FrameWork) {
     //Containers
+    var AppBar = /** @class */ (function (_super) {
+        __extends(AppBar, _super);
+        function AppBar(param) {
+            return _super.call(this, param, "app-bar") || this;
+        }
+        AppBar.prototype.Refresh = function () {
+            this.Clear();
+            var header = document.createElement("div");
+            header.classList.add("header");
+            this.object.append(header);
+            var icon = this.DisplayIcon(this.icon);
+            header.appendChild(icon);
+            var text = document.createElement("div");
+            text.classList.add("text");
+            text.innerHTML = this.text.toString();
+            header.append(text);
+            var toolbar = document.createElement("div");
+            toolbar.classList.add("toolbar");
+            this.object.append(toolbar);
+            //Show children
+            for (var i = 0; i < this.children.length; i++) {
+                this.children[i].Show(toolbar);
+            }
+            //Initialize events
+            this.Events();
+        };
+        return AppBar;
+    }(FrameWork));
+    FrameWork.AppBar = AppBar;
     var Container = /** @class */ (function (_super) {
         __extends(Container, _super);
         function Container(param) {
@@ -1565,12 +1594,12 @@ var MaterialDesign2;
         Dialogs.prototype.Event = function (dialog) {
             if (this.onclick) {
                 if (!this.readonly) {
-                    var self_5 = this;
-                    console.log(self_5);
+                    var self_6 = this;
+                    console.log(self_6);
                     var btnOk = this.object.querySelector('#btnOkDialog');
                     btnOk.addEventListener('click', function (e) {
                         e.stopPropagation();
-                        self_5.onclick(self_5);
+                        self_6.onclick(self_6);
                         dialog.close();
                     });
                 }

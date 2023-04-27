@@ -1,4 +1,4 @@
 window.onload = function () {
-    let view = new XWind();
+    let view = new SAPViewer();
     view.Show();
 };

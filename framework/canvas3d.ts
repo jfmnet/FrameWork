@@ -202,7 +202,6 @@ class Canvas3D extends FrameWork {
 
         (function anim() {
             const delta = self.clock.getDelta();
-            const elapsed = self.clock.getElapsedTime();
             const updated = self.controls.update(delta);
 
             requestAnimationFrame(anim);

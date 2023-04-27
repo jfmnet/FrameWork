@@ -503,6 +503,39 @@ class FrameWork {
 
 namespace FrameWork {
     //Containers
+    export class AppBar extends FrameWork {
+        constructor(param?: Parameter) {
+            super(param, "app-bar");
+        }
+
+        Refresh(): void {
+            this.Clear();
+
+            let header = document.createElement("div");
+            header.classList.add("header");
+            this.object.append(header);
+
+            let icon = this.DisplayIcon(this.icon);
+            header.appendChild(icon);
+
+            let text = document.createElement("div");
+            text.classList.add("text");
+            text.innerHTML = this.text.toString();
+            header.append(text);
+
+            let toolbar = document.createElement("div");
+            toolbar.classList.add("toolbar");
+            this.object.append(toolbar);
+
+            //Show children
+            for (let i = 0; i < this.children.length; i++) {
+                this.children[i].Show(toolbar);
+            }
+
+            //Initialize events
+            this.Events();
+        }
+    }
 
     export class Container extends FrameWork {
         constructor(param?: Parameter) {

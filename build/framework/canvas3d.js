@@ -163,7 +163,6 @@ var Canvas3D = /** @class */ (function (_super) {
         input.Show(this.object);
         (function anim() {
             var delta = self.clock.getDelta();
-            var elapsed = self.clock.getElapsedTime();
             var updated = self.controls.update(delta);
             requestAnimationFrame(anim);
             if (self.controls._enabled && updated) {

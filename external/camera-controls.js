@@ -1747,9 +1747,9 @@
 	            this._needsUpdate = true;
 	        }
 	        else {
-	            this._spherical.copy(this._sphericalEnd);
-	            this._target.copy(this._targetEnd);
-	            this._focalOffset.copy(this._focalOffsetEnd);
+	            // this._spherical.copy(this._sphericalEnd);
+	            // this._target.copy(this._targetEnd);
+	            // this._focalOffset.copy(this._focalOffsetEnd);
 	        }
 	        if (this._dollyControlAmount !== 0) {
 	            if (isPerspectiveCamera(this._camera)) {
