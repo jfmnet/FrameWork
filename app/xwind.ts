@@ -28,7 +28,8 @@ class XWind {
         app.buttons.push(poly);
 
         canvas = app.Add(new Canvas3D()) as Canvas3D;
-        canvas.settings.allowdraw = true;
+        canvas.settings.allowvr = true;
+        canvas.settings.allowdraw = false;
         app.Show();
     }
 }

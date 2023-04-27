@@ -16,6 +16,7 @@ class MeshTriangle {
 class Canvas3DSettings {
     backcolor: number = 0x000000;
     allowdraw: boolean;
+    allowvr: boolean;
 }
 
 class Canvas3D extends FrameWork {
@@ -83,10 +84,10 @@ class Canvas3D extends FrameWork {
             triangle.point3 = new THREE.Vector3(1, -1, 0);
             triangles.push(triangle);
 
-            let drawing = this.GenerateTriangles(triangles);
-            //this.AddObject(drawing);
 
-            const iterations = 2;
+            let drawing = this.GenerateTriangles(triangles);
+
+            const iterations = 4;
 
             const params = {
                 split: false,       // optional, default: true
@@ -97,7 +98,132 @@ class Canvas3D extends FrameWork {
             };
 
             const geometry = LoopSubdivision.modify(drawing.geometry, iterations, params);
-            const material = new THREE.MeshPhongMaterial({
+
+
+            const positions = geometry.getAttribute('position').array;
+            const numVertices = positions.length / 3;
+            const numTriangles = numVertices / 3;
+            const vertices = [];
+            const vertexIndices = new Map();
+            const indices = [];
+
+            for (let i = 0; i < numTriangles; i++) {
+                const indexOffset = i * 3;
+                const vertexIndicesOffset = i * 3;
+
+                const v1Index = indexOffset;
+                const v2Index = indexOffset + 1;
+                const v3Index = indexOffset + 2;
+
+                const v1 = [positions[v1Index * 3], positions[v1Index * 3 + 1], positions[v1Index * 3 + 2]];
+                const v2 = [positions[v2Index * 3], positions[v2Index * 3 + 1], positions[v2Index * 3 + 2]];
+                const v3 = [positions[v3Index * 3], positions[v3Index * 3 + 1], positions[v3Index * 3 + 2]];
+
+                // add unique vertices to the vertices array and store their indices in the vertexIndices map
+                const v1Key = v1.join(',');
+                if (!vertexIndices.has(v1Key)) {
+                    vertices.push(v1);
+                    vertexIndices.set(v1Key, vertices.length - 1);
+                }
+
+                const v2Key = v2.join(',');
+                if (!vertexIndices.has(v2Key)) {
+                    vertices.push(v2);
+                    vertexIndices.set(v2Key, vertices.length - 1);
+                }
+
+                const v3Key = v3.join(',');
+                if (!vertexIndices.has(v3Key)) {
+                    vertices.push(v3);
+                    vertexIndices.set(v3Key, vertices.length - 1);
+                }
+
+                // add the triangle's vertex indices to the vertexIndices array
+                const triangleIndices = [
+                    vertexIndices.get(v1Key),
+                    vertexIndices.get(v2Key),
+                    vertexIndices.get(v3Key)
+                ];
+
+                indices.push(triangleIndices);
+            }
+
+
+            const quadIndices = [];
+            const newVertices = [];
+
+            let done = {};
+
+            for (let i = 0; i < indices.length; i++) {
+                if (done[i])
+                    continue;
+
+                for (let j = 0; j < indices.length; j++) {
+                    if (j === i) {
+                        continue; // Skip the current triangle
+                    }
+
+                    if (done[j])
+                        continue;
+
+                    let count = 0;
+                    let ids = [];
+                    let unique = [];
+
+                    for (let k = 0; k < 3; k++) {
+                        for (let l = 0; l < 3; l++) {
+                            if (indices[i][k] === indices[j][l]) {
+                                ids.push(indices[i][k]);
+                                count++;
+                            }
+                        }
+                    }
+
+                    for (let k = 0; k < 3; k++) {
+                        if (ids.indexOf(indices[i][k]) === -1) {
+                            unique.push(indices[i][k]);
+                        }
+                    }
+
+                    for (let k = 0; k < 3; k++) {
+                        if (ids.indexOf(indices[j][k]) === -1) {
+                            unique.push(indices[j][k]);
+                        }
+                    }
+
+                    if (count === 2) {
+                        let v1 = vertices[indices[i][0]];
+                        let v2 = vertices[indices[i][1]];
+                        let v3 = vertices[indices[i][2]];
+
+                        let p1 = new THREE.Vector3(v1[0], v1[1], v1[2]);
+                        let p2 = new THREE.Vector3(v2[0], v2[1], v2[2]);
+                        let p3 = new THREE.Vector3(v3[0], v3[1], v3[2]);
+
+                        let maxl = Math.max(p1.clone().sub(p2).length(), p1.clone().sub(p3).length(), p3.clone().sub(p2).length());
+
+                        let v4 = vertices[ids[0]];
+                        let v5 = vertices[ids[1]];
+                        let p4 = new THREE.Vector3(v4[0], v4[1], v4[2]);
+                        let p5 = new THREE.Vector3(v5[0], v5[1], v5[2]);
+
+                        let vl = p4.clone().sub(p5).length();
+
+                        if (maxl === vl) {
+                            quadIndices.push(unique[0], ids[0], unique[1], ids[1]);
+
+                            done[i] = 1;
+
+                            if (!done[j])
+                                done[j] = 1;
+
+                            break;
+                        }
+                    }
+                }
+            }
+
+            let material = new THREE.MeshPhongMaterial({
                 color: 0xccffcc,
                 side: THREE.DoubleSide,
                 shininess: 100,
@@ -105,16 +231,40 @@ class Canvas3D extends FrameWork {
                 opacity: 0.5
             });
 
-            let mesh = new THREE.Mesh(geometry, material);
-            this.AddObject(mesh);
+            // let mesh = new THREE.Mesh(geometry, material);
+            // this.AddObject(mesh);
 
-            let mat = new THREE.MeshPhongMaterial({
-                color: 0xeeffee,
-                wireframe: true
-            });
-    
-            mesh = new THREE.Mesh(geometry, mat);
-            this.AddObject(mesh);
+            // material = new THREE.MeshPhongMaterial({
+            //     color: 0xffffff,
+            //     wireframe: true
+            // });
+
+            // mesh = new THREE.Mesh(geometry, material);
+            // this.AddObject(mesh);
+
+            let points: THREE.Vector3[] = [];
+
+            for (let i = 0; i < quadIndices.length; i += 4) {
+                let point1 = vertices[quadIndices[i]];
+                let point2 = vertices[quadIndices[i + 1]];
+                let point3 = vertices[quadIndices[i + 2]];
+                let point4 = vertices[quadIndices[i + 3]];
+
+                points.push(new THREE.Vector3(point1[0], point1[1], point1[2]));
+                points.push(new THREE.Vector3(point2[0], point2[1], point2[2]));
+
+                points.push(new THREE.Vector3(point2[0], point2[1], point2[2]));
+                points.push(new THREE.Vector3(point3[0], point3[1], point3[2]));
+
+                points.push(new THREE.Vector3(point3[0], point3[1], point3[2]));
+                points.push(new THREE.Vector3(point4[0], point4[1], point4[2]));
+
+                points.push(new THREE.Vector3(point1[0], point1[1], point1[2]));
+                points.push(new THREE.Vector3(point4[0], point4[1], point4[2]));
+            }
+
+            let lines = this.GenerateLines(points, "#FFF");
+            this.AddObject(lines);
 
             this.ZoomAll();
         });
@@ -155,19 +305,6 @@ class Canvas3D extends FrameWork {
 
                     if (event.key === "Escape") {
                         self.drawingactive = undefined;
-
-                        // //Add current drawing
-                        // if (self.points.length > 1) {
-                        //     if (self.drawingactive) {
-                        //         self.Remove(this.drawingactive);
-                        //         self.drawingactive = undefined;
-                        //     }
-
-                        //     let drawing = this.GeneratePolyLines(this.points);
-                        //     self.AddObject(drawing);
-                        //     self.Render();
-                        // }
-
                         self.points = [];
                     }
                     else {
@@ -200,6 +337,22 @@ class Canvas3D extends FrameWork {
 
         input.Show(this.object);
 
+        //VR
+        if (this.settings.allowvr)
+            this.object.appendChild(VRButton.createButton(this.renderer, this.scene, this.camera, function (status: String) {
+                if (status === "enter") {
+                    self.object.style.position = "fixed";
+                    self.object.style.width = "100%";
+                } else {
+                    self.object.style.position = "absolute";
+                    self.object.style.width = "100%";
+                }
+
+                self.Resize();
+                self.ZoomAll();
+            }));
+
+
         (function anim() {
             const delta = self.clock.getDelta();
             const updated = self.controls.update(delta);
@@ -217,7 +370,11 @@ class Canvas3D extends FrameWork {
         this.camera.position.x = -20;
         this.camera.position.y = -20;
         this.camera.position.z = 20;
-        this.camera.up.set(0, 0, 1);
+
+        if (this.settings.allowvr)
+            this.camera.up.set(0, 1, 0);
+        else
+            this.camera.up.set(0, 0, 1);
     };
 
     InitializeOthographicCamera(): void {
@@ -226,7 +383,11 @@ class Canvas3D extends FrameWork {
         this.camera.position.x = -20;
         this.camera.position.y = -20;
         this.camera.position.z = 2;
-        this.camera.up.set(0, 0, 1);
+
+        if (this.settings.allowvr)
+            this.camera.up.set(0, 1, 0);
+        else
+            this.camera.up.set(0, 0, 1);
 
         let width = this.object.clientWidth / 2;
         let height = width / this.aspect;
@@ -734,8 +895,15 @@ class Canvas3D extends FrameWork {
     GenerateLines(points: THREE.Vector3[], color: string, opacity: number = 1): THREE.Object3D {
         let vertices = [];
 
-        for (let i = 0; i < points.length; i += 2) {
-            vertices.push(points[i].x, points[i].y, points[i].z, points[i + 1].x, points[i + 1].y, points[i + 1].z);
+        if (this.settings.allowvr) {
+            for (let i = 0; i < points.length; i += 2) {
+                vertices.push(points[i].x, points[i].z, points[i].y, points[i + 1].x, points[i + 1].z, points[i + 1].y);
+            }
+    
+        } else {
+            for (let i = 0; i < points.length; i += 2) {
+                vertices.push(points[i].x, points[i].y, points[i].z, points[i + 1].x, points[i + 1].y, points[i + 1].z);
+            }
         }
 
         let geometry = new THREE.BufferGeometry();
@@ -779,17 +947,32 @@ class Canvas3D extends FrameWork {
         for (let i = 0; i < triangles.length; i++) {
             j = i * 9;
 
-            vertices[j + 0] = triangles[i].point1.x;
-            vertices[j + 1] = triangles[i].point1.y;
-            vertices[j + 2] = triangles[i].point1.z;
-
-            vertices[j + 3] = triangles[i].point2.x;
-            vertices[j + 4] = triangles[i].point2.y;
-            vertices[j + 5] = triangles[i].point2.z;
-
-            vertices[j + 6] = triangles[i].point3.x;
-            vertices[j + 7] = triangles[i].point3.y;
-            vertices[j + 8] = triangles[i].point3.z;
+            if (this.settings.allowvr) {
+                vertices[j + 0] = triangles[i].point1.x;
+                vertices[j + 1] = triangles[i].point1.z;
+                vertices[j + 2] = triangles[i].point1.y;
+    
+                vertices[j + 3] = triangles[i].point2.x;
+                vertices[j + 4] = triangles[i].point2.z;
+                vertices[j + 5] = triangles[i].point2.y;
+    
+                vertices[j + 6] = triangles[i].point3.x;
+                vertices[j + 7] = triangles[i].point3.z;
+                vertices[j + 8] = triangles[i].point3.y;
+    
+            } else {
+                vertices[j + 0] = triangles[i].point1.x;
+                vertices[j + 1] = triangles[i].point1.y;
+                vertices[j + 2] = triangles[i].point1.z;
+    
+                vertices[j + 3] = triangles[i].point2.x;
+                vertices[j + 4] = triangles[i].point2.y;
+                vertices[j + 5] = triangles[i].point2.z;
+    
+                vertices[j + 6] = triangles[i].point3.x;
+                vertices[j + 7] = triangles[i].point3.y;
+                vertices[j + 8] = triangles[i].point3.z;
+            }
 
             // if (usepointcolor) {
             //     colors[j + 0] = colors[i].x;
