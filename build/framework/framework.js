@@ -28,7 +28,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     function verb(n) { return function (v) { return step([n, v]); }; }
     function step(op) {
         if (f) throw new TypeError("Generator is already executing.");
-        while (g && (g = 0, op[0] && (_ = 0)), _) try {
+        while (_) try {
             if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
             if (y = 0, t) op = [op[0] & 2, t.value];
             switch (op[0]) {
@@ -1303,6 +1303,19 @@ var MaterialDesign2;
                 var html = "\n                    <div class=\"mdc-button__ripple\"></div>\n                    <span class=\"mdc-button__label\">".concat(this.text, "</span>");
                 this.object.innerHTML = html;
             }
+            if (this.tooltip !== undefined) {
+                var id = this.tooltip + Math.random() * 10;
+                this.object.setAttribute("aria-describedby", id);
+                var tooltipText = "<div class=\"mdc-tooltip__surface mdc-tooltip__surface-animation\">\n                  ".concat(this.tooltip, "\n                </div> ");
+                var toolDiv = document.createElement('div');
+                toolDiv.classList.add('mdc-tooltip');
+                toolDiv.setAttribute("id", id);
+                toolDiv.setAttribute("role", "tooltip");
+                toolDiv.setAttribute("aria-hidden", "true");
+                toolDiv.innerHTML = tooltipText;
+                this.object.insertAdjacentElement("afterend", toolDiv);
+                new window.mdc.tooltip.MDCTooltip(document.querySelector('.mdc-tooltip'));
+            }
             if (this.type !== ButtonType.APPBAR)
                 window.mdc.ripple.MDCRipple.attachTo(document.querySelector('.mdc-button'));
             this.Events();
@@ -1351,7 +1364,19 @@ var MaterialDesign2;
                 html = "\n                    <div class=\"mdc-touch-target-wrapper\">\n                        <button class=\"mdc-fab mdc-fab--mini mdc-fab--touch\">\n                            <div class=\"mdc-fab__ripple\"></div>\n                            <span class=\"material-icons mdc-fab__icon\">add</span>\n                            <div class=\"mdc-fab__touch\"></div>\n                        </button>\n                    </div>\n                    ";
             }
             this.object.innerHTML = html;
-            this.RenderChildren();
+            if (this.tooltip !== undefined) {
+                var id = this.tooltip + Math.random() * 10;
+                this.object.setAttribute("aria-describedby", id);
+                var tooltipText = "<div class=\"mdc-tooltip__surface mdc-tooltip__surface-animation\">\n                  ".concat(this.tooltip, "\n                </div> ");
+                var toolDiv = document.createElement('div');
+                toolDiv.classList.add('mdc-tooltip');
+                toolDiv.setAttribute("id", id);
+                toolDiv.setAttribute("role", "tooltip");
+                toolDiv.setAttribute("aria-hidden", "true");
+                toolDiv.innerHTML = tooltipText;
+                this.object.insertAdjacentElement("afterend", toolDiv);
+                new window.mdc.tooltip.MDCTooltip(document.querySelector('.mdc-tooltip'));
+            }
             this.Events();
         };
         return FloatingButton;
@@ -1538,7 +1563,6 @@ var MaterialDesign2;
             var dialog = new window.mdc.dialog.MDCDialog((document.querySelector('.mdc-dialog')));
             dialog.open();
             dialog.listen('MDCDialog:closing', function () {
-                console.log("closing...");
                 document.body.removeChild(document.querySelector('.Dialogs'));
             });
             this.Event(dialog);
@@ -1553,12 +1577,12 @@ var MaterialDesign2;
         Dialogs.prototype.Event = function (dialog) {
             if (this.onclick) {
                 if (!this.readonly) {
-                    var self_5 = this;
-                    console.log(self_5);
+                    var self_6 = this;
+                    console.log(self_6);
                     var btnOk = this.object.querySelector('#btnOkDialog');
                     btnOk.addEventListener('click', function (e) {
                         e.stopPropagation();
-                        self_5.onclick(self_5);
+                        self_6.onclick(self_6);
                         dialog.close();
                     });
                 }
@@ -1613,13 +1637,10 @@ var MaterialDesign2;
             //Show children
             var body = document.querySelector(".appbar-body");
             for (var i = 0; i < this.children.length; i++) {
-                if (this.children[i].classes.indexOf('navDrawer') != -1) {
-                    this.children[i].Show();
-                }
-                else {
-                    this.children[i].Show(body);
-                }
+                this.children[i].Show(body);
             }
+            if (this.drawer)
+                this.drawer.Show();
             var buttons = document.querySelector(".appbar-buttons");
             for (var _i = 0, _a = this.buttons; _i < _a.length; _i++) {
                 var button = _a[_i];
@@ -1654,10 +1675,36 @@ var MaterialDesign2;
         }
         ToolTips.prototype.Refresh = function () {
             this.Clear();
-            var html = "\n            <div class=\"mdc-tooltip-wrapper--rich\">\n            <button class=\"mdc-button\" data-tooltip-id=\"tt0\" aria-haspopup=\"dialog\" aria-expanded=\"false\">\n              <div class=\"mdc-button__ripple\"></div>\n              <span class=\"mdc-button__label\">Button</span>\n            </button>\n            <div id=\"tt0\" class=\"mdc-tooltip mdc-tooltip--rich\" aria-hidden=\"true\" role=\"dialog\">\n               <div class=\"mdc-tooltip__surface mdc-tooltip__surface-animation\">\n                  <h2 class=\"mdc-tooltip__title\"> Lorem Ipsum </h2>\n                  <p class=\"mdc-tooltip__content\">\n                    Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur\n                    pretium vitae est et dapibus. Aenean sit amet felis eu lorem fermentum\n                    aliquam sit amet sit amet eros.\n                    <a class=\"mdc-tooltip__content-link\" href=\"google.com\">link</a>\n                  </p>\n                  <div class=\"mdc-tooltip--rich-actions\">\n                     <button class=\"mdc-tooltip__action\" aria-label=\"action\">\n                        action\n                     </button>\n                  </div>\n               </div>\n            </div>\n          </div>\n            ";
+            var html = "\n            <div class=\"mdc-tooltip-wrapper--rich\">\n            <button class=\"mdc-button\" data-tooltip-id=\"".concat(this.tooltip, "1\" aria-haspopup=\"dialog\" aria-expanded=\"false\">\n              <div class=\"mdc-button__ripple\"></div>\n              <span class=\"mdc-button__label\">sangpi</span>\n            </button>\n            <div id=\"").concat(this.tooltip, "1\" class=\"mdc-tooltip mdc-tooltip--rich\" aria-hidden=\"true\" role=\"dialog\">\n               <div class=\"mdc-tooltip__surface mdc-tooltip__surface-animation\">\n                  <h2 class=\"mdc-tooltip__title\"> Lorem Ipsum </h2>\n                  <p class=\"mdc-tooltip__content\">\n                    Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur\n                    pretium vitae est et dapibus. Aenean sit amet felis eu lorem fermentum\n                    aliquam sit amet sit amet eros.\n                    <a class=\"mdc-tooltip__content-link\" href=\"google.com\">link</a>\n                  </p>\n                  <div class=\"mdc-tooltip--rich-actions\">\n                     <button class=\"mdc-tooltip__action\" aria-label=\"action\">\n                        action\n                     </button>\n                  </div>\n               </div>\n            </div>\n          </div>\n\n          <div class=\"mdc-tooltip-wrapper--rich\">\n          <button class=\"mdc-button\" data-tooltip-id=\"").concat(this.tooltip, "2\" aria-haspopup=\"dialog\" aria-expanded=\"false\">\n            <div class=\"mdc-button__ripple\"></div>\n            <span class=\"mdc-button__label\">sangpi</span>\n          </button>\n          <div id=\"").concat(this.tooltip, "2\" class=\"mdc-tooltip mdc-tooltip--rich\" aria-hidden=\"true\" role=\"dialog\">\n             <div class=\"mdc-tooltip__surface mdc-tooltip__surface-animation\">\n                <h2 class=\"mdc-tooltip__title\"> Lorem Ipsum </h2>\n                <p class=\"mdc-tooltip__content\">\n                  Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur\n                  pretium vitae est et dapibus. Aenean sit amet felis eu lorem fermentum\n                  aliquam sit amet sit amet eros.\n                  <a class=\"mdc-tooltip__content-link\" href=\"google.com\">link</a>\n                </p>\n                <div class=\"mdc-tooltip--rich-actions\">\n                   <button class=\"mdc-tooltip__action\" aria-label=\"action\">\n                      action\n                   </button>\n                </div>\n             </div>\n          </div>\n        </div>\n            ");
+            //         let html = `         
+            //         <button class="mdc-button" aria-describedby="tooltip-id">
+            //           <div class="mdc-button__ripple"></div>
+            //           <span class="mdc-button__label">sangpi</span>
+            //         </button>
+            //         <div id="tooltip-id" class="mdc-tooltip" role="tooltip" aria-hidden="true">
+            //   <div class="mdc-tooltip__surface mdc-tooltip__surface-animation">
+            //     sang's btn
+            //   </div>
+            // </div>`;
+            //        let html = `<button class="mdc-icon-button material-icons"
+            //        aria-label="${this.icon}"
+            //        data-tooltip-id="${this.icon}"
+            //        data-hide-tooltip-from-screenreader="true">
+            //  ${this.icon}
+            // </button>
+            // <div id="${this.icon}" class="mdc-tooltip" role="tooltip" aria-hidden="true">
+            //  <div class="mdc-tooltip__surface mdc-tooltip__surface-animation">
+            //    ${this.icon}
+            //  </div>
+            // </div>`;
             this.object.innerHTML = html;
             var tabBar = new window.mdc.tooltip.MDCTooltip(document.querySelector('.mdc-tooltip'));
+            // console.log(tabBar);
             console.log(tabBar);
+            tabBar.Initialize;
+            tabBar.handleClick = function () {
+                alert(1);
+            };
             this.RenderChildren();
             this.Events();
         };
@@ -1711,44 +1758,16 @@ var MaterialDesign2;
     var SnackBar = /** @class */ (function (_super) {
         __extends(SnackBar, _super);
         function SnackBar(param) {
-            return _super.call(this, param, "switch") || this;
+            return _super.call(this, param, "snackbar") || this;
         }
         SnackBar.prototype.Refresh = function () {
             this.Clear();
-            //     let html = `
-            //     <button id="basic-switch" class="mdc-switch mdc-switch--unselected" type="button" role="switch" aria-checked="false">
-            //     <div class="mdc-switch__track"></div>
-            //     <div class="mdc-switch__handle-track">
-            //       <div class="mdc-switch__handle">
-            //         <div class="mdc-switch__shadow">
-            //           <div class="mdc-elevation-overlay"></div>
-            //         </div>
-            //         <div class="mdc-switch__ripple"></div>
-            //         <div class="mdc-switch__icons">
-            //           <svg class="mdc-switch__icon mdc-switch__icon--on" viewBox="0 0 24 24">
-            //             <path d="M19.69,5.23L8.96,15.96l-4.23-4.23L2.96,13.5l6,6L21.46,7L19.69,5.23z" />
-            //           </svg>
-            //           <svg class="mdc-switch__icon mdc-switch__icon--off" viewBox="0 0 24 24">
-            //             <path d="M20 13H4v-2h16v2z" />
-            //           </svg>
-            //         </div>
-            //       </div>
-            //     </div>
-            //   </button>
-            //   <label for="basic-switch">Switching</label>
-            //     `;
-            var html = "\n        <aside class=\"mdc-snackbar\">\n        <div class=\"mdc-snackbar__surface\" role=\"status\" aria-relevant=\"additions\">\n          <div class=\"mdc-snackbar__label\" aria-atomic=\"false\">\n            Can't send photo. Retry in 5 seconds.\n          </div>\n          <div class=\"mdc-snackbar__actions\" aria-atomic=\"true\">\n            <button type=\"button\" class=\"mdc-button mdc-snackbar__action\">\n              <div class=\"mdc-button__ripple\"></div>\n              <span class=\"mdc-button__label\">Retry</span>\n            </button>\n          </div>\n        </div>\n      </aside>\n            ";
+            var html = "\n        <aside class=\"mdc-snackbar\">\n            <div class=\"mdc-snackbar__surface\" role=\"status\" aria-relevant=\"additions\">\n            <div class=\"mdc-snackbar__label\" aria-atomic=\"false\">\n                ".concat(this.text, "\n            </div>\n            <div class=\"mdc-snackbar__actions\" aria-atomic=\"true\">\n                <button type=\"button\" class=\"mdc-button mdc-snackbar__action\">\n                <div class=\"mdc-button__ripple\"></div>\n                <span class=\"mdc-button__label\">Retry</span>\n                </button>\n            </div>\n            </div>\n        </aside>\n        ");
             this.object.innerHTML = html;
-            // const tabBar = new window.mdc.tooltip.MDCTooltip(document.querySelector('.mdc-tooltip'));
-            // console.log(tabBar);
-            //let sangpi = document.querySelectorAll('.mdc-switch');
-            // for (const el in sangpi) {
-            //     const switchControl = new window.mdc.switchControl.MDCSwitch(el);
-            //   }
             var snackbar = new window.mdc.snackbar.MDCSnackbar(document.querySelector('.mdc-snackbar'));
             snackbar.open();
-            this.RenderChildren();
-            this.Events();
+            // this.RenderChildren();
+            // this.Events();
         };
         return SnackBar;
     }(FrameWork));
@@ -1826,7 +1845,7 @@ var MaterialDesign2;
         }
         Menu.prototype.Refresh = function () {
             this.Clear();
-            var html = "      \n        <div class=\"mdc-menu mdc-menu-surface\" id=\"demo-menu\">\n        <ul class=\"mdc-list\" role=\"menu\" aria-hidden=\"true\" aria-orientation=\"vertical\" tabindex=\"-1\">\n          <li>\n            <ul class=\"mdc-menu__selection-group\">\n              <li class=\"mdc-list-item\" role=\"menuitem\">\n                <span class=\"mdc-list-item__ripple\"></span>\n                <span class=\"mdc-list-item__graphic mdc-menu__selection-group-icon\">\n                  ...\n                </span>\n                <span class=\"mdc-list-item__text\">Single</span>\n              </li>\n              <li class=\"mdc-list-item\" role=\"menuitem\">\n                <span class=\"mdc-list-item__ripple\"></span>\n                <span class=\"mdc-list-item__graphic mdc-menu__selection-group-icon\">\n                 ...\n                </span>\n                <span class=\"mdc-list-item__text\">1.15</span>\n              </li>\n            </ul>\n          </li>\n          <li class=\"mdc-list-divider\" role=\"separator\"></li>\n          <li class=\"mdc-list-item\" role=\"menuitem\">\n            <span class=\"mdc-list-item__ripple\"></span>\n            <span class=\"mdc-list-item__text\">Add space before paragraph</span>\n          </li>\n          ...\n        </ul>\n      </div>    \n            ";
+            var html = "      \n            <div class=\"mdc-menu mdc-menu-surface\">\n            <ul class=\"mdc-list\" role=\"menu\" aria-hidden=\"true\" aria-orientation=\"vertical\" tabindex=\"-1\">\n                <li class=\"mdc-list-item\" role=\"menuitem\">\n                <span class=\"mdc-list-item__ripple\"></span>\n                <span class=\"mdc-list-item__text\">A Menu Item</span>\n                </li>\n                <li class=\"mdc-list-item\" role=\"menuitem\">\n                <span class=\"mdc-list-item__ripple\"></span>\n                <span class=\"mdc-list-item__text\">Another Menu Item</span>\n                </li>\n            </ul>\n            </div>\n            ";
             this.object.innerHTML = html;
             var menu = new window.mdc.menu.MDCMenu(document.querySelector('.mdc-menu'));
             menu.open = true;
@@ -1859,7 +1878,7 @@ var MaterialDesign2;
         }
         Chips.prototype.Refresh = function () {
             this.Clear();
-            var html = "  \n        <span class=\"mdc-evolution-chip-set\" role=\"grid\">\n        <span class=\"mdc-evolution-chip-set__chips\" role=\"presentation\">\n          <span class=\"mdc-evolution-chip\" role=\"row\" id=\"c0\">\n            <span class=\"mdc-evolution-chip__cell mdc-evolution-chip__cell--primary\" role=\"gridcell\">\n              <button class=\"mdc-evolution-chip__action mdc-evolution-chip__action--primary\" type=\"button\" tabindex=\"0\">\n                <span class=\"mdc-evolution-chip__ripple mdc-evolution-chip__ripple--primary\"></span>\n                <span class=\"mdc-evolution-chip__text-label\">Chip one</span>\n              </button>\n            </span>\n          </span>\n          <span class=\"mdc-evolution-chip\" role=\"row\" id=\"c1\">\n            <span class=\"mdc-evolution-chip__cell mdc-evolution-chip__cell--primary\" role=\"gridcell\">\n              <button class=\"mdc-evolution-chip__action mdc-evolution-chip__action--primary\" type=\"button\" tabindex=\"-1\">\n                <span class=\"mdc-evolution-chip__ripple mdc-evolution-chip__ripple--primary\"></span>\n                <span class=\"mdc-evolution-chip__text-label\">Chip two</span>\n              </button>\n            </span>\n          </span>\n        </span>\n      </span>\n            ";
+            var html = "  \n            <span class=\"mdc-evolution-chip-set\" role=\"grid\">\n            <span class=\"mdc-evolution-chip-set__chips\" role=\"presentation\">\n            <span class=\"mdc-evolution-chip\" role=\"row\" id=\"c0\">\n                <span class=\"mdc-evolution-chip__cell mdc-evolution-chip__cell--primary\" role=\"gridcell\">\n                <button class=\"mdc-evolution-chip__action mdc-evolution-chip__action--primary\" type=\"button\" tabindex=\"0\">\n                    <span class=\"mdc-evolution-chip__ripple mdc-evolution-chip__ripple--primary\"></span>\n                    <span class=\"mdc-evolution-chip__text-label\">Chip one</span>\n                </button>\n                </span>\n            </span>\n            <span class=\"mdc-evolution-chip\" role=\"row\" id=\"c1\">\n                <span class=\"mdc-evolution-chip__cell mdc-evolution-chip__cell--primary\" role=\"gridcell\">\n                <button class=\"mdc-evolution-chip__action mdc-evolution-chip__action--primary\" type=\"button\" tabindex=\"-1\">\n                    <span class=\"mdc-evolution-chip__ripple mdc-evolution-chip__ripple--primary\"></span>\n                    <span class=\"mdc-evolution-chip__text-label\">Chip two</span>\n                </button>\n                </span>\n            </span>\n            </span>\n        </span>\n            ";
             this.object.innerHTML = html;
             var chip = new window.mdc.chips.MDCChipSet(document.querySelector('.mdc-evolution-chip-set'));
             this.RenderChildren();
@@ -1868,5 +1887,22 @@ var MaterialDesign2;
         return Chips;
     }(FrameWork));
     MaterialDesign2.Chips = Chips;
+    var Banner = /** @class */ (function (_super) {
+        __extends(Banner, _super);
+        function Banner(param) {
+            return _super.call(this, param, "banner") || this;
+        }
+        Banner.prototype.Refresh = function () {
+            this.Clear();
+            var html = "<div class=\"mdc-banner mdc-banner--centered\" role=\"banner\">\n            <div class=\"mdc-banner__fixed\">\n              <div class=\"mdc-banner__content\"\n                   role=\"alertdialog\"\n                   aria-live=\"assertive\">\n                <div class=\"mdc-banner__graphic-text-wrapper\">\n                  <div class=\"mdc-banner__text\">\n                    ".concat(this.text, "\n                  </div>\n                </div>\n                <div class=\"mdc-banner__actions\">\n                  <button type=\"button\" class=\"mdc-button mdc-banner__primary-action\">\n                    <div class=\"mdc-button__ripple\"></div>\n                    <div class=\"mdc-button__label\">Close</div>\n                  </button>\n                </div>\n              </div>\n            </div>\n          </div>");
+            this.object.innerHTML = html;
+            var banner = new window.mdc.banner.MDCBanner(document.querySelector('.mdc-banner'));
+            banner.open();
+            this.RenderChildren();
+            this.Events();
+        };
+        return Banner;
+    }(FrameWork));
+    MaterialDesign2.Banner = Banner;
 })(MaterialDesign2 || (MaterialDesign2 = {}));
 //# sourceMappingURL=framework.js.map

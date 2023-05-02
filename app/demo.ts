@@ -2,34 +2,92 @@ class Demo {
     Show(): void {
         //this.Show3D();
 
-        //this.Tree();
+        this.Tree();
         //this.Menu();
         //this.Input();
-        this.MaterialDesign2();
+        //this.MaterialDesign2();
     }
 
     Show3D(): void {
-        let app = new MaterialDesign2.AppBar({ text: "XWind" });
-        let canvas: Canvas3D;
+        // let app = new MaterialDesign2.AppBar({ text: "XWind" });
+        // let canvas: Canvas3D;
 
-        let select = new MaterialDesign2.Button({ icon: "ads_click" });
-        select.type = MaterialDesign2.ButtonType.APPBAR;
-        select.onclick = ()=> {
-            alert(1);
-        };
+        // let select = new MaterialDesign2.Button({ icon: "ads_click"});
+        // select.type = MaterialDesign2.ButtonType.APPBAR;
+        // select.tooltip = "OK";
+        // select.onclick = ()=> {
+        //     let dia = new MaterialDesign2.Dialogs({text:"are you sure to process?"});
+        //     dia.title = "Confirmation";
+        //     dia.showCancel = false;
+        //     dia.labelOk = "Process";
+        //     dia.onclick = function(){
+        //         console.log("okk");
+        //     };
+        //     dia.Show();
+        // };
+        // let drawer = new MaterialDesign2.NavDrawer();
+        // drawer.headerEmail = 'bsangpi@ait.asia';
+        // drawer.headerName = 'Biak Nei sang';
+        // drawer.headerImage = 'https://th.bing.com/th/id/OIP.AA5M9TpxmIwgFwQKmdZ2jQHaLH?pid=ImgDet&rs=1';
+        // let btnTest = new MaterialDesign2.Anchor({text: "Index", icon: "search"});  
+        // btnTest.link = "https://sbcode.net/threejs/loaders-fbx/";
+        // //btnTest.link = "https://www.w3schools.com/";
+        // let btnHome = new MaterialDesign2.Anchor({text:"Home", icon:"home"});
+        // drawer.Add(btnTest);
+        // drawer.Add(btnHome);
+        // app.drawer = drawer;
 
-        app.buttons.push(select);
+        // app.buttons.push(select);
 
-        let draw = new MaterialDesign2.Button({ icon: "draw" });
-        draw.type = MaterialDesign2.ButtonType.APPBAR;
-        draw.onclick = ()=> {
-            alert(1);
-        };
+        // let draw = new MaterialDesign2.Button({ icon: "draw"});
+        // draw.type = MaterialDesign2.ButtonType.APPBAR;
+        // draw.tooltip = "lian";
+        // draw.onclick = ()=> {
+        //     alert(1);
+        // };
 
-        app.buttons.push(draw);
+        // app.buttons.push(draw);
 
-        canvas = app.Add(new Canvas3D()) as Canvas3D;
-        app.Show();
+        
+        // let drawONE = new MaterialDesign2.Button({ icon: "draw"});
+        // drawONE.type = MaterialDesign2.ButtonType.APPBAR;
+        // drawONE.tooltip = "lian";
+        // drawONE.onclick = ()=> {
+        //     alert(1);
+        // };
+
+        // app.buttons.push(drawONE);
+        
+        // // let test = new MaterialDesign2.Button({ icon: "draw" });
+        // // test.type = MaterialDesign2.ButtonType.OUTLINED;
+        // // test.tooltip = "draw";
+        // // app.Add(test);
+        // let test = new MaterialDesign2.ToolTips({icon:"favorite"});
+        // test.tooltip = "sn";
+        // let con1 = new FrameWork.Container();
+        // con1.Add(test);
+        // app.Add(con1);
+
+        // // let test2 = new MaterialDesign2.ToolTips({icon: "search"});
+        // // test2.tooltip = "sn2";
+        // // let con2 = new FrameWork.Container();
+        // // con2.Add(test2);
+        // // app.Add(con2);
+
+        // //canvas = app.Add(new Canvas3D()) as Canvas3D;
+        // app.Show();
+    
+        let splitter = new FrameWork.SplitContainer();
+        splitter.size = [300];
+     
+
+        //Inner splitter
+        let leftsplit = new FrameWork.SplitContainer();
+        leftsplit.orientation = ORIENTATION.VERTICAL;
+        leftsplit.Add(new MaterialDesign2.Button({text:"Click Me"}));
+        splitter.Add(leftsplit);
+        splitter.Show();
+
     }
 
     Tree(): void {
@@ -78,43 +136,65 @@ class Demo {
         let app = new MaterialDesign2.AppBar({ text: "XWind" });
         let canvas: Canvas3D;
 
-        let select = new MaterialDesign2.Button({ icon: "ads_click" });
-        select.type = MaterialDesign2.ButtonType.APPBAR;
-        select.onclick = ()=> {
-            alert(1);
-        };
+        // let select = new MaterialDesign2.Button({ icon: "ads_click" });
+        // select.type = MaterialDesign2.ButtonType.APPBAR;
+        // select.onclick = ()=> {
+        //     alert(1);
+        // };
 
-        app.buttons.push(select);
+        // app.buttons.push(select);
 
-        let draw = new MaterialDesign2.Button({ icon: "draw" });
-        draw.type = MaterialDesign2.ButtonType.APPBAR;
-        let dia = new MaterialDesign2.Dialogs({text: "Are you sure to process it?"});
-        dia.title = "confirmation";
-        dia.showCancel = true;
-        dia.onclick = function(e) {
-            console.log("AIT Solutions...");            
-        }
-        draw.onclick = ()=> {
-          
-            dia.Show();
-        };
+        // let draw = new MaterialDesign2.Button({ icon: "draw" });
+        // draw.type = MaterialDesign2.ButtonType.APPBAR;
+        // let dia = new MaterialDesign2.Dialogs({text: "Are you sure to process it?"});
+        // dia.title = "confirmation";
+        // dia.showCancel = true;
+        // dia.onclick = function(e) {
+        //     console.log("AIT Solutions...");            
+        // }
+        // draw.onclick = ()=> {          
+        //     dia.Show();
+        // };
 
-        app.buttons.push(draw);
+        // app.buttons.push(draw);
 
-        canvas = app.Add(new Canvas3D()) as Canvas3D;
-        let drawer = new MaterialDesign2.NavDrawer();
-        drawer.headerEmail = 'bsangpi@ait.asia';
-        drawer.headerName = 'Biak Nei sang';
-        drawer.headerImage = 'https://th.bing.com/th/id/OIP.AA5M9TpxmIwgFwQKmdZ2jQHaLH?pid=ImgDet&rs=1';
-        let btnTest = new MaterialDesign2.Anchor({text: "Index", icon: "search"});  
-        btnTest.link = "https://sbcode.net/threejs/loaders-fbx/";
-        //btnTest.link = "https://www.w3schools.com/";
-        let btnHome = new MaterialDesign2.Anchor({text:"Home", icon:"home"});
-        drawer.Add(btnTest);
-        drawer.Add(btnHome);
-        app.Add(drawer);
-        app.Show();
+        // canvas = app.Add(new Canvas3D()) as Canvas3D;
+        // let drawer = new MaterialDesign2.NavDrawer();
+        // drawer.headerEmail = 'bsangpi@ait.asia';
+        // drawer.headerName = 'Biak Nei sang';
+        // drawer.headerImage = 'https://th.bing.com/th/id/OIP.AA5M9TpxmIwgFwQKmdZ2jQHaLH?pid=ImgDet&rs=1';
+        // let btnTest = new MaterialDesign2.Anchor({text: "Index", icon: "search"});  
+        // btnTest.link = "https://sbcode.net/threejs/loaders-fbx/";
+        // //btnTest.link = "https://www.w3schools.com/";
+        // let btnHome = new MaterialDesign2.Anchor({text:"Home", icon:"home"});
+        // drawer.Add(btnTest);
+        // drawer.Add(btnHome);
+        // //app.Add(drawer);
+        // let btn = new MaterialDesign2.Button({icon: "search"});
+        // btn.type = MaterialDesign2.ButtonType.OUTLINED;
+        // btn.tooltip = "look";
+        // btn.Show();
+        // app.buttons.push(btn);
+        // app.Show();
+
+        // let tooltip = new MaterialDesign2.ToolTips({});
+        // tooltip.Show();
+
+     
+        // let menu = new MaterialDesign2.SnackBar({text:"we are not the same."})
+        // menu.Show();
         
+
+        // let chip = new MaterialDesign2.Chips();
+        // chip.Show();
+
+        // let tooltip = new MaterialDesign2.ToolTips();
+        // tooltip.Show();
+
+        let test = new MaterialDesign2.Button({ icon: "draw" });
+        test.type = MaterialDesign2.ButtonType.OUTLINED;
+        test.tooltip = "draw";
+        test.Show();
     }
     
 }

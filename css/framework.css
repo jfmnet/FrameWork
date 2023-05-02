@@ -412,7 +412,7 @@ input {
     position: absolute;
     display: block;
     padding:8px;
-    background-color: pink;
+    background-color: #4979F4;
     top:0.7px;
     right: 0.7px;
     border-radius: 50px;
@@ -421,7 +421,7 @@ input {
  }
 
  .drawer-header-close:hover{
-    background-color: #DC143C;
+    background-color: #0d44db;
     transform: rotate(180deg);
  }
 
