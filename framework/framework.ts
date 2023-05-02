@@ -68,6 +68,18 @@ enum ORIENTATION {
     VERTICAL = 1
 }
 
+enum ALIGNHORIZONTAL {
+    LEFT = 0,
+    CENTER = 1,
+    RIGHT = 2
+}
+
+enum ALIGNVERTICAL {
+    TOP = 0,
+    MIDDLE = 1,
+    BOTTOM = 2
+}
+
 class FrameWork {
     //Default element tag
     element: string = "div";
@@ -274,7 +286,7 @@ class FrameWork {
 
         //Show if parents is already displayed
         if (this.object)
-            object.Show(this.object);
+             object.Show(this.object);
 
         //Return the object
         return object;
@@ -491,6 +503,39 @@ class FrameWork {
 
 namespace FrameWork {
     //Containers
+    export class AppBar extends FrameWork {
+        constructor(param?: Parameter) {
+            super(param, "app-bar");
+        }
+
+        Refresh(): void {
+            this.Clear();
+
+            let header = document.createElement("div");
+            header.classList.add("header");
+            this.object.append(header);
+
+            let icon = this.DisplayIcon(this.icon);
+            header.appendChild(icon);
+
+            let text = document.createElement("div");
+            text.classList.add("text");
+            text.innerHTML = this.text.toString();
+            header.append(text);
+
+            let toolbar = document.createElement("div");
+            toolbar.classList.add("toolbar");
+            this.object.append(toolbar);
+
+            //Show children
+            for (let i = 0; i < this.children.length; i++) {
+                this.children[i].Show(toolbar);
+            }
+
+            //Initialize events
+            this.Events();
+        }
+    }
 
     export class Container extends FrameWork {
         constructor(param?: Parameter) {

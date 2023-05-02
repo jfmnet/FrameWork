@@ -2,6 +2,11 @@ interface Window {
     CameraControls: any;
 }
 
+enum CanvasDraw {
+    Line = 1,
+    Triangle = 2
+}
+
 class MeshTriangle {
     point1: THREE.Vector3;
     point2: THREE.Vector3;
@@ -11,6 +16,7 @@ class MeshTriangle {
 class Canvas3DSettings {
     backcolor: number = 0x000000;
     allowdraw: boolean;
+    allowvr: boolean;
 }
 
 class Canvas3D extends FrameWork {
@@ -23,6 +29,7 @@ class Canvas3D extends FrameWork {
     clock: THREE.Clock = new THREE.Clock();
     pointeraxis: THREE.Object3D;
     guideaxis: THREE.Object3D;
+    draw: CanvasDraw = CanvasDraw.Line;
     drawinggrid: THREE.Object3D;
     drawingguide: THREE.Object3D;
     drawingactive: THREE.Object3D;
@@ -33,6 +40,7 @@ class Canvas3D extends FrameWork {
     settings: Canvas3DSettings = new Canvas3DSettings();
     aspect: number = 1;
     ctrlKey: boolean = false;
+    onselect: Function;
 
     mousedown: THREE.Vector2 = new THREE.Vector2();
     mousemove: THREE.Vector2 = new THREE.Vector2();
@@ -40,6 +48,7 @@ class Canvas3D extends FrameWork {
     mousecurrent: THREE.Vector3 = new THREE.Vector3();
     currentz: number = 0;
 
+    highlight: THREE.Object3D;
     selectedobject: THREE.Mesh;
     selectedobjects: THREE.Mesh[] = [];
     selectedmaterial: THREE.Material;
@@ -54,7 +63,211 @@ class Canvas3D extends FrameWork {
 
         this.classes.push("canvas-3D");
         window.CameraControls.install({ THREE: THREE });
-        this.LoadFont();
+        this.LoadFont(() => {
+            // this.ShowGridXY(0, 0, 0);
+            // this.Resize();
+            // this.ShowPointerAxis(0, 0, 0);
+            // this.ZoomAll();
+
+            //Triangle
+            let triangles: MeshTriangle[] = [];
+
+            let triangle = new MeshTriangle();
+            triangle.point1 = new THREE.Vector3(-1, -1, 0);
+            triangle.point2 = new THREE.Vector3(-1, 1, 0);
+            triangle.point3 = new THREE.Vector3(1, 1, 0);
+            triangles.push(triangle);
+
+            triangle = new MeshTriangle();
+            triangle.point1 = new THREE.Vector3(-1, -1, 0);
+            triangle.point2 = new THREE.Vector3(1, 1, 0);
+            triangle.point3 = new THREE.Vector3(1, -1, 0);
+            triangles.push(triangle);
+
+
+            let drawing = this.GenerateTriangles(triangles);
+
+            const iterations = 4;
+
+            const params = {
+                split: false,       // optional, default: true
+                uvSmooth: true,      // optional, default: false
+                preserveEdges: true,      // optional, default: false
+                flatOnly: true,      // optional, default: false
+                maxTriangles: Infinity,   // optional, default: Infinity
+            };
+
+            const geometry = LoopSubdivision.modify(drawing.geometry, iterations, params);
+
+
+            const positions = geometry.getAttribute('position').array;
+            const numVertices = positions.length / 3;
+            const numTriangles = numVertices / 3;
+            const vertices = [];
+            const vertexIndices = new Map();
+            const indices = [];
+
+            for (let i = 0; i < numTriangles; i++) {
+                const indexOffset = i * 3;
+                const vertexIndicesOffset = i * 3;
+
+                const v1Index = indexOffset;
+                const v2Index = indexOffset + 1;
+                const v3Index = indexOffset + 2;
+
+                const v1 = [positions[v1Index * 3], positions[v1Index * 3 + 1], positions[v1Index * 3 + 2]];
+                const v2 = [positions[v2Index * 3], positions[v2Index * 3 + 1], positions[v2Index * 3 + 2]];
+                const v3 = [positions[v3Index * 3], positions[v3Index * 3 + 1], positions[v3Index * 3 + 2]];
+
+                // add unique vertices to the vertices array and store their indices in the vertexIndices map
+                const v1Key = v1.join(',');
+                if (!vertexIndices.has(v1Key)) {
+                    vertices.push(v1);
+                    vertexIndices.set(v1Key, vertices.length - 1);
+                }
+
+                const v2Key = v2.join(',');
+                if (!vertexIndices.has(v2Key)) {
+                    vertices.push(v2);
+                    vertexIndices.set(v2Key, vertices.length - 1);
+                }
+
+                const v3Key = v3.join(',');
+                if (!vertexIndices.has(v3Key)) {
+                    vertices.push(v3);
+                    vertexIndices.set(v3Key, vertices.length - 1);
+                }
+
+                // add the triangle's vertex indices to the vertexIndices array
+                const triangleIndices = [
+                    vertexIndices.get(v1Key),
+                    vertexIndices.get(v2Key),
+                    vertexIndices.get(v3Key)
+                ];
+
+                indices.push(triangleIndices);
+            }
+
+
+            const quadIndices = [];
+            const newVertices = [];
+
+            let done = {};
+
+            for (let i = 0; i < indices.length; i++) {
+                if (done[i])
+                    continue;
+
+                for (let j = 0; j < indices.length; j++) {
+                    if (j === i) {
+                        continue; // Skip the current triangle
+                    }
+
+                    if (done[j])
+                        continue;
+
+                    let count = 0;
+                    let ids = [];
+                    let unique = [];
+
+                    for (let k = 0; k < 3; k++) {
+                        for (let l = 0; l < 3; l++) {
+                            if (indices[i][k] === indices[j][l]) {
+                                ids.push(indices[i][k]);
+                                count++;
+                            }
+                        }
+                    }
+
+                    for (let k = 0; k < 3; k++) {
+                        if (ids.indexOf(indices[i][k]) === -1) {
+                            unique.push(indices[i][k]);
+                        }
+                    }
+
+                    for (let k = 0; k < 3; k++) {
+                        if (ids.indexOf(indices[j][k]) === -1) {
+                            unique.push(indices[j][k]);
+                        }
+                    }
+
+                    if (count === 2) {
+                        let v1 = vertices[indices[i][0]];
+                        let v2 = vertices[indices[i][1]];
+                        let v3 = vertices[indices[i][2]];
+
+                        let p1 = new THREE.Vector3(v1[0], v1[1], v1[2]);
+                        let p2 = new THREE.Vector3(v2[0], v2[1], v2[2]);
+                        let p3 = new THREE.Vector3(v3[0], v3[1], v3[2]);
+
+                        let maxl = Math.max(p1.clone().sub(p2).length(), p1.clone().sub(p3).length(), p3.clone().sub(p2).length());
+
+                        let v4 = vertices[ids[0]];
+                        let v5 = vertices[ids[1]];
+                        let p4 = new THREE.Vector3(v4[0], v4[1], v4[2]);
+                        let p5 = new THREE.Vector3(v5[0], v5[1], v5[2]);
+
+                        let vl = p4.clone().sub(p5).length();
+
+                        if (maxl === vl) {
+                            quadIndices.push(unique[0], ids[0], unique[1], ids[1]);
+
+                            done[i] = 1;
+
+                            if (!done[j])
+                                done[j] = 1;
+
+                            break;
+                        }
+                    }
+                }
+            }
+
+            let material = new THREE.MeshPhongMaterial({
+                color: 0xccffcc,
+                side: THREE.DoubleSide,
+                shininess: 100,
+                transparent: true,
+                opacity: 0.5
+            });
+
+            // let mesh = new THREE.Mesh(geometry, material);
+            // this.AddObject(mesh);
+
+            // material = new THREE.MeshPhongMaterial({
+            //     color: 0xffffff,
+            //     wireframe: true
+            // });
+
+            // mesh = new THREE.Mesh(geometry, material);
+            // this.AddObject(mesh);
+
+            let points: THREE.Vector3[] = [];
+
+            for (let i = 0; i < quadIndices.length; i += 4) {
+                let point1 = vertices[quadIndices[i]];
+                let point2 = vertices[quadIndices[i + 1]];
+                let point3 = vertices[quadIndices[i + 2]];
+                let point4 = vertices[quadIndices[i + 3]];
+
+                points.push(new THREE.Vector3(point1[0], point1[1], point1[2]));
+                points.push(new THREE.Vector3(point2[0], point2[1], point2[2]));
+
+                points.push(new THREE.Vector3(point2[0], point2[1], point2[2]));
+                points.push(new THREE.Vector3(point3[0], point3[1], point3[2]));
+
+                points.push(new THREE.Vector3(point3[0], point3[1], point3[2]));
+                points.push(new THREE.Vector3(point4[0], point4[1], point4[2]));
+
+                points.push(new THREE.Vector3(point1[0], point1[1], point1[2]));
+                points.push(new THREE.Vector3(point4[0], point4[1], point4[2]));
+            }
+
+            let lines = this.GenerateLines(points, "#FFF");
+            this.AddObject(lines);
+
+            this.ZoomAll();
+        });
     }
 
     Refresh(): void {
@@ -63,8 +276,8 @@ class Canvas3D extends FrameWork {
 
         this.scene = new THREE.Scene();
         this.raycaster = new THREE.Raycaster();
-        this.raycaster.params.Line.threshold = 0.05;
-        this.raycaster.params.Mesh.threshold = 0.05;
+        this.raycaster.params.Line.threshold = 0.1;
+        this.raycaster.params.Mesh.threshold = 0.1;
 
         this.InitializePerspectiveCamera();
         this.InitializeRenderer();
@@ -85,26 +298,13 @@ class Canvas3D extends FrameWork {
         if (this.settings.allowdraw) {
             document.body.addEventListener("keydown", (event) => {
                 let element = event.target as HTMLElement;
-    
+
                 if (element.localName !== "input") {
                     self.ctrlKey = event.ctrlKey;
                     self.controls.enabled = false;
-    
+
                     if (event.key === "Escape") {
                         self.drawingactive = undefined;
-    
-                        // //Add current drawing
-                        // if (self.points.length > 1) {
-                        //     if (self.drawingactive) {
-                        //         self.Remove(this.drawingactive);
-                        //         self.drawingactive = undefined;
-                        //     }
-    
-                        //     let drawing = this.GeneratePolyLines(this.points);
-                        //     self.AddObject(drawing);
-                        //     self.Render();
-                        // }
-    
                         self.points = [];
                     }
                     else {
@@ -117,7 +317,7 @@ class Canvas3D extends FrameWork {
                     }
                 }
             });
-    
+
             document.body.addEventListener("keyup", (event) => {
                 self.ctrlKey = false;
                 self.controls.enabled = true;
@@ -137,14 +337,24 @@ class Canvas3D extends FrameWork {
 
         input.Show(this.object);
 
-        //this.ShowGridXY(0, 0, 0);
-        this.Resize();
-        //this.ShowPointerAxis(0, 0, 0);
-        this.ZoomAll();
+        //VR
+        if (this.settings.allowvr)
+            this.object.appendChild(VRButton.createButton(this.renderer, this.scene, this.camera, function (status: String) {
+                if (status === "enter") {
+                    self.object.style.position = "fixed";
+                    self.object.style.width = "100%";
+                } else {
+                    self.object.style.position = "absolute";
+                    self.object.style.width = "100%";
+                }
+
+                self.Resize();
+                self.ZoomAll();
+            }));
+
 
         (function anim() {
             const delta = self.clock.getDelta();
-            const elapsed = self.clock.getElapsedTime();
             const updated = self.controls.update(delta);
 
             requestAnimationFrame(anim);
@@ -160,7 +370,11 @@ class Canvas3D extends FrameWork {
         this.camera.position.x = -20;
         this.camera.position.y = -20;
         this.camera.position.z = 20;
-        this.camera.up.set(0, 0, 1);
+
+        if (this.settings.allowvr)
+            this.camera.up.set(0, 1, 0);
+        else
+            this.camera.up.set(0, 0, 1);
     };
 
     InitializeOthographicCamera(): void {
@@ -169,7 +383,11 @@ class Canvas3D extends FrameWork {
         this.camera.position.x = -20;
         this.camera.position.y = -20;
         this.camera.position.z = 2;
-        this.camera.up.set(0, 0, 1);
+
+        if (this.settings.allowvr)
+            this.camera.up.set(0, 1, 0);
+        else
+            this.camera.up.set(0, 0, 1);
 
         let width = this.object.clientWidth / 2;
         let height = width / this.aspect;
@@ -307,6 +525,9 @@ class Canvas3D extends FrameWork {
         if (this.settings.allowdraw) {
             if (Math.abs(this.mousedown.x - this.mousemove.x) < 5 && Math.abs(this.mousedown.y - this.mousemove.y) < 5)
                 this.UpdateDrawingGuide();
+        } else {
+            if (Math.abs(this.mousedown.x - this.mousemove.x) < 5 && Math.abs(this.mousedown.y - this.mousemove.y) < 5)
+                this.Select(this.mouseup.x, this.mouseup.y, this.onselect);
         }
     }
 
@@ -432,105 +653,6 @@ class Canvas3D extends FrameWork {
         this.Render();
     }
 
-    ParseInput(input: string): void {
-        let point: THREE.Vector3;
-
-        if (input.toLowerCase().indexOf("zo") !== -1 && input.toLowerCase().indexOf("=") !== -1) {
-            //Move grid to z
-            input = input.replace("  ", " ");
-            input = input.replace("  ", " ");
-            input = input.replace("  ", " ");
-            input = input.replace("zo=", "");
-
-            let value = parseFloat(input);
-            this.ShowGridXY(0, 0, value);
-            return;
-
-        } else if (input.toLowerCase().indexOf("z") !== -1 && input.toLowerCase().indexOf("=") !== -1) {
-            //Draw a line from snapline z1 to z
-            let position = this.snapline.geometry.attributes["position"].array;
-            let point1 = new THREE.Vector3(position[0], position[1], position[2]);
-            let point2 = new THREE.Vector3(position[3], position[4], position[5]);
-            let normal = point1.clone().sub(point2).normalize();
-
-            //Move grid to z
-            input = input.replace("  ", " ");
-            input = input.replace("  ", " ");
-            input = input.replace("  ", " ");
-            input = input.replace("z=", "");
-
-            let value = parseFloat(input);
-            let l = value / normal.z;
-            let x = point1.x + normal.x * l;
-            let y = point1.y + normal.y * l;
-            let z = point1.z + normal.z * l;
-
-            this.points.push(new THREE.Vector3(x, y, z));
-
-        } else if (input.indexOf(",") !== -1) {
-            //Format: x, y, z
-            let numbers = input.split(",");
-
-            if (numbers.length === 2)
-                this.points.push(new THREE.Vector3(parseFloat(numbers[0]), parseFloat(numbers[1]), 0));
-
-            else if (numbers.length > 2)
-                this.points.push(new THREE.Vector3(parseFloat(numbers[0]), parseFloat(numbers[1]), parseFloat(numbers[2])));
-
-        } else if (input.indexOf(" ") !== -1) {
-            //Format: x y z
-            input = input.replace("  ", " ");
-            input = input.replace("  ", " ");
-            input = input.replace("  ", " ");
-
-            let numbers = input.split(" ");
-            point = this.points[this.points.length - 1];
-
-            if (numbers.length === 2)
-                this.points.push(new THREE.Vector3(point.x + parseFloat(numbers[0]), point.y + parseFloat(numbers[1]), 0));
-
-            else if (numbers.length > 2)
-                this.points.push(new THREE.Vector3(point.x + parseFloat(numbers[0]), point.y + parseFloat(numbers[1]), point.z + parseFloat(numbers[2])));
-
-        } else {
-            //Format: number
-            let value = parseFloat(input);
-
-            if (this.drawingpoint) {
-                if (this.snapline) {
-                    let position = this.snapline.geometry.attributes["position"].array;
-                    let point1 = new THREE.Vector3(position[0], position[1], position[2]);
-                    let point2 = new THREE.Vector3(position[3], position[4], position[5]);
-                    let normal = point2.clone().sub(point1).normalize();
-                    this.points.push(new THREE.Vector3(point1.x + normal.x * value, point1.y + normal.y * value, point1.z + normal.z * value));
-
-                } else {
-                    point = this.points[this.points.length - 1];
-
-                    if (point) {
-                        let normal = this.drawingpoint.sub(point).normalize();
-                        this.points.push(new THREE.Vector3(point.x + normal.x * value, point.y + normal.y * value, point.z + normal.z * value));
-
-                    }
-                }
-
-            } else if (!Number.isNaN(value)) {
-                this.points.push(new THREE.Vector3(value, 0, 0));
-
-            } else {
-                return;
-            }
-        }
-
-        point = this.points[this.points.length - 1];
-        this.ShowGuideAxis(point.x, point.y, point.z);
-
-        this.ShowActiveDrawing();
-
-        if (this.points.length === 1)
-            this.ZoomAll();
-    }
-
     ShowActiveDrawing(): void {
         if (this.points.length > 1) {
             if (this.drawingactive) {
@@ -552,13 +674,20 @@ class Canvas3D extends FrameWork {
 
         let points: THREE.Vector3[] = [];
         let size = 10;
+        let textsize = size / 50;
+
+        let textmaterial = new THREE.LineBasicMaterial({
+            color: 0x888888
+        });
 
         for (let i = -size; i <= size; i++) {
             //Along X
+            this.AddObject(this.GenerateText(i.toString(), x + i, y - size - textsize, z, textsize, ALIGNHORIZONTAL.CENTER, ALIGNVERTICAL.TOP, new THREE.Vector3(), textmaterial));
             points.push(new THREE.Vector3(x + i, y - size, z));
             points.push(new THREE.Vector3(x + i, y + size, z));
 
             //Along Y
+            this.AddObject(this.GenerateText(i.toString(), x - size - textsize, y + i, z, textsize, ALIGNHORIZONTAL.RIGHT, ALIGNVERTICAL.MIDDLE, new THREE.Vector3(), textmaterial));
             points.push(new THREE.Vector3(x - size, y + i, z));
             points.push(new THREE.Vector3(x + size, y + i, z));
         }
@@ -646,6 +775,15 @@ class Canvas3D extends FrameWork {
 
         let size = 10;
 
+        points.push(new THREE.Vector3(x - size, y, z));
+        points.push(new THREE.Vector3(x + size, y, z));
+
+        points.push(new THREE.Vector3(x, y - size, z));
+        points.push(new THREE.Vector3(x, y + size, z));
+
+        points.push(new THREE.Vector3(x, y, z - size));
+        points.push(new THREE.Vector3(x, y, z + size));
+
         if (this.guideaxis) {
             this.Remove(this.guideaxis);
             this.guideaxis = undefined;
@@ -729,14 +867,19 @@ class Canvas3D extends FrameWork {
                         this.controls.setOrbitPoint(point.x, point.y, point.z);
                         this.controls.update(this.clock.getDelta());
                         break;
-                }
+                    }
                 }
             }
         }
     }
 
     UpdateDrawingGuide(): void {
-        if (this.points.length && this.drawingpoint) {
+        if (this.draw === CanvasDraw.Triangle && this.points.length === 3) {
+            this.points.push(this.points[0]);
+            this.AddTriangle();
+            this.Render();
+
+        } else if (this.points.length && this.drawingpoint) {
             this.points.push(this.drawingpoint);
             this.ShowGuideAxis(this.drawingpoint.x, this.drawingpoint.y, this.drawingpoint.z);
             this.ShowActiveDrawing();
@@ -750,20 +893,25 @@ class Canvas3D extends FrameWork {
     }
 
     GenerateLines(points: THREE.Vector3[], color: string, opacity: number = 1): THREE.Object3D {
-        let object = new THREE.Object3D();
+        let vertices = [];
 
-        for (let i = 0; i < points.length; i += 2) {
-            let geometry = new THREE.BufferGeometry();
-            let vertices = [];
-
-            vertices.push(points[i].x, points[i].y, points[i].z, points[i + 1].x, points[i + 1].y, points[i + 1].z);
-
-            geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
-
-            let material = new THREE.LineBasicMaterial({ color: color, opacity: opacity, transparent: opacity === 1 ? false : true });
-            let lines = new THREE.LineSegments(geometry, material);
-            object.add(lines);
+        if (this.settings.allowvr) {
+            for (let i = 0; i < points.length; i += 2) {
+                vertices.push(points[i].x, points[i].z, points[i].y, points[i + 1].x, points[i + 1].z, points[i + 1].y);
+            }
+    
+        } else {
+            for (let i = 0; i < points.length; i += 2) {
+                vertices.push(points[i].x, points[i].y, points[i].z, points[i + 1].x, points[i + 1].y, points[i + 1].z);
+            }
         }
+
+        let geometry = new THREE.BufferGeometry();
+        geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+
+        let object = new THREE.Object3D();
+        let material = new THREE.LineBasicMaterial({ color: color, opacity: opacity, transparent: opacity === 1 ? false : true });
+        object.add(new THREE.LineSegments(geometry, material));
 
         return object;
     }
@@ -788,7 +936,7 @@ class Canvas3D extends FrameWork {
         return object;
     }
 
-    GenerateTriangles(triangles: MeshTriangle[]): THREE.Mesh {
+    GenerateTriangles(triangles: MeshTriangle[], color?: any): THREE.Mesh {
         let geometry = new THREE.BufferGeometry();
         let vertices = new Float32Array(triangles.length * 9);
         //let colors = new Float32Array(colors.length * 9);
@@ -799,17 +947,32 @@ class Canvas3D extends FrameWork {
         for (let i = 0; i < triangles.length; i++) {
             j = i * 9;
 
-            vertices[j + 0] = triangles[i].point1.x;
-            vertices[j + 1] = triangles[i].point1.y;
-            vertices[j + 2] = triangles[i].point1.z;
-
-            vertices[j + 3] = triangles[i].point2.x;
-            vertices[j + 4] = triangles[i].point2.y;
-            vertices[j + 5] = triangles[i].point2.z;
-
-            vertices[j + 6] = triangles[i].point3.x;
-            vertices[j + 7] = triangles[i].point3.y;
-            vertices[j + 8] = triangles[i].point3.z;
+            if (this.settings.allowvr) {
+                vertices[j + 0] = triangles[i].point1.x;
+                vertices[j + 1] = triangles[i].point1.z;
+                vertices[j + 2] = triangles[i].point1.y;
+    
+                vertices[j + 3] = triangles[i].point2.x;
+                vertices[j + 4] = triangles[i].point2.z;
+                vertices[j + 5] = triangles[i].point2.y;
+    
+                vertices[j + 6] = triangles[i].point3.x;
+                vertices[j + 7] = triangles[i].point3.z;
+                vertices[j + 8] = triangles[i].point3.y;
+    
+            } else {
+                vertices[j + 0] = triangles[i].point1.x;
+                vertices[j + 1] = triangles[i].point1.y;
+                vertices[j + 2] = triangles[i].point1.z;
+    
+                vertices[j + 3] = triangles[i].point2.x;
+                vertices[j + 4] = triangles[i].point2.y;
+                vertices[j + 5] = triangles[i].point2.z;
+    
+                vertices[j + 6] = triangles[i].point3.x;
+                vertices[j + 7] = triangles[i].point3.y;
+                vertices[j + 8] = triangles[i].point3.z;
+            }
 
             // if (usepointcolor) {
             //     colors[j + 0] = colors[i].x;
@@ -841,11 +1004,71 @@ class Canvas3D extends FrameWork {
 
         geometry.computeVertexNormals();
 
-        let material = new THREE.MeshPhongMaterial({ color: 0x8888ff, emissive: 0x111111, side: THREE.DoubleSide, transparent: true, opacity: 0.75 });
+        let material = new THREE.MeshPhongMaterial({ color: color ? color : 0x8888ff, emissive: 0x111111, side: THREE.DoubleSide, transparent: true, opacity: 0.75 });
         return new THREE.Mesh(geometry, material);
     };
 
+    GenerateText(text: string, x: number, y: number, z: number, size: number, alignx: ALIGNHORIZONTAL, aligny: ALIGNVERTICAL, rotation: THREE.Vector3, material: THREE.Material): THREE.Mesh {
+        let geo = new THREE.TextGeometry(text, {
+            font: this.font,
+            size: size,
+            height: size / 20
+        });
+
+        let center = geo.center();
+        let widthx = center.boundingBox.max.x - center.boundingBox.min.x;
+        let widthy = center.boundingBox.max.y - center.boundingBox.min.y;
+
+        geo.computeBoundingBox();
+        geo.computeVertexNormals();
+
+        let mesh = new THREE.Mesh(geo, material);
+
+        if (alignx === ALIGNHORIZONTAL.LEFT)
+            mesh.position.x = x + widthy / 2;
+
+        else if (alignx === ALIGNHORIZONTAL.RIGHT)
+            mesh.position.x = x - widthy / 2;
+
+        else
+            mesh.position.x = x;
+
+        if (aligny === ALIGNVERTICAL.TOP)
+            mesh.position.y = y - widthx / 2;
+
+        else if (aligny === ALIGNVERTICAL.BOTTOM)
+            mesh.position.y = y + widthx / 2;
+
+        else
+            mesh.position.y = y;
+
+        mesh.position.z = z;
+
+        mesh.rotation.x = rotation.x;
+        mesh.rotation.z = rotation.z;
+        mesh.rotation.y = rotation.y;
+
+        return mesh;
+    }
+
+    AddTriangle(): void {
+        //Triangle
+        let triangles: MeshTriangle[] = [];
+
+        let triangle = new MeshTriangle();
+        triangle.point1 = this.points[0];
+        triangle.point2 = this.points[1];
+        triangle.point3 = this.points[2];
+
+        triangles.push(triangle);
+
+        let drawing = this.GenerateTriangles(triangles);
+        this.AddObject(drawing);
+    }
+
     Select(x: number, y: number, res?: Function): void {
+        //let rect = this.object.getClientRects();
+
         let left = this.parent.offsetLeft;
         let top = this.parent.offsetTop;
 
@@ -902,27 +1125,27 @@ class Canvas3D extends FrameWork {
             for (let object of intersects) {
                 let material = new THREE.MeshPhongMaterial({ color: 0xffff44, specular: 0x333333, opacity: 0.75, transparent: true, side: THREE.DoubleSide });;
 
-                if (this.selectedobject) {
-                    this.selectedobject.material = this.selectedmaterial;
-                    this.selectedobject = null;
-                    this.selectedmaterial = null;
-                }
+                // if (this.selectedobject) {
+                //     this.selectedobject.material = this.selectedmaterial;
+                //     this.selectedobject = null;
+                //     this.selectedmaterial = null;
+                // }
 
-                if (this.ctrlKey) {
-                    this.selectedobjects.push(object.object);
-                    this.selectedmaterials.push(object.object.material as THREE.Material);
-                    object.object.material = material;
+                // if (this.ctrlKey) {
+                //     this.selectedobjects.push(object.object);
+                //     this.selectedmaterials.push(object.object.material as THREE.Material);
+                //     object.object.material = material;
 
-                } else {
-                    this.selectedobject = object.object as THREE.Mesh;
-                    this.selectedmaterial = this.selectedobject.material as THREE.Material;
-                    this.selectedobject.material = material;
-                }
+                // } else {
+                //     this.selectedobject = object.object as THREE.Mesh;
+                //     this.selectedmaterial = this.selectedobject.material as THREE.Material;
+                //     this.selectedobject.material = material;
+                // }
 
-                this.Render();
+                // this.Render();
 
                 if (res)
-                    res(intersects[0].point);
+                    res(object);
 
                 break;
             }
@@ -1060,24 +1283,157 @@ class Canvas3D extends FrameWork {
         }
     }
 
-    LoadFont(): void {
-        // let self = this;
-        // let loader = new THREE.FontLoader();
+    LoadFont(ret: Function): void {
+        let self = this;
+        let loader = new THREE.FontLoader();
 
-        // try {
-        //     if (window.chrome.webview) {
-        //         loader.load('https://canvas/fonts/arial.json', function (response) {
-        //             self.font = response;
-        //         });
-        //     } else {
-        //         loader.load('fonts/arial.json', function (response) {
-        //             self.font = response;
-        //         });
-        //     }
-        // } catch (error) {
-        //     loader.load('fonts/arial.json', function (response) {
-        //         self.font = response;
-        //     });
-        // }
+        try {
+            if (window.chrome.webview) {
+                loader.load('https://canvas/fonts/arial.json', function (response) {
+                    self.font = response;
+                    if (ret) ret();
+                });
+            } else {
+                loader.load('fonts/arial.json', function (response) {
+                    self.font = response;
+                    if (ret) ret();
+                });
+            }
+        } catch (error) {
+            loader.load('fonts/arial.json', function (response) {
+                self.font = response;
+                if (ret) ret();
+            });
+        }
+    }
+
+    CleanInput(text: string): string {
+        text = text.replace("  ", " ");
+        text = text.replace("  ", " ");
+        text = text.replace("  ", " ");
+
+        return text.toLowerCase();
+    }
+
+    ParseInput(input: string): void {
+        let point: THREE.Vector3;
+
+        input = this.CleanInput(input);
+
+        if (input.indexOf("zo") !== -1 && input.indexOf("=") !== -1) {
+            //Move grid to z
+            input = input.replace("zo=", "");
+
+            let value = parseFloat(input);
+            this.ShowGridXY(0, 0, value);
+            return;
+
+        } else if (input.indexOf("z") !== -1 && input.indexOf("=") !== -1) {
+            //Draw a line from snapline z1 to z
+            let position = this.snapline.geometry.attributes["position"].array;
+            let point1 = new THREE.Vector3(position[0], position[1], position[2]);
+            let point2 = new THREE.Vector3(position[3], position[4], position[5]);
+            let normal = point1.clone().sub(point2).normalize();
+
+            //Move grid to z
+            input = input.replace("z=", "");
+
+            let value = parseFloat(input);
+            let l = value / normal.z;
+            let x = point1.x + normal.x * l;
+            let y = point1.y + normal.y * l;
+            let z = point1.z + normal.z * l;
+
+            this.points.push(new THREE.Vector3(x, y, z));
+
+        } else if (input.indexOf(",") !== -1) {
+            //Format: x, y, z
+            let numbers = input.split(",");
+
+            if (numbers.length === 2)
+                this.points.push(new THREE.Vector3(parseFloat(numbers[0]), parseFloat(numbers[1]), 0));
+
+            else if (numbers.length === 3)
+                this.points.push(new THREE.Vector3(parseFloat(numbers[0]), parseFloat(numbers[1]), parseFloat(numbers[2])));
+
+            else if (numbers.length === 5) {
+                //Line
+                let line = input.split(" ");
+                numbers = line[0].split(",");
+                this.points.push(new THREE.Vector3(parseFloat(numbers[0]), parseFloat(numbers[1]), parseFloat(numbers[2])));
+
+                numbers = line[1].split(",");
+                this.points.push(new THREE.Vector3(parseFloat(numbers[0]), parseFloat(numbers[1]), parseFloat(numbers[2])));
+
+            } else if (numbers.length === 7) {
+                //Triangle
+                let line = input.split(" ");
+                numbers = line[0].split(",");
+                this.points.push(new THREE.Vector3(parseFloat(numbers[0]), parseFloat(numbers[1]), parseFloat(numbers[2])));
+
+                numbers = line[1].split(",");
+                this.points.push(new THREE.Vector3(parseFloat(numbers[0]), parseFloat(numbers[1]), parseFloat(numbers[2])));
+
+                numbers = line[2].split(",");
+                this.points.push(new THREE.Vector3(parseFloat(numbers[0]), parseFloat(numbers[1]), parseFloat(numbers[2])));
+
+                this.AddTriangle();
+                this.Render();
+
+                this.points = [];
+            }
+
+        } else if (input.indexOf(" ") !== -1) {
+            //Format: x y z
+            let numbers = input.split(" ");
+            point = this.points[this.points.length - 1];
+
+            if (numbers.length === 2)
+                this.points.push(new THREE.Vector3(point.x + parseFloat(numbers[0]), point.y + parseFloat(numbers[1]), 0));
+
+            else if (numbers.length > 2)
+                this.points.push(new THREE.Vector3(point.x + parseFloat(numbers[0]), point.y + parseFloat(numbers[1]), point.z + parseFloat(numbers[2])));
+
+        } else {
+            //Format: number
+            let value = parseFloat(input);
+
+            if (this.drawingpoint) {
+                if (this.snapline) {
+                    let position = this.snapline.geometry.attributes["position"].array;
+                    let point1 = new THREE.Vector3(position[0], position[1], position[2]);
+                    let point2 = new THREE.Vector3(position[3], position[4], position[5]);
+                    let normal = point2.clone().sub(point1).normalize();
+
+                    point = this.points[this.points.length - 1];
+                    this.points.push(new THREE.Vector3(point.x + normal.x * value, point.y + normal.y * value, point.z + normal.z * value));
+
+                } else {
+                    point = this.points[this.points.length - 1];
+
+                    if (point) {
+                        let normal = this.drawingpoint.sub(point).normalize();
+                        this.points.push(new THREE.Vector3(point.x + normal.x * value, point.y + normal.y * value, point.z + normal.z * value));
+
+                    }
+                }
+
+            } else if (!Number.isNaN(value)) {
+                this.points.push(new THREE.Vector3(value, 0, 0));
+
+            } else {
+                return;
+            }
+        }
+
+        point = this.points[this.points.length - 1];
+
+        if (point) {
+            this.ShowGuideAxis(point.x, point.y, point.z);
+            this.ShowActiveDrawing();
+        }
+
+        if (this.points.length === 1)
+            this.ZoomAll();
     }
 }

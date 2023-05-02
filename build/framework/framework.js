@@ -91,6 +91,18 @@ var ORIENTATION;
     ORIENTATION[ORIENTATION["HORIZONTAL"] = 0] = "HORIZONTAL";
     ORIENTATION[ORIENTATION["VERTICAL"] = 1] = "VERTICAL";
 })(ORIENTATION || (ORIENTATION = {}));
+var ALIGNHORIZONTAL;
+(function (ALIGNHORIZONTAL) {
+    ALIGNHORIZONTAL[ALIGNHORIZONTAL["LEFT"] = 0] = "LEFT";
+    ALIGNHORIZONTAL[ALIGNHORIZONTAL["CENTER"] = 1] = "CENTER";
+    ALIGNHORIZONTAL[ALIGNHORIZONTAL["RIGHT"] = 2] = "RIGHT";
+})(ALIGNHORIZONTAL || (ALIGNHORIZONTAL = {}));
+var ALIGNVERTICAL;
+(function (ALIGNVERTICAL) {
+    ALIGNVERTICAL[ALIGNVERTICAL["TOP"] = 0] = "TOP";
+    ALIGNVERTICAL[ALIGNVERTICAL["MIDDLE"] = 1] = "MIDDLE";
+    ALIGNVERTICAL[ALIGNVERTICAL["BOTTOM"] = 2] = "BOTTOM";
+})(ALIGNVERTICAL || (ALIGNVERTICAL = {}));
 var FrameWork = /** @class */ (function () {
     /**
      * Base constructor
@@ -442,6 +454,35 @@ var FrameWork = /** @class */ (function () {
 }());
 (function (FrameWork) {
     //Containers
+    var AppBar = /** @class */ (function (_super) {
+        __extends(AppBar, _super);
+        function AppBar(param) {
+            return _super.call(this, param, "app-bar") || this;
+        }
+        AppBar.prototype.Refresh = function () {
+            this.Clear();
+            var header = document.createElement("div");
+            header.classList.add("header");
+            this.object.append(header);
+            var icon = this.DisplayIcon(this.icon);
+            header.appendChild(icon);
+            var text = document.createElement("div");
+            text.classList.add("text");
+            text.innerHTML = this.text.toString();
+            header.append(text);
+            var toolbar = document.createElement("div");
+            toolbar.classList.add("toolbar");
+            this.object.append(toolbar);
+            //Show children
+            for (var i = 0; i < this.children.length; i++) {
+                this.children[i].Show(toolbar);
+            }
+            //Initialize events
+            this.Events();
+        };
+        return AppBar;
+    }(FrameWork));
+    FrameWork.AppBar = AppBar;
     var Container = /** @class */ (function (_super) {
         __extends(Container, _super);
         function Container(param) {

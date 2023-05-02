@@ -551,6 +551,7 @@ class SAPViewer {
     showframes: boolean = true;
     showshells: boolean = true;
     showrestraints: boolean = true;
+    showjoints: boolean = true;
 
     Show(): void {
         let self = this;
@@ -591,11 +592,12 @@ class SAPViewer {
 
         this.canvas = new Canvas3D();
         this.canvas.settings.backcolor = 0xffffff;
+        this.canvas.settings.allowvr = true;
         this.canvas.fileformat = FILEFORMAT.TEXT;
         this.canvas.ondrop = function (text) {
             self.model = JSON.parse(text);
             self.ShowModel(self.model);
-        }
+        };
 
         splitter.Add(this.canvas);
 
@@ -611,10 +613,19 @@ class SAPViewer {
 
         this.ShowFrames(model);
         this.ShowShells(model);
+        this.ShowJoints(model);
         this.ShowRestraints(model);
+
+        this.ShowFrameSections(model);
+        this.ShowShellSections(model);
+
+        this.ShowFrameMaterials(model);
+        this.ShowShellMaterials(model);
 
         this.canvas.ZoomAll();
         this.canvas.Render();
+
+        this.tree.Refresh();
     }
 
     ShowFrames(model: SAPInterface): void {
@@ -638,8 +649,11 @@ class SAPViewer {
 
         this.tree.Add(parent);
 
+        let frames = {};
+        let name = "";
+
         for (let frame of model.Frames.$values) {
-            node = new FrameWork.TreeNode({ text: frame.Name });
+            node = new FrameWork.TreeNode({ text: "Frame-" + frame.Name });
             node.tag = frame;
             node.onclick = (object: FrameWork.TreeNode) => {
                 this.ShowProperties(object.tag);
@@ -650,16 +664,24 @@ class SAPViewer {
             if (this.showframes) {
                 points.push(new THREE.Vector3(frame.Pt1.X / 1000, frame.Pt1.Y / 1000, frame.Pt1.Z / 1000));
                 points.push(new THREE.Vector3(frame.Pt2.X / 1000, frame.Pt2.Y / 1000, frame.Pt2.Z / 1000));
+
+                name = (frame.Pt1.X / 1000).toFixed(3) + "-" + (frame.Pt1.Y / 1000).toFixed(3) + "-" + (frame.Pt1.Z / 1000).toFixed(3);
+                name += (frame.Pt2.X / 1000).toFixed(3) + "-" + (frame.Pt2.Y / 1000).toFixed(3) + "-" + (frame.Pt2.Z / 1000).toFixed(3);
+
+                if (frames[name])
+                    node.text += " (Duplicate)";
+                else
+                    frames[name]++;
+
+                frames[name] = 1;
             }
         }
 
         if (points.length) {
-            let object = this.canvas.GenerateLines(points, "#FF0");
+            let object = this.canvas.GenerateLines(points, "#040");
             object.name = "Frames";
             this.canvas.AddObject(object);
         }
-
-        this.tree.Refresh();
     }
 
     ShowShells(model: SAPInterface): void {
@@ -691,7 +713,7 @@ class SAPViewer {
 
             triangle = new MeshTriangle();
 
-            node = new FrameWork.TreeNode({ text: shell.Name });
+            node = new FrameWork.TreeNode({ text: "Shells-" + shell.Name });
             node.tag = shell;
             node.onclick = (object: FrameWork.TreeNode) => {
                 this.ShowProperties(object.tag);
@@ -765,17 +787,25 @@ class SAPViewer {
             }
         }
 
+        let object = new THREE.Object3D();
+        object.name = "Shells";
+
+        let handle = false;
+
         if (triangles.length) {
-            let object = this.canvas.GenerateTriangles(triangles);
-            object.name = "Shells";
-            this.canvas.AddObject(object);
+            let tris = this.canvas.GenerateTriangles(triangles);
+            object.add(tris);
+            handle = true;
         }
 
         if (points.length) {
             let lines = this.canvas.GenerateLines(points, "#444");
-            lines.name = "Shells";
-            this.canvas.AddObject(lines);
+            object.add(lines);
+            handle = true;
         }
+
+        if (handle)
+            this.canvas.AddObject(object);
     }
 
     ShowRestraints(model: SAPInterface): void {
@@ -807,7 +837,7 @@ class SAPViewer {
             restraint = joint.Restraints;
 
             if (restraint.Dx != 0 || restraint.Dy != 0 || restraint.Dz != 0) {
-                node = new FrameWork.TreeNode({ text: joint.Name });
+                node = new FrameWork.TreeNode({ text: "Joint-" + joint.Name });
                 node.tag = joint;
                 node.onclick = (object: FrameWork.TreeNode) => {
                     this.ShowProperties(object.tag);
@@ -820,12 +850,12 @@ class SAPViewer {
                         restraintx.push(new THREE.Vector3(joint.X / 1000 - size, joint.Y / 1000, joint.Z / 1000));
                         restraintx.push(new THREE.Vector3(joint.X / 1000 + size, joint.Y / 1000, joint.Z / 1000));
                     }
-    
+
                     if (restraint.Dy != 0) {
                         restrainty.push(new THREE.Vector3(joint.X / 1000, joint.Y / 1000 - size, joint.Z / 1000));
                         restrainty.push(new THREE.Vector3(joint.X / 1000, joint.Y / 1000 + size, joint.Z / 1000));
                     }
-    
+
                     if (restraint.Dz != 0) {
                         restraintz.push(new THREE.Vector3(joint.X / 1000, joint.Y / 1000, joint.Z / 1000 - size));
                         restraintz.push(new THREE.Vector3(joint.X / 1000, joint.Y / 1000, joint.Z / 1000 + size));
@@ -851,8 +881,330 @@ class SAPViewer {
             object.name = "Restraints";
             this.canvas.AddObject(object);
         }
+    }
 
-        this.tree.Refresh();
+    ShowJoints(model: SAPInterface): void {
+        let self = this;
+        let points: THREE.Vector3[] = [];
+        let node: FrameWork.TreeNode;
+        let size: number = 0.1;
+
+        let checkbox = new FrameWork.Input({
+            text: "Joints",
+            value: this.showjoints
+        }, INPUTTYPE.CHECKBOX);
+
+        checkbox.onchange = (obj: FrameWork.Input) => {
+            self.showjoints = obj.value;
+            self.canvas.SetVisibility("Joints", self.showjoints);
+        }
+
+        let parent = new FrameWork.TreeNode({
+            text: checkbox
+        });
+
+        this.tree.Add(parent);
+
+        for (let joint of model.Joints.$values) {
+            node = new FrameWork.TreeNode({ text: "Joint-" + joint.Name });
+            node.tag = joint;
+            node.onclick = (object: FrameWork.TreeNode) => {
+                this.ShowProperties(object.tag);
+            };
+
+            parent.Add(node);
+
+            if (this.showjoints) {
+                points.push(new THREE.Vector3(joint.X / 1000 - size, joint.Y / 1000, joint.Z / 1000));
+                points.push(new THREE.Vector3(joint.X / 1000 + size, joint.Y / 1000, joint.Z / 1000));
+
+                points.push(new THREE.Vector3(joint.X / 1000, joint.Y / 1000 - size, joint.Z / 1000));
+                points.push(new THREE.Vector3(joint.X / 1000, joint.Y / 1000 + size, joint.Z / 1000));
+            }
+        }
+
+        if (points.length) {
+            let object = this.canvas.GenerateLines(points, "#F00");
+            object.name = "Joints";
+            this.canvas.AddObject(object);
+        }
+    }
+
+    ShowFrameSections(model: SAPInterface): void {
+        let node: FrameWork.TreeNode;
+
+        let parent = new FrameWork.TreeNode({
+            text: "Frame Sections"
+        });
+
+        this.tree.Add(parent);
+
+        let sections = {};
+        let name: string;
+
+        for (let frame of model.Frames.$values) {
+            name = frame.LineProperty.Name;
+
+            if (sections[name])
+                continue;
+
+            sections[name] = 1;
+
+            node = new FrameWork.TreeNode({ text: name });
+            node.tag = frame;
+            node.onclick = (object: FrameWork.TreeNode) => {
+                let frame = object.tag;
+                this.ShowProperties(frame);
+                this.SelectFrames(this.model, frame.LineProperty.Name, "$");
+            };
+
+            parent.Add(node);
+        }
+
+        node = new FrameWork.TreeNode({ text: "Null" });
+        node.onclick = (object: FrameWork.TreeNode) => {
+            this.SelectFrames(this.model, "", "");
+        };
+
+        parent.Add(node);
+    }
+
+    ShowShellSections(model: SAPInterface): void {
+        let node: FrameWork.TreeNode;
+
+        let parent = new FrameWork.TreeNode({
+            text: "Shell Sections"
+        });
+
+        this.tree.Add(parent);
+
+        let sections = {};
+        let name: string;
+
+        for (let shell of model.Shells.$values) {
+            name = shell.ShellProp.Name;
+
+            if (sections[name])
+                continue;
+
+            sections[name] = 1;
+
+            node = new FrameWork.TreeNode({ text: name });
+            node.tag = shell;
+            node.onclick = (object: FrameWork.TreeNode) => {
+                let shell = object.tag;
+                this.ShowProperties(shell);
+                this.SelectShells(this.model, shell.ShellProp.Name, "$");
+            };
+
+            parent.Add(node);
+        }
+
+        node = new FrameWork.TreeNode({ text: "Null" });
+        node.onclick = (object: FrameWork.TreeNode) => {
+            this.SelectShells(this.model, "", "");
+        };
+
+        parent.Add(node);
+    }
+
+    ShowFrameMaterials(model: SAPInterface): void {
+        let node: FrameWork.TreeNode;
+
+        let parent = new FrameWork.TreeNode({
+            text: "Frame Materials"
+        });
+
+        this.tree.Add(parent);
+
+        let sections = {};
+        let name: string;
+
+        for (let frame of model.Frames.$values) {
+            name = frame.LineProperty.MaterialProp.Name;
+
+            if (sections[name])
+                continue;
+
+            sections[name] = 1;
+
+            node = new FrameWork.TreeNode({ text: name });
+            node.tag = frame;
+            node.onclick = (object: FrameWork.TreeNode) => {
+                let frame = object.tag;
+                this.ShowProperties(frame.LineProperty.MaterialProp);
+                this.SelectFrames(this.model, "$", frame.LineProperty.MaterialProp.Name);
+            };
+
+            parent.Add(node);
+        }
+
+        node = new FrameWork.TreeNode({ text: "Null" });
+        node.onclick = (object: FrameWork.TreeNode) => {
+            this.SelectFrames(this.model, null, null);
+        };
+
+        parent.Add(node);
+    }
+
+    ShowShellMaterials(model: SAPInterface): void {
+        let node: FrameWork.TreeNode;
+
+        let parent = new FrameWork.TreeNode({
+            text: "Shell Materials"
+        });
+
+        this.tree.Add(parent);
+
+        let sections = {};
+        let name: string;
+
+        for (let shell of model.Shells.$values) {
+            name = shell.ShellProp.MatProp.Name;
+
+            if (sections[name])
+                continue;
+
+            sections[name] = 1;
+
+            node = new FrameWork.TreeNode({ text: name });
+            node.tag = shell;
+            node.onclick = (object: FrameWork.TreeNode) => {
+                let shell = object.tag;
+                this.ShowProperties(shell.ShellProp.MatProp);
+                this.SelectShells(this.model, "$", shell.ShellProp.MatProp.Name);
+            };
+
+            parent.Add(node);
+        }
+
+        node = new FrameWork.TreeNode({ text: "Null" });
+        node.onclick = (object: FrameWork.TreeNode) => {
+            this.SelectFrames(this.model, null, null);
+        };
+
+        parent.Add(node);
+    }
+
+    SelectFrames(model: SAPInterface, propname: string, matname: string): void {
+        let self = this;
+        let points: THREE.Vector3[] = [];
+
+        for (let frame of model.Frames.$values) {
+            if (propname === frame.LineProperty.Name || matname === frame.LineProperty.MaterialProp.Name) {
+                points.push(new THREE.Vector3(frame.Pt1.X / 1000, frame.Pt1.Y / 1000, frame.Pt1.Z / 1000));
+                points.push(new THREE.Vector3(frame.Pt2.X / 1000, frame.Pt2.Y / 1000, frame.Pt2.Z / 1000));
+            }
+        }
+
+        this.canvas.Remove(this.canvas.highlight);
+
+        if (points.length) {
+            let object = this.canvas.GenerateLines(points, "#FF0");
+            this.canvas.AddObject(object);
+
+            let bounds = new THREE.Box3().setFromObject(object);
+
+            this.canvas.highlight = object;
+        }
+
+        this.canvas.Render();
+    }
+
+    SelectShells(model: SAPInterface, propname: string, matname: string): void {
+        let self = this;
+        let triangles: MeshTriangle[] = [];
+        let triangle: MeshTriangle;
+        let points: THREE.Vector3[] = [];
+        let joint: NodeValue;
+        let point: THREE.Vector3;
+
+        for (let shell of model.Shells.$values) {
+            if (propname === shell.ShellProp.Name || matname === shell.ShellProp.MatProp.Name) {
+                triangle = new MeshTriangle();
+
+                if (shell.Nodes.$values.length === 3) {
+                    joint = shell.Nodes.$values[0];
+                    triangle.point1 = this.GenerateNode(joint);
+
+                    joint = shell.Nodes.$values[1];
+                    triangle.point2 = this.GenerateNode(joint);
+
+                    joint = shell.Nodes.$values[2];
+                    triangle.point3 = this.GenerateNode(joint);
+
+                    points.push(triangle.point1);
+                    points.push(triangle.point2);
+
+                    points.push(triangle.point2);
+                    points.push(triangle.point3);
+
+                    points.push(triangle.point1);
+                    points.push(triangle.point3);
+
+                    triangles.push(triangle);
+
+                } else if (shell.Nodes.$values.length === 4) {
+                    joint = shell.Nodes.$values[0];
+                    triangle.point1 = this.GenerateNode(joint);
+
+                    joint = shell.Nodes.$values[1];
+                    triangle.point2 = this.GenerateNode(joint);
+
+                    joint = shell.Nodes.$values[2];
+                    triangle.point3 = this.GenerateNode(joint);
+
+                    point = triangle.point2;
+                    triangles.push(triangle);
+
+                    triangle = new MeshTriangle();
+
+                    joint = shell.Nodes.$values[0];
+                    triangle.point1 = this.GenerateNode(joint);
+
+                    joint = shell.Nodes.$values[2];
+                    triangle.point2 = this.GenerateNode(joint);
+
+                    joint = shell.Nodes.$values[3];
+                    triangle.point3 = this.GenerateNode(joint);
+
+                    points.push(triangle.point1);
+                    points.push(point);
+
+                    points.push(point);
+                    points.push(triangle.point2);
+
+                    points.push(triangle.point2);
+                    points.push(triangle.point3);
+
+                    points.push(triangle.point3);
+                    points.push(triangle.point1);
+
+                    triangles.push(triangle);
+
+                } else if (shell.Nodes.$values.length > 4) {
+                    console.log("Unhandled shells with " + shell.Nodes.$values.length + " lengths");
+                }
+            }
+        }
+
+        let object = new THREE.Object3D();
+        let handle = false;
+
+        this.canvas.Remove(this.canvas.highlight);
+
+        if (triangles.length) {
+            let tris = this.canvas.GenerateTriangles(triangles, 0xffff00);
+            object.add(tris);
+            handle = true;
+        }
+
+        if (handle) {
+            this.canvas.highlight = object;
+            this.canvas.AddObject(object);
+        }
+
+        this.canvas.Render();
     }
 
     ShowProperties(object: any): void {
