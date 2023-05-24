@@ -221,7 +221,7 @@ class FrameWork {
     RenderObject(object: any): void {
         let item: any;
         let node: FrameWork.TreeNode;
-
+        
         this.children = [];
 
         if (Array.isArray(object)) {
@@ -1442,48 +1442,41 @@ namespace MaterialDesign2 {
         Refresh(): void {
             this.Clear();
 
-            let classes = this.type.split(" ");
+            // let classes = this.type.split(" ");
 
-            if (this.type === ButtonType.APPBAR)
-                this.object.classList.remove("mdc-button");
+            // if (this.type === ButtonType.APPBAR)
+            //     this.object.classList.remove("mdc-button");
 
-            for (let c of classes)
-                if (c.trim() !== "")
-                    this.object.classList.add(c.trim());       
-          
-            if (this.icon) {
-                let html = `
-                    <div class="mdc-button__ripple"></div>
+            // for (let c of classes)
+            //     if (c.trim() !== "")
+            //         this.object.classList.add(c.trim());       
+
+            if(this.type === ButtonType.APPBAR){
+                this.object.setAttribute('class','mdc-icon-button');
+                this.object.classList.add('btnAppBar');           
+                let html = `           
                     <i class="material-icons mdc-button__icon" aria-hidden="true">${this.icon}</i>
-                    <span class="mdc-button__label">${this.text}</span>
-                `;
-                
+                    <div>${this.text}</div>                  
+                `;                
                 this.object.innerHTML = html;
-            } else {
-                let html = `
-                    <div class="mdc-button__ripple"></div>
-                    <span class="mdc-button__label">${this.text}</span>`;
-
-                this.object.innerHTML = html;
+            }else{
+                if (this.icon) {
+                    let html = `
+                        <div class="mdc-button__ripple"></div>
+                        <i class="material-icons mdc-button__icon" aria-hidden="true">${this.icon}</i>
+                    `;
+                    if(this.text !== undefined)
+                        html += `<span class="mdc-button__label">${this.text}</span>`;
+                    
+                    this.object.innerHTML = html;
+                } else {
+                    let html = `
+                        <div class="mdc-button__ripple"></div>
+                        <span class="mdc-button__label">${this.text}</span>`;
+    
+                    this.object.innerHTML = html;
+                }
             }
-
-            if(this.tooltip !== undefined){
-                let id = this.tooltip + Math.random() *10;
-                this.object.setAttribute("aria-describedby", id);
-                let tooltipText = 
-                `<div class="mdc-tooltip__surface mdc-tooltip__surface-animation">
-                  ${this.tooltip}
-                </div> `;
-                let toolDiv = document.createElement('div');
-                toolDiv.classList.add('mdc-tooltip');
-                toolDiv.setAttribute("id", id); 
-                toolDiv.setAttribute("role","tooltip");
-                toolDiv.setAttribute("aria-hidden", "true");               
-                toolDiv.innerHTML = tooltipText;
-                this.object.insertAdjacentElement("afterend", toolDiv); 
-                new window.mdc.tooltip.MDCTooltip(document.querySelector('.mdc-tooltip'));
-            }                   
-
             if (this.type !== ButtonType.APPBAR)
                 window.mdc.ripple.MDCRipple.attachTo(document.querySelector('.mdc-button'));
 
@@ -1985,7 +1978,8 @@ namespace MaterialDesign2 {
 
     export class AppBar extends FrameWork {
         contents: HTMLElement;
-        buttons: Button[] = [];
+        //buttons: Button[] = [];
+        buttons: any[] = [];
         drawer: FrameWork;
 
         constructor(param?: Parameter) {
@@ -2506,4 +2500,5 @@ namespace MaterialDesign2 {
             this.Events();
         }
     }
+ 
 }
