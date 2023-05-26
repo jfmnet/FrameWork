@@ -74,46 +74,67 @@ class Demo {
     }
 
     MaterialDesign2(): void {
-
-        let app = new MaterialDesign2.AppBar({ text: "XWind" });
-        let canvas: Canvas3D;
-
-        let select = new MaterialDesign2.Button({ icon: "ads_click" });
-        select.type = MaterialDesign2.ButtonType.APPBAR;
-        select.onclick = ()=> {
-            alert(1);
-        };
-
-        app.buttons.push(select);
-
-        let draw = new MaterialDesign2.Button({ icon: "draw" });
-        draw.type = MaterialDesign2.ButtonType.APPBAR;
-        let dia = new MaterialDesign2.Dialogs({text: "Are you sure to process it?"});
-        dia.title = "confirmation";
-        dia.showCancel = true;
-        dia.onclick = function(e) {
-            console.log("AIT Solutions...");            
-        }
-        draw.onclick = ()=> {
-          
+       let app = new MaterialDesign2.AppBar({text:"XWind demo"});
+       //adding appbar button
+       let select = new MaterialDesign2.Button({icon: "ads_click", text:'open model file'}); //Appbar button type, text will be tooltip
+       select.type = MaterialDesign2.ButtonType.APPBAR;
+       select.onclick = ()=>{
+            alert("open model");
+       }
+       let draw = new MaterialDesign2.Button({icon:"draw", text:"drawer"});
+       draw.type = MaterialDesign2.ButtonType.APPBAR;
+       draw.onclick = ()=>{
+            let dia = new MaterialDesign2.Dialogs({text: "Are you sure to draw it?"});
+            dia.title ="Confirmation";
+            dia.onclick = () =>{
+                console.log("some process");
+            }
+            dia.showCancel = false;
             dia.Show();
-        };
+       }
+       app.buttons.push(select);
+       app.buttons.push(draw);
 
-        app.buttons.push(draw);
+       /* adding drawer */
+       let drawer = new MaterialDesign2.NavDrawer();
+       drawer.headerEmail = 'bsangpi@ait.asia';
+       drawer.headerName  ='Mr. Sang pi';
+       drawer.headerImage = 'https://th.bing.com/th/id/OIP.AA5M9TpxmIwgFwQKmdZ2jQHaLH?pid=ImgDet&rs=1';
+       let btnW3 = new MaterialDesign2.Anchor({text:"Home", icon:'home'});
+       btnW3.link = 'https://www.w3schools.com/';
+       drawer.Add(btnW3);
 
-        canvas = app.Add(new Canvas3D()) as Canvas3D;
-        let drawer = new MaterialDesign2.NavDrawer();
-        drawer.headerEmail = 'bsangpi@ait.asia';
-        drawer.headerName = 'Biak Nei sang';
-        drawer.headerImage = 'https://th.bing.com/th/id/OIP.AA5M9TpxmIwgFwQKmdZ2jQHaLH?pid=ImgDet&rs=1';
-        let btnTest = new MaterialDesign2.Anchor({text: "Index", icon: "search"});  
-        btnTest.link = "https://sbcode.net/threejs/loaders-fbx/";
-        //btnTest.link = "https://www.w3schools.com/";
-        let btnHome = new MaterialDesign2.Anchor({text:"Home", icon:"home"});
-        drawer.Add(btnTest);
-        drawer.Add(btnHome);
-        app.Add(drawer);
-        app.Show();
+       let btnSerach = new MaterialDesign2.Anchor({text:"Search", icon:'search'});
+       btnSerach.link = 'https://www.google.com/';
+       drawer.Add(btnSerach);
+       app.drawer = drawer;
+       app.Show();
+       
+
+       /*  tab bar demo */
+       let tab = new MaterialDesign2.Tabs();
+       //tabBar Button
+       let btnTab1 = new MaterialDesign2.Button({text:"Add", icon: "add"});
+       btnTab1.type = MaterialDesign2.ButtonType.TABBAR;
+       btnTab1.isActive = true;
+       tab.buttons.push(btnTab1);
+
+       let btnTab2 = new MaterialDesign2.Button({text:"Favorite", icon: "favorite"});
+       btnTab2.type = MaterialDesign2.ButtonType.TABBAR;
+       tab.buttons.push(btnTab2);
+
+       // tab content
+       let container1 = new FrameWork.Container();
+       container1.Add(new MaterialDesign2.Button({text:"Tab 1 Content Adding"}));
+       tab.Add(container1);
+
+       let container2 = new FrameWork.Container();
+       container2.Add(new MaterialDesign2.Button({text: "Tab 2 Content Favorite"}));
+       tab.Add(container2);
+
+       //tab.Show();
+     
+        
         
     }
     
