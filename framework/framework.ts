@@ -1408,7 +1408,8 @@ namespace MaterialDesign2 {
         NONE = "",
         OUTLINED = "mdc-button--outlined",
         RAISED = "mdc-button--raised",
-        APPBAR = "material-icons mdc-top-app-bar__action-item mdc-icon-button"
+        APPBAR = "material-icons mdc-top-app-bar__action-item mdc-icon-button",
+        TABBAR = "mdc-tab",
     }
 
     export enum FloatButtonType {
@@ -1433,6 +1434,7 @@ namespace MaterialDesign2 {
     export class Button extends FrameWork {
         type: ButtonType = ButtonType.NONE;
         tooltip: string;
+        isActive: boolean = false;
 
         constructor(param?: Parameter) {
             super(param, "mdc-button");
@@ -1459,6 +1461,24 @@ namespace MaterialDesign2 {
                     <div>${this.text}</div>                  
                 `;                
                 this.object.innerHTML = html;
+                
+            }else if(this.type === ButtonType.TABBAR){
+                this.object.setAttribute('role','tab');
+                this.object.setAttribute('aria-selected', "false");
+                this.object.setAttribute("tabindex", "0");
+                this.object.classList.add("mdc-tab");
+                // this.object.classList.add('mdc-ripple-upgraded');
+                this.object.classList.remove('mdc-button');
+                let html = 
+                    `<span class="mdc-tab__content">
+                    <span class="mdc-tab__icon material-icons" aria-hidden="true">${this.icon}</span>
+                    <span class="mdc-tab__text-label">${this.text}</span>
+                    </span>
+                    ${this.isActive? '<span class="mdc-tab-indicator mdc-tab-indicator--active">' : '<span class="mdc-tab-indicator">' }
+                    <span class="mdc-tab-indicator__content mdc-tab-indicator__content--underline"></span>
+                    </span>
+                    <span class="mdc-tab__ripple"></span>`;
+                this.object.innerHTML = html;                
             }else{
                 if (this.icon) {
                     let html = `
@@ -2024,7 +2044,64 @@ namespace MaterialDesign2 {
         };
     }
 
+    export class NavDrawer extends FrameWork {
+        headerName: string;
+        headerEmail: string;
+        headerImage: string;
+        constructor(param?: Parameter) {
+            super(param, "navDrawer");
+        }
+        Refresh(): void {
+            this.Clear();
+
+            let html =
+                `<aside class="mdc-drawer mdc-drawer--modal mdc-drawer-full-height">
+            <div class="mdc-drawer__header drawer-header">
+                <div class="drawer-header-close">&#10006;</div>
+                <img class="avatar" alt="Avatar" src="${this.headerImage}"/>
+                <div class="mdc-drawer-text-group">
+                    <h3 class="mdc-drawer__title">${this.headerName ?? "Name"}</h3>
+                    <h6 class="mdc-drawer__subtitle">${this.headerEmail ?? "Email"}</h6> 
+                </div>
+            </div>        
+            <div class="mdc-drawer__content">
+            <hr class="mdc-list-divider">
+                <nav class="mdc-list drawer-action-list"></nav>
+            </div>
+            </aside>
+            <div class="mdc-drawer-scrim"></div>`;
+
+            this.object.innerHTML = html;
+            const drawer = window.mdc.drawer.MDCDrawer.attachTo(document.querySelector('.mdc-drawer'));
+            let btn = this.object.parentNode.querySelector('#app-action');
+            btn?.addEventListener('click', (event) => {
+                drawer.open = !drawer.open;
+            })
+
+            let btnClose = this.object.querySelector('.drawer-header-close');
+            btnClose.addEventListener('click', (event) => {
+                drawer.open = false;
+            });
+
+            document.body.addEventListener('MDCDrawer:closed', () => {
+
+            });
+            this.RenderChildren();
+            //this.Events();
+        }
+
+        RenderChildren(): void {
+            let lst = this.object.querySelector('.drawer-action-list');
+            for (let i = 0; i < this.children.length; i++) {
+                this.children[i].Show(lst);
+            }
+            this.RenderDataSource();
+        }
+
+    }
+
     export class Tabs extends FrameWork {
+        buttons: FrameWork[] = [];
         constructor(param?: Parameter) {
             super(param, "Tabs");
         }
@@ -2034,40 +2111,43 @@ namespace MaterialDesign2 {
             <div class="mdc-tab-bar" role="tablist">
             <div class="mdc-tab-scroller">
               <div class="mdc-tab-scroller__scroll-area">
-                <div class="mdc-tab-scroller__scroll-content">
-                  <button class="mdc-tab mdc-tab--active" role="tab" aria-selected="true" tabindex="0">
-                    <span class="mdc-tab__content">
-                      <span class="mdc-tab__icon material-icons" aria-hidden="true">favorite</span>
-                      <span class="mdc-tab__text-label">Favorites</span>
-                    </span>
-                    <span class="mdc-tab-indicator mdc-tab-indicator--active">
-                      <span class="mdc-tab-indicator__content mdc-tab-indicator__content--underline"></span>
-                    </span>
-                    <span class="mdc-tab__ripple"></span>
-                  </button>
-                  <button class="mdc-tab " role="tab" aria-selected="true" tabindex="0">
-                  <span class="mdc-tab__content">
-                    <span class="mdc-tab__icon material-icons" aria-hidden="true">add</span>
-                    <span class="mdc-tab__text-label">add</span>
-                  </span>
-                  <span class="mdc-tab-indicator ">
-                    <span class="mdc-tab-indicator__content mdc-tab-indicator__content--underline"></span>
-                  </span>
-                  <span class="mdc-tab__ripple"></span>
-                </button>
+                <div class="mdc-tab-scroller__scroll-content" id="TabBtns">   
                 </div>
               </div>
             </div>
-          </div>
-            `;
-
-
-            this.object.innerHTML = html;
-
-            const tabBar = new window.mdc.tabBar.MDCTabBar(document.querySelector('.mdc-tab-bar'));
-            console.log(tabBar);
+            </div>    
+            `;      
+            this.object.innerHTML = html;   
+          
             this.RenderChildren();
-            this.Events();
+            const tabBar = new window.mdc.tabBar.MDCTabBar(document.querySelector('.mdc-tab-bar'));
+            this.Event(tabBar);            
+        }
+        RenderChildren(): void {
+            let body = document.querySelector('.Tabs');
+            for(let i = 0; i < this.children.length; i++){
+                if(i==0)
+                    this.children[i].classes = ["tab-content","tab-content--active"];
+                else
+                    this.children[i].classes = ["tab-content"];
+                this.children[i].Show(body);
+            }
+
+            let tabButton = document.querySelector('#TabBtns');
+            for(let i = 0; i < this.buttons.length; i++){
+                console.log(this.buttons[i].parent);
+                if(i==0) 
+                    this.buttons[i].classes = ["mdc-tab--active"];
+               
+                this.buttons[i].Show(tabButton);
+            }
+        }
+        Event(tabBar:any): void {
+            let contentEls = document.querySelectorAll('.tab-content');
+            tabBar.listen('MDCTabBar:activated', function(event){
+                document.querySelector('.tab-content--active')?.classList.remove('tab-content--active');
+                contentEls[event.detail.index].classList.add('tab-content--active');
+            })
         }
     }
 
@@ -2297,76 +2377,7 @@ namespace MaterialDesign2 {
             this.RenderChildren();
             this.Events();
         }
-    }
-
-    export class NavDrawer extends FrameWork {
-        headerName: string;
-        headerEmail: string;
-        headerImage: string;
-        constructor(param?: Parameter) {
-            super(param, "navDrawer");
-        }
-        Refresh(): void {
-            this.Clear();
-
-            let html =
-                `<aside class="mdc-drawer mdc-drawer--modal mdc-drawer-full-height">
-            <div class="mdc-drawer__header drawer-header">
-                <div class="drawer-header-close">&#10006;</div>
-                <img class="avatar" alt="Avatar" src="${this.headerImage}"/>
-                <div class="mdc-drawer-text-group">
-                    <h3 class="mdc-drawer__title">${this.headerName ?? "Name"}</h3>
-                    <h6 class="mdc-drawer__subtitle">${this.headerEmail ?? "Email"}</h6> 
-                </div>
-            </div>        
-            <div class="mdc-drawer__content">
-            <hr class="mdc-list-divider">
-                <nav class="mdc-list drawer-action-list"></nav>
-            </div>
-            </aside>
-            <div class="mdc-drawer-scrim"></div>`;
-
-            this.object.innerHTML = html;
-            //const listEl = document.querySelector('.mdc-drawer .mdc-list');
-            // const list = window.mdc.list.MDCList.attachTo(document.querySelector('.mdc-list'));
-            // list.wrapFocus = true;
-
-            const drawer = window.mdc.drawer.MDCDrawer.attachTo(document.querySelector('.mdc-drawer'));
-            // console.log(drawer);
-            // drawer.focusTrap = true;
-            // const listEl = document.querySelector('#st');
-            // const mainContentEl = document.querySelector('.main-content');
-
-            // listEl.addEventListener('click', (event) => {                
-            //     drawer.open = !drawer.open;
-            // });
-            let btn = this.object.parentNode.querySelector('#app-action');
-            btn?.addEventListener('click', (event) => {
-                drawer.open = !drawer.open;
-            })
-
-            let btnClose = this.object.querySelector('.drawer-header-close');
-            btnClose.addEventListener('click', (event) => {
-                drawer.open = false;
-            });
-
-            document.body.addEventListener('MDCDrawer:closed', () => {
-
-            });
-            this.RenderChildren();
-            //this.Events();
-        }
-
-        RenderChildren(): void {
-            let lst = this.object.querySelector('.drawer-action-list');
-            for (let i = 0; i < this.children.length; i++) {
-                this.children[i].Show(lst);
-            }
-            this.RenderDataSource();
-        }
-
-
-    }
+    }    
 
     export class Menu extends FrameWork {
         constructor(param?: Parameter) {
