@@ -222,6 +222,18 @@ input {
 }
 
 
+/* Ribbon Menu */
+
+.ribbonmenu-container {
+    background-color: #EEE;
+    display: flex;
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    height: 120px;
+}
+
 /* Menu */
 
 .menu {

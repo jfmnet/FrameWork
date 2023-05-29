@@ -54,5 +54,20 @@ var Canvas3DGraphics = /** @class */ (function () {
         return Sphere;
     }(Canvas3DGraphics));
     Canvas3DGraphics.Sphere = Sphere;
+    var QuadMesh = /** @class */ (function (_super) {
+        __extends(QuadMesh, _super);
+        function QuadMesh() {
+            var _this = _super.call(this) || this;
+            _this.polygon = [];
+            return _this;
+        }
+        QuadMesh.prototype.QuadMesh = function () {
+        };
+        QuadMesh.prototype.Generate = function () {
+            throw new Error("Method not implemented.");
+        };
+        return QuadMesh;
+    }(Canvas3DGraphics));
+    Canvas3DGraphics.QuadMesh = QuadMesh;
 })(Canvas3DGraphics || (Canvas3DGraphics = {}));
 //# sourceMappingURL=canvas3dgraphics.js.map

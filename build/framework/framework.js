@@ -782,6 +782,14 @@ var FrameWork = /** @class */ (function () {
         return TabContainer;
     }(FrameWork));
     FrameWork.TabContainer = TabContainer;
+    var RibbonMenuContainer = /** @class */ (function (_super) {
+        __extends(RibbonMenuContainer, _super);
+        function RibbonMenuContainer(param) {
+            return _super.call(this, param, "ribbonmenu-container") || this;
+        }
+        return RibbonMenuContainer;
+    }(FrameWork));
+    FrameWork.RibbonMenuContainer = RibbonMenuContainer;
     //Controls
     var Menu = /** @class */ (function (_super) {
         __extends(Menu, _super);
@@ -820,6 +828,30 @@ var FrameWork = /** @class */ (function () {
         return Menu;
     }(FrameWork));
     FrameWork.Menu = Menu;
+    var RibbonMenu = /** @class */ (function (_super) {
+        __extends(RibbonMenu, _super);
+        function RibbonMenu(param) {
+            return _super.call(this, param, "ribbonmenu") || this;
+        }
+        return RibbonMenu;
+    }(FrameWork));
+    FrameWork.RibbonMenu = RibbonMenu;
+    var RibbonLargeButton = /** @class */ (function (_super) {
+        __extends(RibbonLargeButton, _super);
+        function RibbonLargeButton(param) {
+            return _super.call(this, param, "ribbon-large-button") || this;
+        }
+        return RibbonLargeButton;
+    }(FrameWork));
+    FrameWork.RibbonLargeButton = RibbonLargeButton;
+    var RibbonButton = /** @class */ (function (_super) {
+        __extends(RibbonButton, _super);
+        function RibbonButton(param) {
+            return _super.call(this, param, "ribbon-button") || this;
+        }
+        return RibbonButton;
+    }(FrameWork));
+    FrameWork.RibbonButton = RibbonButton;
     var Toolbar = /** @class */ (function (_super) {
         __extends(Toolbar, _super);
         function Toolbar(param) {

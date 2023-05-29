@@ -869,6 +869,12 @@ namespace FrameWork {
         }
     }
 
+    export class RibbonMenuContainer extends FrameWork {
+        constructor(param?: Parameter) {
+            super(param, "ribbonmenu-container");
+        }
+    }
+
 
     //Controls
 
@@ -914,6 +920,24 @@ namespace FrameWork {
                 this.children[i].Show(this.body);
             }
         };
+    }
+
+    export class RibbonMenu extends FrameWork {
+        constructor(param?: Parameter) {
+            super(param, "ribbonmenu");
+        }
+    }
+
+    export class RibbonLargeButton extends FrameWork {
+        constructor(param?: Parameter) {
+            super(param, "ribbon-large-button");
+        }
+    }
+
+    export class RibbonButton extends FrameWork {
+        constructor(param?: Parameter) {
+            super(param, "ribbon-button");
+        }
     }
 
     export class Toolbar extends FrameWork {

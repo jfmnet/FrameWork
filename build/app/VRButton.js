@@ -176,4 +176,4 @@ var VRButton = /** @class */ (function () {
     return VRButton;
 }());
 VRButton.registerSessionGrantedListener();
-//# sourceMappingURL=VRButton.js.map
+//# sourceMappingURL=vrbutton.js.map

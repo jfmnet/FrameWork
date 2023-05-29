@@ -43,4 +43,19 @@ namespace Canvas3DGraphics {
         };
     }
 
+    export class QuadMesh extends Canvas3DGraphics {
+        polygon: THREE.Vector3[][] = [];
+
+        constructor() {
+            super();
+        }
+
+        QuadMesh(): void {
+            
+        }
+
+        Generate(): THREE.Mesh<THREE.BufferGeometry, THREE.Material | THREE.Material[]> | THREE.LineSegments<THREE.BufferGeometry, THREE.Material | THREE.Material[]> {
+            throw new Error("Method not implemented.");
+        }
+    }
 }
