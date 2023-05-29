@@ -221,7 +221,7 @@ class FrameWork {
     RenderObject(object: any): void {
         let item: any;
         let node: FrameWork.TreeNode;
-
+        
         this.children = [];
 
         if (Array.isArray(object)) {
@@ -1432,7 +1432,8 @@ namespace MaterialDesign2 {
         NONE = "",
         OUTLINED = "mdc-button--outlined",
         RAISED = "mdc-button--raised",
-        APPBAR = "material-icons mdc-top-app-bar__action-item mdc-icon-button"
+        APPBAR = "material-icons mdc-top-app-bar__action-item mdc-icon-button",
+        TABBAR = "mdc-tab",
     }
 
     export enum FloatButtonType {
@@ -1456,6 +1457,8 @@ namespace MaterialDesign2 {
 
     export class Button extends FrameWork {
         type: ButtonType = ButtonType.NONE;
+        tooltip: string;
+        isActive: boolean = false;
 
         constructor(param?: Parameter) {
             super(param, "mdc-button");
@@ -1465,31 +1468,59 @@ namespace MaterialDesign2 {
         Refresh(): void {
             this.Clear();
 
-            let classes = this.type.split(" ");
+            // let classes = this.type.split(" ");
 
-            if (this.type === ButtonType.APPBAR)
-                this.object.classList.remove("mdc-button");
+            // if (this.type === ButtonType.APPBAR)
+            //     this.object.classList.remove("mdc-button");
 
-            for (let c of classes)
-                if (c.trim() !== "")
-                    this.object.classList.add(c.trim());
+            // for (let c of classes)
+            //     if (c.trim() !== "")
+            //         this.object.classList.add(c.trim());       
 
-            if (this.icon) {
-                let html = `
-                    <div class="mdc-button__ripple"></div>
+            if(this.type === ButtonType.APPBAR){
+                this.object.setAttribute('class','mdc-icon-button');
+                this.object.classList.add('btnAppBar');           
+                let html = `           
                     <i class="material-icons mdc-button__icon" aria-hidden="true">${this.icon}</i>
-                    <span class="mdc-button__label">${this.text}</span>
-                `;
-
+                    <div>${this.text}</div>                  
+                `;                
                 this.object.innerHTML = html;
-            } else {
-                let html = `
-                    <div class="mdc-button__ripple"></div>
-                    <span class="mdc-button__label">${this.text}</span>`;
-
-                this.object.innerHTML = html;
+                
+            }else if(this.type === ButtonType.TABBAR){
+                this.object.setAttribute('role','tab');
+                this.object.setAttribute('aria-selected', "false");
+                this.object.setAttribute("tabindex", "0");
+                this.object.classList.add("mdc-tab");
+                // this.object.classList.add('mdc-ripple-upgraded');
+                this.object.classList.remove('mdc-button');
+                let html = 
+                    `<span class="mdc-tab__content">
+                    <span class="mdc-tab__icon material-icons" aria-hidden="true">${this.icon}</span>
+                    <span class="mdc-tab__text-label">${this.text}</span>
+                    </span>
+                    ${this.isActive? '<span class="mdc-tab-indicator mdc-tab-indicator--active">' : '<span class="mdc-tab-indicator">' }
+                    <span class="mdc-tab-indicator__content mdc-tab-indicator__content--underline"></span>
+                    </span>
+                    <span class="mdc-tab__ripple"></span>`;
+                this.object.innerHTML = html;                
+            }else{
+                if (this.icon) {
+                    let html = `
+                        <div class="mdc-button__ripple"></div>
+                        <i class="material-icons mdc-button__icon" aria-hidden="true">${this.icon}</i>
+                    `;
+                    if(this.text !== undefined)
+                        html += `<span class="mdc-button__label">${this.text}</span>`;
+                    
+                    this.object.innerHTML = html;
+                } else {
+                    let html = `
+                        <div class="mdc-button__ripple"></div>
+                        <span class="mdc-button__label">${this.text}</span>`;
+    
+                    this.object.innerHTML = html;
+                }
             }
-
             if (this.type !== ButtonType.APPBAR)
                 window.mdc.ripple.MDCRipple.attachTo(document.querySelector('.mdc-button'));
 
@@ -1518,6 +1549,7 @@ namespace MaterialDesign2 {
 
     export class FloatingButton extends FrameWork {
         type: FloatButtonType = FloatButtonType.REGULAR;
+        tooltip: string;
         constructor(param?: Parameter) {
             super(param, "button");
         }
@@ -1555,8 +1587,26 @@ namespace MaterialDesign2 {
                     </div>
                     `;
             }
+          
             this.object.innerHTML = html;
-            this.RenderChildren();
+
+            if(this.tooltip !== undefined){
+                let id = this.tooltip + Math.random() *10;
+                this.object.setAttribute("aria-describedby", id);
+                let tooltipText = 
+                `<div class="mdc-tooltip__surface mdc-tooltip__surface-animation">
+                  ${this.tooltip}
+                </div> `;
+                let toolDiv = document.createElement('div');
+                toolDiv.classList.add('mdc-tooltip');
+                toolDiv.setAttribute("id", id); 
+                toolDiv.setAttribute("role","tooltip");
+                toolDiv.setAttribute("aria-hidden", "true");               
+                toolDiv.innerHTML = tooltipText;
+                this.object.insertAdjacentElement("afterend", toolDiv); 
+                new window.mdc.tooltip.MDCTooltip(document.querySelector('.mdc-tooltip'));
+            }  
+            
             this.Events();
         }
     }
@@ -1883,7 +1933,6 @@ namespace MaterialDesign2 {
             dialog.open();
 
             dialog.listen('MDCDialog:closing', function () {
-                console.log("closing...");
                 document.body.removeChild(document.querySelector('.Dialogs'));
             });
             this.Event(dialog);            
@@ -1973,7 +2022,9 @@ namespace MaterialDesign2 {
 
     export class AppBar extends FrameWork {
         contents: HTMLElement;
-        buttons: Button[] = [];
+        //buttons: Button[] = [];
+        buttons: any[] = [];
+        drawer: FrameWork;
 
         constructor(param?: Parameter) {
             super(param, "appbar");
@@ -2004,13 +2055,11 @@ namespace MaterialDesign2 {
             let body = document.querySelector(".appbar-body");
 
             for (let i = 0; i < this.children.length; i++) {
-                if (this.children[i].classes.indexOf('navDrawer') != -1) {
-                    this.children[i].Show();
-                } else {
-                    this.children[i].Show(body);
-                }
-
+                this.children[i].Show(body);
             }
+            if(this.drawer)
+                this.drawer.Show();
+
             let buttons = document.querySelector(".appbar-buttons");
 
             for (let button of this.buttons) {
@@ -2019,7 +2068,64 @@ namespace MaterialDesign2 {
         };
     }
 
+    export class NavDrawer extends FrameWork {
+        headerName: string;
+        headerEmail: string;
+        headerImage: string;
+        constructor(param?: Parameter) {
+            super(param, "navDrawer");
+        }
+        Refresh(): void {
+            this.Clear();
+
+            let html =
+                `<aside class="mdc-drawer mdc-drawer--modal mdc-drawer-full-height">
+            <div class="mdc-drawer__header drawer-header">
+                <div class="drawer-header-close">&#10006;</div>
+                <img class="avatar" alt="Avatar" src="${this.headerImage}"/>
+                <div class="mdc-drawer-text-group">
+                    <h3 class="mdc-drawer__title">${this.headerName ?? "Name"}</h3>
+                    <h6 class="mdc-drawer__subtitle">${this.headerEmail ?? "Email"}</h6> 
+                </div>
+            </div>        
+            <div class="mdc-drawer__content">
+            <hr class="mdc-list-divider">
+                <nav class="mdc-list drawer-action-list"></nav>
+            </div>
+            </aside>
+            <div class="mdc-drawer-scrim"></div>`;
+
+            this.object.innerHTML = html;
+            const drawer = window.mdc.drawer.MDCDrawer.attachTo(document.querySelector('.mdc-drawer'));
+            let btn = this.object.parentNode.querySelector('#app-action');
+            btn?.addEventListener('click', (event) => {
+                drawer.open = !drawer.open;
+            })
+
+            let btnClose = this.object.querySelector('.drawer-header-close');
+            btnClose.addEventListener('click', (event) => {
+                drawer.open = false;
+            });
+
+            document.body.addEventListener('MDCDrawer:closed', () => {
+
+            });
+            this.RenderChildren();
+            //this.Events();
+        }
+
+        RenderChildren(): void {
+            let lst = this.object.querySelector('.drawer-action-list');
+            for (let i = 0; i < this.children.length; i++) {
+                this.children[i].Show(lst);
+            }
+            this.RenderDataSource();
+        }
+
+    }
+
     export class Tabs extends FrameWork {
+        buttons: FrameWork[] = [];
         constructor(param?: Parameter) {
             super(param, "Tabs");
         }
@@ -2029,44 +2135,48 @@ namespace MaterialDesign2 {
             <div class="mdc-tab-bar" role="tablist">
             <div class="mdc-tab-scroller">
               <div class="mdc-tab-scroller__scroll-area">
-                <div class="mdc-tab-scroller__scroll-content">
-                  <button class="mdc-tab mdc-tab--active" role="tab" aria-selected="true" tabindex="0">
-                    <span class="mdc-tab__content">
-                      <span class="mdc-tab__icon material-icons" aria-hidden="true">favorite</span>
-                      <span class="mdc-tab__text-label">Favorites</span>
-                    </span>
-                    <span class="mdc-tab-indicator mdc-tab-indicator--active">
-                      <span class="mdc-tab-indicator__content mdc-tab-indicator__content--underline"></span>
-                    </span>
-                    <span class="mdc-tab__ripple"></span>
-                  </button>
-                  <button class="mdc-tab " role="tab" aria-selected="true" tabindex="0">
-                  <span class="mdc-tab__content">
-                    <span class="mdc-tab__icon material-icons" aria-hidden="true">add</span>
-                    <span class="mdc-tab__text-label">add</span>
-                  </span>
-                  <span class="mdc-tab-indicator ">
-                    <span class="mdc-tab-indicator__content mdc-tab-indicator__content--underline"></span>
-                  </span>
-                  <span class="mdc-tab__ripple"></span>
-                </button>
+                <div class="mdc-tab-scroller__scroll-content" id="TabBtns">   
                 </div>
               </div>
             </div>
-          </div>
-            `;
-
-
-            this.object.innerHTML = html;
-
-            const tabBar = new window.mdc.tabBar.MDCTabBar(document.querySelector('.mdc-tab-bar'));
-            console.log(tabBar);
+            </div>    
+            `;      
+            this.object.innerHTML = html;   
+          
             this.RenderChildren();
-            this.Events();
+            const tabBar = new window.mdc.tabBar.MDCTabBar(document.querySelector('.mdc-tab-bar'));
+            this.Event(tabBar);            
+        }
+        RenderChildren(): void {
+            let body = document.querySelector('.Tabs');
+            for(let i = 0; i < this.children.length; i++){
+                if(i==0)
+                    this.children[i].classes = ["tab-content","tab-content--active"];
+                else
+                    this.children[i].classes = ["tab-content"];
+                this.children[i].Show(body);
+            }
+
+            let tabButton = document.querySelector('#TabBtns');
+            for(let i = 0; i < this.buttons.length; i++){
+                console.log(this.buttons[i].parent);
+                if(i==0) 
+                    this.buttons[i].classes = ["mdc-tab--active"];
+               
+                this.buttons[i].Show(tabButton);
+            }
+        }
+        Event(tabBar:any): void {
+            let contentEls = document.querySelectorAll('.tab-content');
+            tabBar.listen('MDCTabBar:activated', function(event){
+                document.querySelector('.tab-content--active')?.classList.remove('tab-content--active');
+                contentEls[event.detail.index].classList.add('tab-content--active');
+            })
         }
     }
 
     export class ToolTips extends FrameWork {
+        tooltip: any;
         constructor(param?: Parameter) {
             super(param, "ToolTips");
         }
@@ -2074,11 +2184,11 @@ namespace MaterialDesign2 {
             this.Clear();
             let html = `
             <div class="mdc-tooltip-wrapper--rich">
-            <button class="mdc-button" data-tooltip-id="tt0" aria-haspopup="dialog" aria-expanded="false">
+            <button class="mdc-button" data-tooltip-id="${this.tooltip}1" aria-haspopup="dialog" aria-expanded="false">
               <div class="mdc-button__ripple"></div>
-              <span class="mdc-button__label">Button</span>
+              <span class="mdc-button__label">sangpi</span>
             </button>
-            <div id="tt0" class="mdc-tooltip mdc-tooltip--rich" aria-hidden="true" role="dialog">
+            <div id="${this.tooltip}1" class="mdc-tooltip mdc-tooltip--rich" aria-hidden="true" role="dialog">
                <div class="mdc-tooltip__surface mdc-tooltip__surface-animation">
                   <h2 class="mdc-tooltip__title"> Lorem Ipsum </h2>
                   <p class="mdc-tooltip__content">
@@ -2095,13 +2205,65 @@ namespace MaterialDesign2 {
                </div>
             </div>
           </div>
+
+          <div class="mdc-tooltip-wrapper--rich">
+          <button class="mdc-button" data-tooltip-id="${this.tooltip}2" aria-haspopup="dialog" aria-expanded="false">
+            <div class="mdc-button__ripple"></div>
+            <span class="mdc-button__label">sangpi</span>
+          </button>
+          <div id="${this.tooltip}2" class="mdc-tooltip mdc-tooltip--rich" aria-hidden="true" role="dialog">
+             <div class="mdc-tooltip__surface mdc-tooltip__surface-animation">
+                <h2 class="mdc-tooltip__title"> Lorem Ipsum </h2>
+                <p class="mdc-tooltip__content">
+                  Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur
+                  pretium vitae est et dapibus. Aenean sit amet felis eu lorem fermentum
+                  aliquam sit amet sit amet eros.
+                  <a class="mdc-tooltip__content-link" href="google.com">link</a>
+                </p>
+                <div class="mdc-tooltip--rich-actions">
+                   <button class="mdc-tooltip__action" aria-label="action">
+                      action
+                   </button>
+                </div>
+             </div>
+          </div>
+        </div>
             `;
+
+//         let html = `         
+//         <button class="mdc-button" aria-describedby="tooltip-id">
+//           <div class="mdc-button__ripple"></div>
+//           <span class="mdc-button__label">sangpi</span>
+//         </button>
+//         <div id="tooltip-id" class="mdc-tooltip" role="tooltip" aria-hidden="true">
+//   <div class="mdc-tooltip__surface mdc-tooltip__surface-animation">
+//     sang's btn
+//   </div>
+// </div>`;
+
+//        let html = `<button class="mdc-icon-button material-icons"
+//        aria-label="${this.icon}"
+//        data-tooltip-id="${this.icon}"
+//        data-hide-tooltip-from-screenreader="true">
+//  ${this.icon}
+// </button>
+
+// <div id="${this.icon}" class="mdc-tooltip" role="tooltip" aria-hidden="true">
+//  <div class="mdc-tooltip__surface mdc-tooltip__surface-animation">
+//    ${this.icon}
+//  </div>
+// </div>`;
 
 
             this.object.innerHTML = html;
 
-            const tabBar = new window.mdc.tooltip.MDCTooltip(document.querySelector('.mdc-tooltip'));
+           const tabBar = new window.mdc.tooltip.MDCTooltip(document.querySelector('.mdc-tooltip'));
+            // console.log(tabBar);
             console.log(tabBar);
+            tabBar.Initialize;
+            tabBar.handleClick = function(){
+                alert(1);
+            };
             this.RenderChildren();
             this.Events();
         }
@@ -2176,62 +2338,30 @@ namespace MaterialDesign2 {
 
     export class SnackBar extends FrameWork {
         constructor(param?: Parameter) {
-            super(param, "switch");
+            super(param, "snackbar");
         }
         Refresh(): void {
-            this.Clear();
-            //     let html = `
-            //     <button id="basic-switch" class="mdc-switch mdc-switch--unselected" type="button" role="switch" aria-checked="false">
-            //     <div class="mdc-switch__track"></div>
-            //     <div class="mdc-switch__handle-track">
-            //       <div class="mdc-switch__handle">
-            //         <div class="mdc-switch__shadow">
-            //           <div class="mdc-elevation-overlay"></div>
-            //         </div>
-            //         <div class="mdc-switch__ripple"></div>
-            //         <div class="mdc-switch__icons">
-            //           <svg class="mdc-switch__icon mdc-switch__icon--on" viewBox="0 0 24 24">
-            //             <path d="M19.69,5.23L8.96,15.96l-4.23-4.23L2.96,13.5l6,6L21.46,7L19.69,5.23z" />
-            //           </svg>
-            //           <svg class="mdc-switch__icon mdc-switch__icon--off" viewBox="0 0 24 24">
-            //             <path d="M20 13H4v-2h16v2z" />
-            //           </svg>
-            //         </div>
-            //       </div>
-            //     </div>
-            //   </button>
-            //   <label for="basic-switch">Switching</label>
-            //     `;
-
-            let html = `
+            this.Clear();        
+        let html = `
         <aside class="mdc-snackbar">
-        <div class="mdc-snackbar__surface" role="status" aria-relevant="additions">
-          <div class="mdc-snackbar__label" aria-atomic="false">
-            Can't send photo. Retry in 5 seconds.
-          </div>
-          <div class="mdc-snackbar__actions" aria-atomic="true">
-            <button type="button" class="mdc-button mdc-snackbar__action">
-              <div class="mdc-button__ripple"></div>
-              <span class="mdc-button__label">Retry</span>
-            </button>
-          </div>
-        </div>
-      </aside>
-            `;
-
-
+            <div class="mdc-snackbar__surface" role="status" aria-relevant="additions">
+            <div class="mdc-snackbar__label" aria-atomic="false">
+                ${this.text}
+            </div>
+            <div class="mdc-snackbar__actions" aria-atomic="true">
+                <button type="button" class="mdc-button mdc-snackbar__action">
+                <div class="mdc-button__ripple"></div>
+                <span class="mdc-button__label">Retry</span>
+                </button>
+            </div>
+            </div>
+        </aside>
+        `;
             this.object.innerHTML = html;
-
-            // const tabBar = new window.mdc.tooltip.MDCTooltip(document.querySelector('.mdc-tooltip'));
-            // console.log(tabBar);
-            //let sangpi = document.querySelectorAll('.mdc-switch');
-            // for (const el in sangpi) {
-            //     const switchControl = new window.mdc.switchControl.MDCSwitch(el);
-            //   }
             const snackbar = new window.mdc.snackbar.MDCSnackbar(document.querySelector('.mdc-snackbar'));
             snackbar.open();
-            this.RenderChildren();
-            this.Events();
+            // this.RenderChildren();
+            // this.Events();
         }
     }
 
@@ -2271,76 +2401,7 @@ namespace MaterialDesign2 {
             this.RenderChildren();
             this.Events();
         }
-    }
-
-    export class NavDrawer extends FrameWork {
-        headerName: string;
-        headerEmail: string;
-        headerImage: string;
-        constructor(param?: Parameter) {
-            super(param, "navDrawer");
-        }
-        Refresh(): void {
-            this.Clear();
-
-            let html =
-                `<aside class="mdc-drawer mdc-drawer--modal mdc-drawer-full-height">
-            <div class="mdc-drawer__header drawer-header">
-                <div class="drawer-header-close">&#10006;</div>
-                <img class="avatar" alt="Avatar" src="${this.headerImage}"/>
-                <div class="mdc-drawer-text-group">
-                    <h3 class="mdc-drawer__title">${this.headerName ?? "Name"}</h3>
-                    <h6 class="mdc-drawer__subtitle">${this.headerEmail ?? "Email"}</h6> 
-                </div>
-            </div>        
-            <div class="mdc-drawer__content">
-            <hr class="mdc-list-divider">
-                <nav class="mdc-list drawer-action-list"></nav>
-            </div>
-            </aside>
-            <div class="mdc-drawer-scrim"></div>`;
-
-            this.object.innerHTML = html;
-            //const listEl = document.querySelector('.mdc-drawer .mdc-list');
-            // const list = window.mdc.list.MDCList.attachTo(document.querySelector('.mdc-list'));
-            // list.wrapFocus = true;
-
-            const drawer = window.mdc.drawer.MDCDrawer.attachTo(document.querySelector('.mdc-drawer'));
-            // console.log(drawer);
-            // drawer.focusTrap = true;
-            // const listEl = document.querySelector('#st');
-            // const mainContentEl = document.querySelector('.main-content');
-
-            // listEl.addEventListener('click', (event) => {                
-            //     drawer.open = !drawer.open;
-            // });
-            let btn = this.object.parentNode.querySelector('#app-action');
-            btn?.addEventListener('click', (event) => {
-                drawer.open = !drawer.open;
-            })
-
-            let btnClose = this.object.querySelector('.drawer-header-close');
-            btnClose.addEventListener('click', (event) => {
-                drawer.open = false;
-            });
-
-            document.body.addEventListener('MDCDrawer:closed', () => {
-
-            });
-            this.RenderChildren();
-            //this.Events();
-        }
-
-        RenderChildren(): void {
-            let lst = this.object.querySelector('.drawer-action-list');
-            for (let i = 0; i < this.children.length; i++) {
-                this.children[i].Show(lst);
-            }
-            this.RenderDataSource();
-        }
-
-
-    }
+    }    
 
     export class Menu extends FrameWork {
         constructor(param?: Parameter) {
@@ -2350,34 +2411,18 @@ namespace MaterialDesign2 {
             this.Clear();
 
             let html = `      
-        <div class="mdc-menu mdc-menu-surface" id="demo-menu">
-        <ul class="mdc-list" role="menu" aria-hidden="true" aria-orientation="vertical" tabindex="-1">
-          <li>
-            <ul class="mdc-menu__selection-group">
-              <li class="mdc-list-item" role="menuitem">
+            <div class="mdc-menu mdc-menu-surface">
+            <ul class="mdc-list" role="menu" aria-hidden="true" aria-orientation="vertical" tabindex="-1">
+                <li class="mdc-list-item" role="menuitem">
                 <span class="mdc-list-item__ripple"></span>
-                <span class="mdc-list-item__graphic mdc-menu__selection-group-icon">
-                  ...
-                </span>
-                <span class="mdc-list-item__text">Single</span>
-              </li>
-              <li class="mdc-list-item" role="menuitem">
+                <span class="mdc-list-item__text">A Menu Item</span>
+                </li>
+                <li class="mdc-list-item" role="menuitem">
                 <span class="mdc-list-item__ripple"></span>
-                <span class="mdc-list-item__graphic mdc-menu__selection-group-icon">
-                 ...
-                </span>
-                <span class="mdc-list-item__text">1.15</span>
-              </li>
+                <span class="mdc-list-item__text">Another Menu Item</span>
+                </li>
             </ul>
-          </li>
-          <li class="mdc-list-divider" role="separator"></li>
-          <li class="mdc-list-item" role="menuitem">
-            <span class="mdc-list-item__ripple"></span>
-            <span class="mdc-list-item__text">Add space before paragraph</span>
-          </li>
-          ...
-        </ul>
-      </div>    
+            </div>
             `;
             this.object.innerHTML = html;
             const menu = new window.mdc.menu.MDCMenu(document.querySelector('.mdc-menu'));
@@ -2429,32 +2474,66 @@ namespace MaterialDesign2 {
         Refresh(): void {
             this.Clear();
 
-            let html = `  
-        <span class="mdc-evolution-chip-set" role="grid">
-        <span class="mdc-evolution-chip-set__chips" role="presentation">
-          <span class="mdc-evolution-chip" role="row" id="c0">
-            <span class="mdc-evolution-chip__cell mdc-evolution-chip__cell--primary" role="gridcell">
-              <button class="mdc-evolution-chip__action mdc-evolution-chip__action--primary" type="button" tabindex="0">
-                <span class="mdc-evolution-chip__ripple mdc-evolution-chip__ripple--primary"></span>
-                <span class="mdc-evolution-chip__text-label">Chip one</span>
-              </button>
+        let html = `  
+            <span class="mdc-evolution-chip-set" role="grid">
+            <span class="mdc-evolution-chip-set__chips" role="presentation">
+            <span class="mdc-evolution-chip" role="row" id="c0">
+                <span class="mdc-evolution-chip__cell mdc-evolution-chip__cell--primary" role="gridcell">
+                <button class="mdc-evolution-chip__action mdc-evolution-chip__action--primary" type="button" tabindex="0">
+                    <span class="mdc-evolution-chip__ripple mdc-evolution-chip__ripple--primary"></span>
+                    <span class="mdc-evolution-chip__text-label">Chip one</span>
+                </button>
+                </span>
             </span>
-          </span>
-          <span class="mdc-evolution-chip" role="row" id="c1">
-            <span class="mdc-evolution-chip__cell mdc-evolution-chip__cell--primary" role="gridcell">
-              <button class="mdc-evolution-chip__action mdc-evolution-chip__action--primary" type="button" tabindex="-1">
-                <span class="mdc-evolution-chip__ripple mdc-evolution-chip__ripple--primary"></span>
-                <span class="mdc-evolution-chip__text-label">Chip two</span>
-              </button>
+            <span class="mdc-evolution-chip" role="row" id="c1">
+                <span class="mdc-evolution-chip__cell mdc-evolution-chip__cell--primary" role="gridcell">
+                <button class="mdc-evolution-chip__action mdc-evolution-chip__action--primary" type="button" tabindex="-1">
+                    <span class="mdc-evolution-chip__ripple mdc-evolution-chip__ripple--primary"></span>
+                    <span class="mdc-evolution-chip__text-label">Chip two</span>
+                </button>
+                </span>
             </span>
-          </span>
+            </span>
         </span>
-      </span>
-            `;
+            `;          
             this.object.innerHTML = html;
             const chip = new window.mdc.chips.MDCChipSet(document.querySelector('.mdc-evolution-chip-set'));
             this.RenderChildren();
             this.Events();
         }
     }
+
+    export class Banner extends FrameWork{
+        constructor(param?: Parameter) {
+            super(param, "banner");
+        }
+        Refresh(): void {
+            this.Clear();
+            let html = `<div class="mdc-banner mdc-banner--centered" role="banner">
+            <div class="mdc-banner__fixed">
+              <div class="mdc-banner__content"
+                   role="alertdialog"
+                   aria-live="assertive">
+                <div class="mdc-banner__graphic-text-wrapper">
+                  <div class="mdc-banner__text">
+                    ${this.text}
+                  </div>
+                </div>
+                <div class="mdc-banner__actions">
+                  <button type="button" class="mdc-button mdc-banner__primary-action">
+                    <div class="mdc-button__ripple"></div>
+                    <div class="mdc-button__label">Close</div>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>`;           
+            this.object.innerHTML = html;
+            const banner = new window.mdc.banner.MDCBanner(document.querySelector('.mdc-banner'));
+            banner.open();
+            this.RenderChildren();
+            this.Events();
+        }
+    }
+ 
 }

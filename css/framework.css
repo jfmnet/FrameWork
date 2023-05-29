@@ -480,17 +480,17 @@ input {
 .drawer-header-close {
     position: absolute;
     display: block;
-    padding: 8px;
-    background-color: pink;
-    top: 0.7px;
+    padding:8px;
+    background-color: #FE4D4D;
+    top:0.7px;
     right: 0.7px;
     border-radius: 50px;
     cursor: pointer;
     transition: all 0.5s;
 }
 
-.drawer-header-close:hover {
-    background-color: #DC143C;
+ .drawer-header-close:hover{
+    background-color: #DB0000;
     transform: rotate(180deg);
 }
 
@@ -501,4 +501,66 @@ input {
     height: 60px;
     display: inline-block;
     margin-top: 20px !important;
+ }
+
+ .mdc-drawer-text-group{
+    display: inline-block;
+    vertical-align:super;
+ }
+
+ a.mdc-list-item{
+    padding: 10px;
+ }
+
+ a.mdc-list-item span.mdc-list-item__text {
+    padding-left: 10px;
+ }
+
+
+ .mdc-top-app-bar__row {
+    height: 40px;
+ }
+
+ .mdc-top-app-bar {
+    background-color: #CCC;
+}
+
+ .mdc-top-app-bar--fixed-adjust {
+    top: 40px;
+ }
+
+ .mdc-top-app-bar__title {
+    font-size: 18px;
+    padding-left: 0;
+ }
+
+ .mdc-top-app-bar__section {
+    padding: 8px 12px 8px 0;
+ }
+/* tooltip */
+.btnAppBar div {
+    display: none;
+    transition: 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+.btnAppBar:hover div{
+    display: block;
+    font-size:0.8rem;
+    padding: 1px 3px;
+    background-color:#696969;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    border-radius: 10px;
+    white-space: nowrap;
+}
+.btnAppBar:hover:before{   
+  position: absolute;
+  content: "";
+  height: 15px;
+  width: 15px;
+  background: #696969;
+  left: 50%;
+  bottom: -6px;
+  transform: translateX(-50%) rotate(45deg);
+  transition: 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 }
