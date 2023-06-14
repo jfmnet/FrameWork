@@ -2,10 +2,6 @@ var Demo = /** @class */ (function () {
     function Demo() {
     }
     Demo.prototype.Show = function () {
-        //this.Show3D();
-        //this.Tree();
-        //this.Menu();
-        //this.Input();
         this.MaterialDesign2();
     };
     Demo.prototype.Show3D = function () {
