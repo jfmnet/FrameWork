@@ -28,7 +28,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     function verb(n) { return function (v) { return step([n, v]); }; }
     function step(op) {
         if (f) throw new TypeError("Generator is already executing.");
-        while (_) try {
+        while (g && (g = 0, op[0] && (_ = 0)), _) try {
             if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
             if (y = 0, t) op = [op[0] & 2, t.value];
             switch (op[0]) {
@@ -1330,6 +1330,7 @@ var MaterialDesign2;
         ButtonType["OUTLINED"] = "mdc-button--outlined";
         ButtonType["RAISED"] = "mdc-button--raised";
         ButtonType["APPBAR"] = "material-icons mdc-top-app-bar__action-item mdc-icon-button";
+        ButtonType["TABBAR"] = "mdc-tab";
     })(ButtonType = MaterialDesign2.ButtonType || (MaterialDesign2.ButtonType = {}));
     var FloatButtonType;
     (function (FloatButtonType) {
@@ -1355,39 +1356,45 @@ var MaterialDesign2;
         function Button(param) {
             var _this = _super.call(this, param, "mdc-button") || this;
             _this.type = ButtonType.NONE;
+            _this.isActive = false;
             _this.element = "button";
             return _this;
         }
         Button.prototype.Refresh = function () {
             this.Clear();
-            var classes = this.type.split(" ");
-            if (this.type === ButtonType.APPBAR)
-                this.object.classList.remove("mdc-button");
-            for (var _i = 0, classes_1 = classes; _i < classes_1.length; _i++) {
-                var c = classes_1[_i];
-                if (c.trim() !== "")
-                    this.object.classList.add(c.trim());
+            // let classes = this.type.split(" ");
+            // if (this.type === ButtonType.APPBAR)
+            //     this.object.classList.remove("mdc-button");
+            // for (let c of classes)
+            //     if (c.trim() !== "")
+            //         this.object.classList.add(c.trim());       
+            if (this.type === ButtonType.APPBAR) {
+                this.object.setAttribute('class', 'mdc-icon-button');
+                this.object.classList.add('btnAppBar');
+                var html = "           \n                    <i class=\"material-icons mdc-button__icon\" aria-hidden=\"true\">".concat(this.icon, "</i>\n                    <div>").concat(this.text, "</div>                  \n                ");
+                this.object.innerHTML = html;
             }
-            if (this.icon) {
-                var html = "\n                    <div class=\"mdc-button__ripple\"></div>\n                    <i class=\"material-icons mdc-button__icon\" aria-hidden=\"true\">".concat(this.icon, "</i>\n                    <span class=\"mdc-button__label\">").concat(this.text, "</span>\n                ");
+            else if (this.type === ButtonType.TABBAR) {
+                this.object.setAttribute('role', 'tab');
+                this.object.setAttribute('aria-selected', "false");
+                this.object.setAttribute("tabindex", "0");
+                this.object.classList.add("mdc-tab");
+                // this.object.classList.add('mdc-ripple-upgraded');
+                this.object.classList.remove('mdc-button');
+                var html = "<span class=\"mdc-tab__content\">\n                    <span class=\"mdc-tab__icon material-icons\" aria-hidden=\"true\">".concat(this.icon, "</span>\n                    <span class=\"mdc-tab__text-label\">").concat(this.text, "</span>\n                    </span>\n                    ").concat(this.isActive ? '<span class="mdc-tab-indicator mdc-tab-indicator--active">' : '<span class="mdc-tab-indicator">', "\n                    <span class=\"mdc-tab-indicator__content mdc-tab-indicator__content--underline\"></span>\n                    </span>\n                    <span class=\"mdc-tab__ripple\"></span>");
                 this.object.innerHTML = html;
             }
             else {
-                var html = "\n                    <div class=\"mdc-button__ripple\"></div>\n                    <span class=\"mdc-button__label\">".concat(this.text, "</span>");
-                this.object.innerHTML = html;
-            }
-            if (this.tooltip !== undefined) {
-                var id = this.tooltip + Math.random() * 10;
-                this.object.setAttribute("aria-describedby", id);
-                var tooltipText = "<div class=\"mdc-tooltip__surface mdc-tooltip__surface-animation\">\n                  ".concat(this.tooltip, "\n                </div> ");
-                var toolDiv = document.createElement('div');
-                toolDiv.classList.add('mdc-tooltip');
-                toolDiv.setAttribute("id", id);
-                toolDiv.setAttribute("role", "tooltip");
-                toolDiv.setAttribute("aria-hidden", "true");
-                toolDiv.innerHTML = tooltipText;
-                this.object.insertAdjacentElement("afterend", toolDiv);
-                new window.mdc.tooltip.MDCTooltip(document.querySelector('.mdc-tooltip'));
+                if (this.icon) {
+                    var html = "\n                        <div class=\"mdc-button__ripple\"></div>\n                        <i class=\"material-icons mdc-button__icon\" aria-hidden=\"true\">".concat(this.icon, "</i>\n                    ");
+                    if (this.text !== undefined)
+                        html += "<span class=\"mdc-button__label\">".concat(this.text, "</span>");
+                    this.object.innerHTML = html;
+                }
+                else {
+                    var html = "\n                        <div class=\"mdc-button__ripple\"></div>\n                        <span class=\"mdc-button__label\">".concat(this.text, "</span>");
+                    this.object.innerHTML = html;
+                }
             }
             if (this.type !== ButtonType.APPBAR)
                 window.mdc.ripple.MDCRipple.attachTo(document.querySelector('.mdc-button'));
@@ -1697,6 +1704,7 @@ var MaterialDesign2;
         __extends(AppBar, _super);
         function AppBar(param) {
             var _this = _super.call(this, param, "appbar") || this;
+            //buttons: Button[] = [];
             _this.buttons = [];
             return _this;
         }
@@ -1724,19 +1732,79 @@ var MaterialDesign2;
         return AppBar;
     }(FrameWork));
     MaterialDesign2.AppBar = AppBar;
+    var NavDrawer = /** @class */ (function (_super) {
+        __extends(NavDrawer, _super);
+        function NavDrawer(param) {
+            return _super.call(this, param, "navDrawer") || this;
+        }
+        NavDrawer.prototype.Refresh = function () {
+            var _a, _b;
+            this.Clear();
+            var html = "<aside class=\"mdc-drawer mdc-drawer--modal mdc-drawer-full-height\">\n            <div class=\"mdc-drawer__header drawer-header\">\n                <div class=\"drawer-header-close\">&#10006;</div>\n                <img class=\"avatar\" alt=\"Avatar\" src=\"".concat(this.headerImage, "\"/>\n                <div class=\"mdc-drawer-text-group\">\n                    <h3 class=\"mdc-drawer__title\">").concat((_a = this.headerName) !== null && _a !== void 0 ? _a : "Name", "</h3>\n                    <h6 class=\"mdc-drawer__subtitle\">").concat((_b = this.headerEmail) !== null && _b !== void 0 ? _b : "Email", "</h6> \n                </div>\n            </div>        \n            <div class=\"mdc-drawer__content\">\n            <hr class=\"mdc-list-divider\">\n                <nav class=\"mdc-list drawer-action-list\"></nav>\n            </div>\n            </aside>\n            <div class=\"mdc-drawer-scrim\"></div>");
+            this.object.innerHTML = html;
+            var drawer = window.mdc.drawer.MDCDrawer.attachTo(document.querySelector('.mdc-drawer'));
+            var btn = this.object.parentNode.querySelector('#app-action');
+            btn === null || btn === void 0 ? void 0 : btn.addEventListener('click', function (event) {
+                drawer.open = !drawer.open;
+            });
+            var btnClose = this.object.querySelector('.drawer-header-close');
+            btnClose.addEventListener('click', function (event) {
+                drawer.open = false;
+            });
+            document.body.addEventListener('MDCDrawer:closed', function () {
+            });
+            this.RenderChildren();
+            //this.Events();
+        };
+        NavDrawer.prototype.RenderChildren = function () {
+            var lst = this.object.querySelector('.drawer-action-list');
+            for (var i = 0; i < this.children.length; i++) {
+                this.children[i].Show(lst);
+            }
+            this.RenderDataSource();
+        };
+        return NavDrawer;
+    }(FrameWork));
+    MaterialDesign2.NavDrawer = NavDrawer;
     var Tabs = /** @class */ (function (_super) {
         __extends(Tabs, _super);
         function Tabs(param) {
-            return _super.call(this, param, "Tabs") || this;
+            var _this = _super.call(this, param, "Tabs") || this;
+            _this.buttons = [];
+            return _this;
         }
         Tabs.prototype.Refresh = function () {
             this.Clear();
-            var html = "\n            <div class=\"mdc-tab-bar\" role=\"tablist\">\n            <div class=\"mdc-tab-scroller\">\n              <div class=\"mdc-tab-scroller__scroll-area\">\n                <div class=\"mdc-tab-scroller__scroll-content\">\n                  <button class=\"mdc-tab mdc-tab--active\" role=\"tab\" aria-selected=\"true\" tabindex=\"0\">\n                    <span class=\"mdc-tab__content\">\n                      <span class=\"mdc-tab__icon material-icons\" aria-hidden=\"true\">favorite</span>\n                      <span class=\"mdc-tab__text-label\">Favorites</span>\n                    </span>\n                    <span class=\"mdc-tab-indicator mdc-tab-indicator--active\">\n                      <span class=\"mdc-tab-indicator__content mdc-tab-indicator__content--underline\"></span>\n                    </span>\n                    <span class=\"mdc-tab__ripple\"></span>\n                  </button>\n                  <button class=\"mdc-tab \" role=\"tab\" aria-selected=\"true\" tabindex=\"0\">\n                  <span class=\"mdc-tab__content\">\n                    <span class=\"mdc-tab__icon material-icons\" aria-hidden=\"true\">add</span>\n                    <span class=\"mdc-tab__text-label\">add</span>\n                  </span>\n                  <span class=\"mdc-tab-indicator \">\n                    <span class=\"mdc-tab-indicator__content mdc-tab-indicator__content--underline\"></span>\n                  </span>\n                  <span class=\"mdc-tab__ripple\"></span>\n                </button>\n                </div>\n              </div>\n            </div>\n          </div>\n            ";
+            var html = "\n            <div class=\"mdc-tab-bar\" role=\"tablist\">\n            <div class=\"mdc-tab-scroller\">\n              <div class=\"mdc-tab-scroller__scroll-area\">\n                <div class=\"mdc-tab-scroller__scroll-content\" id=\"TabBtns\">   \n                </div>\n              </div>\n            </div>\n            </div>    \n            ";
             this.object.innerHTML = html;
-            var tabBar = new window.mdc.tabBar.MDCTabBar(document.querySelector('.mdc-tab-bar'));
-            console.log(tabBar);
             this.RenderChildren();
-            this.Events();
+            var tabBar = new window.mdc.tabBar.MDCTabBar(document.querySelector('.mdc-tab-bar'));
+            this.Event(tabBar);
+        };
+        Tabs.prototype.RenderChildren = function () {
+            var body = document.querySelector('.Tabs');
+            for (var i = 0; i < this.children.length; i++) {
+                if (i == 0)
+                    this.children[i].classes = ["tab-content", "tab-content--active"];
+                else
+                    this.children[i].classes = ["tab-content"];
+                this.children[i].Show(body);
+            }
+            var tabButton = document.querySelector('#TabBtns');
+            for (var i = 0; i < this.buttons.length; i++) {
+                console.log(this.buttons[i].parent);
+                if (i == 0)
+                    this.buttons[i].classes = ["mdc-tab--active"];
+                this.buttons[i].Show(tabButton);
+            }
+        };
+        Tabs.prototype.Event = function (tabBar) {
+            var contentEls = document.querySelectorAll('.tab-content');
+            tabBar.listen('MDCTabBar:activated', function (event) {
+                var _a;
+                (_a = document.querySelector('.tab-content--active')) === null || _a === void 0 ? void 0 : _a.classList.remove('tab-content--active');
+                contentEls[event.detail.index].classList.add('tab-content--active');
+            });
         };
         return Tabs;
     }(FrameWork));
@@ -1867,50 +1935,6 @@ var MaterialDesign2;
         return Sliders;
     }(FrameWork));
     MaterialDesign2.Sliders = Sliders;
-    var NavDrawer = /** @class */ (function (_super) {
-        __extends(NavDrawer, _super);
-        function NavDrawer(param) {
-            return _super.call(this, param, "navDrawer") || this;
-        }
-        NavDrawer.prototype.Refresh = function () {
-            var _a, _b;
-            this.Clear();
-            var html = "<aside class=\"mdc-drawer mdc-drawer--modal mdc-drawer-full-height\">\n            <div class=\"mdc-drawer__header drawer-header\">\n                <div class=\"drawer-header-close\">&#10006;</div>\n                <img class=\"avatar\" alt=\"Avatar\" src=\"".concat(this.headerImage, "\"/>\n                <div class=\"mdc-drawer-text-group\">\n                    <h3 class=\"mdc-drawer__title\">").concat((_a = this.headerName) !== null && _a !== void 0 ? _a : "Name", "</h3>\n                    <h6 class=\"mdc-drawer__subtitle\">").concat((_b = this.headerEmail) !== null && _b !== void 0 ? _b : "Email", "</h6> \n                </div>\n            </div>        \n            <div class=\"mdc-drawer__content\">\n            <hr class=\"mdc-list-divider\">\n                <nav class=\"mdc-list drawer-action-list\"></nav>\n            </div>\n            </aside>\n            <div class=\"mdc-drawer-scrim\"></div>");
-            this.object.innerHTML = html;
-            //const listEl = document.querySelector('.mdc-drawer .mdc-list');
-            // const list = window.mdc.list.MDCList.attachTo(document.querySelector('.mdc-list'));
-            // list.wrapFocus = true;
-            var drawer = window.mdc.drawer.MDCDrawer.attachTo(document.querySelector('.mdc-drawer'));
-            // console.log(drawer);
-            // drawer.focusTrap = true;
-            // const listEl = document.querySelector('#st');
-            // const mainContentEl = document.querySelector('.main-content');
-            // listEl.addEventListener('click', (event) => {                
-            //     drawer.open = !drawer.open;
-            // });
-            var btn = this.object.parentNode.querySelector('#app-action');
-            btn === null || btn === void 0 ? void 0 : btn.addEventListener('click', function (event) {
-                drawer.open = !drawer.open;
-            });
-            var btnClose = this.object.querySelector('.drawer-header-close');
-            btnClose.addEventListener('click', function (event) {
-                drawer.open = false;
-            });
-            document.body.addEventListener('MDCDrawer:closed', function () {
-            });
-            this.RenderChildren();
-            //this.Events();
-        };
-        NavDrawer.prototype.RenderChildren = function () {
-            var lst = this.object.querySelector('.drawer-action-list');
-            for (var i = 0; i < this.children.length; i++) {
-                this.children[i].Show(lst);
-            }
-            this.RenderDataSource();
-        };
-        return NavDrawer;
-    }(FrameWork));
-    MaterialDesign2.NavDrawer = NavDrawer;
     var Menu = /** @class */ (function (_super) {
         __extends(Menu, _super);
         function Menu(param) {

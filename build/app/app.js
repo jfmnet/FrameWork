@@ -1,5 +1,6 @@
 window.onload = function () {
-    var view = new XWind();
+    //let view = new SAPViewer();
+    var view = new Demo();
     view.Show();
 };
 //# sourceMappingURL=app.js.map
